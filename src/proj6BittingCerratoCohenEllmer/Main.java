@@ -46,7 +46,6 @@ public class Main extends Application {
         // Load fxml file
         Controller controller = new Controller();
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Main.fxml"));
-        fxmlLoader.setController(controller);
         Parent root = fxmlLoader.load();
 
         // handle clicking close box of the window
