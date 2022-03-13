@@ -64,7 +64,7 @@ public class Main extends Application {
         // Set the minimum height and width of the main stage
         primaryStage.setMinHeight(600);
         primaryStage.setMinWidth(800);
-        primaryStage.setTitle("Project 5");
+        primaryStage.setTitle("Project 6");
 
         // Show the stage
         primaryStage.show();
