@@ -1,12 +1,12 @@
 /*
  * File: Main.java
- * Names: Caleb Bitting, Andy Xu, Jasper Loverude
+ * Names: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
  * Class: CS 361
- * Project 5
- * Date: March 5
+ * Project 6
+ * Date: March 18
  */
 
-package proj5BittingLoverudeXu;
+package proj6BittingCerratoCohenEllmer;
 
 import javafx.application.Application;
 import javafx.collections.ObservableList;
@@ -46,7 +46,6 @@ public class Main extends Application {
         // Load fxml file
         Controller controller = new Controller();
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Main.fxml"));
-        fxmlLoader.setController(controller);
         Parent root = fxmlLoader.load();
 
         // handle clicking close box of the window
@@ -65,7 +64,7 @@ public class Main extends Application {
         // Set the minimum height and width of the main stage
         primaryStage.setMinHeight(600);
         primaryStage.setMinWidth(800);
-        primaryStage.setTitle("Project 5");
+        primaryStage.setTitle("Project 6");
 
         // Show the stage
         primaryStage.show();

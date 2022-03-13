@@ -1,4 +1,4 @@
-package proj5BittingLoverudeXu;
+package proj6BittingCerratoCohenEllmer;
 
 public enum SaveReason {
     CLOSING, EXITING, COMPILING
