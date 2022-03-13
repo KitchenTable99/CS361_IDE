@@ -3,7 +3,7 @@
 ## Access Check
 * Matt
 * Erik
-* Ian
+~~* Ian~~
 
 ## Fixes from Project 5
 * add file header to SaveReason.java
