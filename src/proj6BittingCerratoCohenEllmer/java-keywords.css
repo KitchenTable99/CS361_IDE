@@ -2,8 +2,7 @@
     File: java-keywords.css
     Names: Erik Cohen, Matt Cerrato, Andy Xu
     Class: CS 361
-    Project 4
-    Date: February 28
+    Created for Project 4 on February 28
 */
 
 /* Set style for keywords highlight, given in RichTextFX */
@@ -38,6 +37,9 @@
 	-fx-fill: cadetblue;
 }
 
+/* even though this is highlighted as an error, it works as intended
+   the line with the cursor is highlighted in light blue
+ */
 .paragraph-box:has-caret {
     -fx-background-color: #f2f9fc;
 }

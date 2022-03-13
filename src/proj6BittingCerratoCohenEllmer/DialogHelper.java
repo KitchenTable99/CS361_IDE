@@ -1,4 +1,4 @@
-package proj5BittingLoverudeXu;
+package proj6BittingCerratoCohenEllmer;
 
 import javafx.scene.control.*;
 import javafx.scene.control.Dialog;
@@ -10,7 +10,7 @@ DialogHelper {
         // create a new dialog
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setContentText("This is a code editor! \n\n "
-                + "Authors: Caleb Bitting, Jasper Loverude, and Andy Xu");
+                + "Authors: Caleb Bitting, Matt Cerrato, Erik Cohen, and Ian Ellmer");
         // add a close button so that dialog closing rule is fulfilled
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
 

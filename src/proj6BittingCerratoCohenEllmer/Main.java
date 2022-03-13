@@ -1,12 +1,12 @@
 /*
  * File: Main.java
- * Names: Caleb Bitting, Andy Xu, Jasper Loverude
+ * Names: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
  * Class: CS 361
- * Project 5
- * Date: March 5
+ * Project 6
+ * Date: March 18
  */
 
-package proj5BittingLoverudeXu;
+package proj6BittingCerratoCohenEllmer;
 
 import javafx.application.Application;
 import javafx.collections.ObservableList;
