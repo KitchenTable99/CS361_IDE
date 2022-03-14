@@ -252,16 +252,13 @@ public class CodeTabController {
     }
 
     /**
-     * If the tab is dirty, asks user to save. If user chooses to save, the changes are
-     * saved and the tab is compiled. If user chooses not to save, the currently saved
-     * version of the file is compiled (the unsaved changes are ignored). If the user
-     * cancels the dialog, no compilation is performed.
-     *
+     * Ensures that the tab has been saved and prepares a ProcessBuilder to actually compile the selected tab.
+     * @see #readyForCompile
+     * @return ProcessBuilder that will compile the current tab
      */
-    // TODO update the javadoc and rename the method. This doesn't actually compile anything
     public ProcessBuilder prepareCompileProcess() {
         // guard against the empty tab and no save prior to compilation
-        if (!saveBeforeCompile() || getSelectedTextBox().getText().equals("")) {
+        if (!readyForCompile() || getSelectedTextBox().getText().equals("")) {
             return null;
         }
 
@@ -273,7 +270,10 @@ public class CodeTabController {
         return processBuilder;
     }
 
-    // TODO: write javadoc
+    /**
+     * Prepare a ProcessBuilder for running the selected tab
+     * @return ProcessBuilder that will run the current tab
+     */
     public ProcessBuilder prepareRunningProcess() {
         String fullpath  = savedPaths.get(getSelectedTab()).replace(".java", "");
         String classname = fullpath.split(File.separator)[fullpath.split(File.separator).length - 1];
@@ -284,8 +284,14 @@ public class CodeTabController {
         return processBuilder.command("java", "-cp", classpath, classname);
     }
 
-    private boolean saveBeforeCompile() {
-        // TODO: rename this method. if the tab is not saved, BUT HAS BEEN BEFORE, this returns true. That behavior seems misleading
+    /**
+     * Checks to see if the current tab is dirty. If it is, asks user if they want to save. If they do, saves the tab
+     * and returns true. If the tab is dirty, the user doesn't want to save, returns whether the file has been saved
+     * before. If user cancels or does not want to save, returns false
+     *
+     * @return whether the selected tab is ready for compilation
+     */
+    private boolean readyForCompile() {
         // If selected tab is dirty, calls handleSave
         if (selectedTabIsDirty()) {
             // Creates new dialog

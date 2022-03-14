@@ -247,7 +247,7 @@ public class MasterController {
     }
 
 
-    // TODO add javadoc
+    // TODO add javadoc once the thread methods have been combined
     private void doCompiling(ProcessBuilder processBuilder, boolean printSuccess) {
         if (processBuilder == null) {
             return;
@@ -286,13 +286,10 @@ public class MasterController {
 
     /**
      * Handler method for Compile button.
-     * If the tab is dirty, asks user to save. If user chooses to save, the changes are
-     * saved and the tab is compiled. If user chooses not to save, the currently saved
-     * version of the file is compiled (the unsaved changes are ignored). If the user
-     * cancels the dialog, no compilation is performed.
      *
      * @param event An ActionEvent object that gives information about the event
      *              and its source.
+     * @see CodeTabController#prepareCompileProcess
      */
     // TODO update the javadoc
     @FXML

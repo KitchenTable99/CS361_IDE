@@ -42,7 +42,7 @@ public class Main extends Application {
      */
     @Override
     public void start(Stage primaryStage) throws IOException {
-        // TODO: handle the IOException
+        // TODO: handle the IOException--I don't know an appropriate way to do this
 
         // Load fxml file
         MasterController controller = new MasterController();
