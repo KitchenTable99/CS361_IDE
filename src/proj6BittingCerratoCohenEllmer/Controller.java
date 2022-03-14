@@ -9,8 +9,6 @@
 package proj6BittingCerratoCohenEllmer;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -20,11 +18,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.stage.FileChooser;
-import org.fxmisc.flowless.VirtualizedScrollPane;
-import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.StyleClassedTextArea;
 
 
@@ -249,6 +243,42 @@ public class Controller {
     }
 
 
+    // TODO add javadoc
+    private void doCompiling(ProcessBuilder processBuilder) {
+        if (processBuilder == null) {
+            return;
+        }
+        // prepare running in a new thread
+        processThread = new Thread(() -> {
+            try {
+                Process process = processBuilder.start();
+
+                // interact with the console
+                sendInputFromStreamToConsole(console, process.getErrorStream());
+
+                // indicate the process is complete
+                process.waitFor();
+                if (process.exitValue() == 0) {
+                    Platform.runLater(() -> {
+                        console.appendText("Compilation successful");
+                    });
+                }
+            }
+            catch (IOException | InterruptedException e) {
+                Platform.runLater(() -> {
+                    dialogHelper.getAlert("Runtime Error", e.getMessage()).show();
+                });
+            }
+            // after the thread is done running, it should set the internal field back to null so that
+            // the bindings can recognize that there is no process running
+            processThread = null;
+            isThreadActive.set(false);
+        });
+        isThreadActive.set(true);
+        processThread.start();
+    }
+
+
     /**
      * Handler method for Compile button.
      * If the tab is dirty, asks user to save. If user chooses to save, the changes are
@@ -262,37 +292,9 @@ public class Controller {
     // TODO update the javadoc
     @FXML
     private void handleCompile(ActionEvent event) {
-        ProcessBuilder processBuilder = tabController.compileTab();
-        if (processBuilder == null) {
-            return;
-        }
-        try {
-            Process process = processBuilder.start();
-            int exitValue = process.waitFor();
-            // if an error occurs
-            if ( process.getErrorStream().read() != -1 ) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                String line = reader.readLine();
-                while (line != null) {
-                    console.appendText(line + "\n");
-                    line = reader.readLine();
-                }
-            }
-            // if compilation process exits successfully
-            if ( exitValue == 0 ) {
-                console.appendText("\nCompilation was successful.\n");
-            }
-        } catch (IOException | InterruptedException e) {
-            dialogHelper.getAlert("Compilation Failed", e.getMessage()).show();
-        }
+        ProcessBuilder processBuilder = tabController.prepareCompileProcess();
+        doCompiling(processBuilder);
     }
-
-
-    private void putOnConsole(String toDisplay) throws IOException {
-        Platform.runLater(() -> console.appendText(toDisplay + "\n"));
-    }
-
-
 
     /**
      * Handler method for Compile & Run button.
@@ -301,68 +303,68 @@ public class Controller {
      *              and its source.
      */
     @FXML
-    private void handleCompileRun(ActionEvent event) throws InterruptedException {
-        ProcessBuilder processBuilder = tabController.compileTab();
-        if (processBuilder == null) {
-            return;
-        }
-        // prepare running in a new thread
-        processThread = new Thread(() -> {
-            try {
-                Process process = processBuilder.start();
+    private void handleCompileRun(ActionEvent event) {
+        ProcessBuilder processBuilder = tabController.prepareCompileProcess();
+        doCompiling(processBuilder);
+        // TODO actually run the compiled file
+    }
 
-                // get outStream and inStream
-                InputStream inStream = process.getInputStream();
-                BufferedReader inputReader = new BufferedReader(new InputStreamReader(inStream, StandardCharsets.UTF_8));
-                OutputStream outStream = process.getOutputStream();
+    /**
+     * gets input typed into the Console and writes it to the given OutputStream
+     * The characters are written to the OutputStream when \r or \n are typed.
+     * @author dskrien
+     *
+     * @param ioConsole    the StyleClassedTextArea whose input is sent to the stream
+     * @param outputStream the OutputStream where the Console input is sent
+     */
+    public void sendInputFromConsoleToStream(StyleClassedTextArea ioConsole,
+                                             OutputStream outputStream) {
+        ioConsole.setOnKeyTyped(new EventHandler<>()
+        {
+            String result = ""; // the text to sent to the stream
 
-                // make console listen for key presses
-                console.setOnKeyReleased(new EventHandler<>() {
-                    String userInput = "";
-
-                    public void handle(KeyEvent event) {
-                        // get the key that is pressed and add it
-                        userInput += event.getText();
-                        // if user presses enter
-                        if (event.getCode() == KeyCode.ENTER) {
-                            try {
-                                outStream.write(userInput.getBytes(StandardCharsets.UTF_8));
-                                outStream.flush();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            userInput = "";         // start user input over
+            @Override
+            public void handle(KeyEvent event) {
+                String ch = event.getCharacter();
+                result += ch;
+                if (ch.equals("\r") || ch.equals("\n")) {
+                    try {
+                        for (char c : result.toCharArray()) {
+                            outputStream.write(c);
                         }
-                    }
-                });
-
-                // print to the new std.out while the program is running
-                String line;
-                while (process.isAlive()) {
-                    line = inputReader.readLine();
-                    if (line != null) {
-                        putOnConsole(line);
+                        outputStream.flush();
+                        result = "";
+                    } catch (IOException e) {
+                        Platform.runLater(() -> new Alert(Alert.AlertType.ERROR,
+                                "Could not send input to the output stream."));
                     }
                 }
-                outStream.close();
+            }
 
-                // if compilation process exits successfully
-                Platform.runLater(() -> {
-                    console.appendText(String.format("\nProcess finished with exit code %d.\n", process.exitValue()));
-                });
-            }
-            catch (IOException ex) {
-                Platform.runLater(() -> {
-                    dialogHelper.getAlert("Runtime Error", ex.getMessage()).show();
-                });
-            }
-            // after the thread is done running, it should set the internal field back to null so that
-            // the bindings can recognize that there is no process running
-            this.processThread = null;
-            this.isThreadActive.set(false);
         });
-        this.isThreadActive.set(true);
-        processThread.start();
+    }
+
+    /**
+     * gets the input from an InputStream and writes it continuously to the ioConsole.
+     * @author dskrien
+     *
+     * @param ioConsole   the StyleClassedTextArea where the data is written
+     * @param inputStream the InputStream providing the data to be written
+     */
+    public void sendInputFromStreamToConsole(StyleClassedTextArea ioConsole,
+                                             InputStream inputStream) throws IOException {
+        // for a discussion of how to convert inputStream data to strings, see
+        // [stackoverflow.com/questions/309424/read-convert-an-inputstream-to-a-string]
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = inputStream.read(buffer)) != -1) {
+            String result = new String(buffer, 0, length);
+            Platform.runLater(() -> {
+                ioConsole.appendText(result);
+                ioConsole.moveTo(ioConsole.getLength()); //move cursor to the end
+                ioConsole.requestFollowCaret();
+            });
+        }
     }
 
     /**

@@ -256,7 +256,7 @@ public class CodeTabController {
      *
      */
     // TODO update the javadoc and rename the method. This doesn't actually compile anything
-    public ProcessBuilder compileTab() {
+    public ProcessBuilder prepareCompileProcess() {
         // guard against the empty tab and no save prior to compilation
         if (!saveBeforeCompile() || getSelectedTextBox().getText().equals("")) {
             return null;
