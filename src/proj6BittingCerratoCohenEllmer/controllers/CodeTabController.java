@@ -16,6 +16,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
 
 public class CodeTabController {
@@ -360,38 +361,37 @@ public class CodeTabController {
      * @return String name for newTab
      */
     private String getNextAvailableUntitled() {
-        // TODO refactor this method
-        // Stores whether "Untitled" is available in boolean, iterates through all tabs
-        boolean defaultUntitledAvailable = true;
+        ObservableList<Tab> tabs = tabPane.getTabs();
+        HashSet<Integer> untitledSet = new HashSet<>();
 
-        ObservableList<Tab> allTabsList = this.tabPane.getTabs();
-
-        for(Tab currTab : allTabsList){
-            // If "Untitled", sets boolean to false,
-            String currTabTitle = currTab.getText();
-            if(currTabTitle.equals("Untitled")) {
-                defaultUntitledAvailable = false;
-                break;
+        // iterate over each tab to check if it is an "Untitled" tab
+        for(Tab tab : tabs){
+            String tabTitle = tab.getText();
+            // TODO if a file is literally called "Untitled" this method will pick up on that
+            if(tabTitle.startsWith("Untitled")) {
+                String[] splitTitle = tabTitle.split("Untitled");
+                if (splitTitle.length == 0) {
+                    // this only happens if the title of the tab is "Untitled"
+                    untitledSet.add(0);
+                } else {
+                    // the array is of the form ["Untitled", "-XX"] where XX is the
+                    // value we want to avoid duplicating
+                    int negativeUntitled = Integer.parseInt(splitTitle[1]);
+                    untitledSet.add(-1 * negativeUntitled);
+                }
             }
         }
 
-        if(defaultUntitledAvailable) return "Untitled";
-
-        // Iterates through every tab in hashSet, until the lowest "Untitled-x" is found
-        int untitledNumber = 1;
-        String lowestUntitledName = "Untitled-" + untitledNumber;
-
-        for(int i = 0; i < allTabsList.size(); i++){
-
-            String untitledName = allTabsList.get(i).getText();
-
-            if(lowestUntitledName.equals(untitledName)){
-                untitledNumber++;
-                lowestUntitledName = "Untitled-" + untitledNumber;
-                i = 0;
+        // return the lowest untitled string
+        for (int i = 0; i < tabs.size(); i++) {
+            if (!untitledSet.contains(i)) {
+                if (i == 0) {
+                    return "Untitled";
+                }
+                return "Untitled-" + i;
             }
         }
-        // Returns "Untitled-x" with lowest x available
-        return lowestUntitledName;
+
+        return "Untitled-" + tabs.size();
     }
 }
