@@ -60,8 +60,11 @@
                       mnemonicParsing="false" onAction="#handleSelectAll"/>
         </Menu>
     </MenuBar>
-    <!-- use a TabPane to hold the text area  -->
-    <fx:include source="CodeTabs.fxml"/>
+    <!-- use a separate FXML file to enable nested controllers  -->
+    <!-- it is necessary to have an fx:id equal to the field in the main controller minus "Controller"  -->
+    <!-- ex. in Controller.java, the controller for the element below is named tabController  -->
+    <!--     here the fx:id should be "tab" -->
+    <fx:include fx:id="tab" source="CodeTabs.fxml"/>
     <!-- use a ToolBar to hold the two buttons -->
     <ToolBar layoutY="27.0" prefHeight="49.0" prefWidth="400.0"
              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
