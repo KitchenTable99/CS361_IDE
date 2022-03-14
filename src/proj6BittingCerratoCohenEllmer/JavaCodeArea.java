@@ -1,5 +1,5 @@
 /*
- * File: HighlightedCodeArea.java
+ * File: JavaCodeArea.java
  * Names: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
  * Class: CS 361
  * Project 6
@@ -30,7 +30,7 @@ import org.reactfx.Subscription;
  * Code is from JavaKeywordsAsyncDemo.java in RichTextFX package,
  * and is modified.
  */
-public class HighlightedCodeArea {
+public class JavaCodeArea {
 
     // added new keyword "var"
     private static final String[] KEYWORDS = new String[] {
@@ -76,7 +76,7 @@ public class HighlightedCodeArea {
      * Constructor that initialized the codeArea field and executor
      * and does the customization by calling helper functions.
      */
-    public HighlightedCodeArea() {
+    public JavaCodeArea() {
         executor = Executors.newSingleThreadExecutor();
         codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));

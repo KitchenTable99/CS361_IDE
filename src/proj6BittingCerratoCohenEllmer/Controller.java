@@ -53,7 +53,7 @@ public class Controller {
 
     private Thread processThread = null;
 
-    private SimpleBooleanProperty isThreadActive = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty isThreadActive = new SimpleBooleanProperty(false);
 
     /**
      * Exposes the exit handler's functionality to outside classes.
@@ -73,6 +73,7 @@ public class Controller {
         this.handleNew();
 
         // disable appropriate menu items when no tabs are open
+        // TODO: delegate disabling to some helper class
         closeMI.disableProperty().bind(noTabs());
         saveMI.disableProperty().bind(noTabs());
         saveAsMI.disableProperty().bind(noTabs());
@@ -137,12 +138,10 @@ public class Controller {
 
     /**
      * Handles menu bar item New. Creates a new tab and adds it to the tabPane.
-     *
-     *
      */
     @FXML
     private void handleNew() {
-
+        // TODO: delegate all the tab methods to some tab controller
         // calls helper method for untitled tabName generation
         String newTabName = getNextAvailableUntitled();
 
@@ -159,8 +158,8 @@ public class Controller {
         newTab.setTooltip(tabToolTip);
 
         // create a code area
-        HighlightedCodeArea highlightedCodeArea = new HighlightedCodeArea();
-        CodeArea codeArea = highlightedCodeArea.getCodeArea();
+        JavaCodeArea javaCodeArea = new JavaCodeArea();
+        CodeArea codeArea = javaCodeArea.getCodeArea();
         newTab.setContent(new VirtualizedScrollPane<>(codeArea));
         // add new tab to the tabPane and sets as topmost
         tabPane.getTabs().add(newTab);
@@ -208,7 +207,6 @@ public class Controller {
         }
         // Returns "Untitled-x" with lowest x available
         return lowestUntitledName;
-
     }
 
     /**
@@ -314,6 +312,7 @@ public class Controller {
      */
     @FXML
     private void handleExit(ActionEvent event) {
+        // TODO fix bug when clicking red 'X' with no tabs open
         tabPane.getSelectionModel().selectLast();
         while (tabPane.getTabs().size() > 0) {
             // try close the currently selected tab
@@ -351,10 +350,6 @@ public class Controller {
         }
         // Otherwise, returns false (not dirty) if contents equal, or true if they aren't
         else return !savedContent.equals(currentContents);
-
-
-
-
     }
 
     /**

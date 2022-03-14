@@ -1,10 +1,17 @@
+/*
+ * File: DialogHelper.java
+ * Names: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
+ * Class: CS 361
+ * Project 5
+ * Date: March 7
+ */
+
 package proj6BittingCerratoCohenEllmer;
 
 import javafx.scene.control.*;
 import javafx.scene.control.Dialog;
 
-public class
-DialogHelper {
+public class DialogHelper {
 
     public Dialog<ButtonType> getAboutDialog() {
         // create a new dialog
