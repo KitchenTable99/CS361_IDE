@@ -273,6 +273,17 @@ public class CodeTabController {
         return processBuilder;
     }
 
+    // TODO: write javadoc
+    public ProcessBuilder prepareRunningProcess() {
+        String fullpath  = savedPaths.get(getSelectedTab()).replace(".java", "");
+        String classname = fullpath.split(File.separator)[fullpath.split(File.separator).length - 1];
+        String classpath = fullpath.replace(File.separator + classname, "");
+
+        // new process builder for running with java interpreter
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        return processBuilder.command("java", "-cp", classpath, classname);
+    }
+
     private boolean saveBeforeCompile() {
         // TODO: rename this method. if the tab is not saved, BUT HAS BEEN BEFORE, this returns true. That behavior seems misleading
         // If selected tab is dirty, calls handleSave

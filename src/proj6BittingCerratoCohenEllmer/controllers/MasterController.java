@@ -9,6 +9,7 @@
 package proj6BittingCerratoCohenEllmer.controllers;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -18,6 +19,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.fxmisc.richtext.StyleClassedTextArea;
 import proj6BittingCerratoCohenEllmer.view.DialogHelper;
@@ -246,7 +248,7 @@ public class MasterController {
 
 
     // TODO add javadoc
-    private void doCompiling(ProcessBuilder processBuilder) {
+    private void doCompiling(ProcessBuilder processBuilder, boolean printSuccess) {
         if (processBuilder == null) {
             return;
         }
@@ -260,7 +262,7 @@ public class MasterController {
 
                 // indicate the process is complete
                 process.waitFor();
-                if (process.exitValue() == 0) {
+                if (process.exitValue() == 0 && printSuccess) {
                     Platform.runLater(() -> {
                         console.appendText("Compilation successful");
                     });
@@ -275,6 +277,7 @@ public class MasterController {
             // the bindings can recognize that there is no process running
             processThread = null;
             isThreadActive.set(false);
+            // TODO ensure that the tabs grey out correctly
         });
         isThreadActive.set(true);
         processThread.start();
@@ -295,7 +298,7 @@ public class MasterController {
     @FXML
     private void handleCompile(ActionEvent event) {
         ProcessBuilder processBuilder = tabController.prepareCompileProcess();
-        doCompiling(processBuilder);
+        doCompiling(processBuilder, true);
     }
 
     /**
@@ -306,9 +309,39 @@ public class MasterController {
      */
     @FXML
     private void handleCompileRun(ActionEvent event) {
-        ProcessBuilder processBuilder = tabController.prepareCompileProcess();
-        doCompiling(processBuilder);
-        // TODO actually run the compiled file
+        ProcessBuilder compileProcess = tabController.prepareCompileProcess();
+        doCompiling(compileProcess, false);
+
+        // TODO if we want to print out compile sucessful, ensure that wait happens here.
+        // TODO put this thread business in its own method the only differences are which streams are connected to the console
+        // prepare running in a new thread
+        ProcessBuilder runProcess = tabController.prepareRunningProcess();
+        processThread = new Thread(() -> {
+            try {
+                Process process = runProcess.start();
+
+                // interact with the console
+                sendInputFromConsoleToStream(console, process.getOutputStream());
+                sendInputFromStreamToConsole(console, process.getInputStream());
+
+                // if compilation process exits successfully
+                process.waitFor();
+                Platform.runLater(() -> {
+                    console.appendText(String.format("\nProcess finished with exit code %d.\n", process.exitValue()));
+                });
+            }
+            catch (IOException | InterruptedException e) {
+                Platform.runLater(() -> {
+                    dialogHelper.getAlert("Runtime Error", e.getMessage()).show();
+                });
+            }
+            // after the thread is done running, it should set the internal field back to null so that
+            // the bindings can recognize that there is no process running
+            processThread = null;
+            isThreadActive.set(false);
+        });
+        isThreadActive.set(true);
+        processThread.start();
     }
 
     /**
@@ -342,7 +375,6 @@ public class MasterController {
                     }
                 }
             }
-
         });
     }
 
