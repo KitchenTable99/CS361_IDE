@@ -17,3 +17,4 @@
 * Running a program that contains an infinite loop of print statements prints nothing and freezes
 * When compiling and running the example Scanner thing from Moodle, the print statements don't seem to work
   * The file on Dale's side also immediately crashed upon execution completion. I can't replicate that bug.
+  * It is caused by your use of inputReader.readLine() on approximately line 662 of Controller.  That method reads input until it encounters \n or \r.  The JavaScannerExample prints out the two prompts using System.out.print, not System.out.println, and so no \n nor \r are output by that program and hence no \n or \r appears in the inputReader’s stream.
