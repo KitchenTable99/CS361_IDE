@@ -2,7 +2,6 @@
 
 ## Access Check
 * Matt
-* Erik
 ~~* Ian~~
 
 ## Fixes from Project 5
