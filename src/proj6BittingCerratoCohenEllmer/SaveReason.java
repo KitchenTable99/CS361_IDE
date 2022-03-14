@@ -8,6 +8,7 @@
 
 package proj6BittingCerratoCohenEllmer;
 
+// TODO place this class in the appropriate package
 public enum SaveReason {
     CLOSING, EXITING, COMPILING
 }

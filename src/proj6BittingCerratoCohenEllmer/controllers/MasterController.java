@@ -1,12 +1,12 @@
 /*
- * File: Controller.java
+ * File: MasterController.java
  * Names: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
  * Class: CS 361
  * Project 6
  * Date: March 18
  */
 
-package proj6BittingCerratoCohenEllmer;
+package proj6BittingCerratoCohenEllmer.controllers;
 
 import java.io.*;
 
@@ -20,12 +20,14 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import org.fxmisc.richtext.StyleClassedTextArea;
+import proj6BittingCerratoCohenEllmer.view.DialogHelper;
+import proj6BittingCerratoCohenEllmer.SaveReason;
 
 
 /**
- * Controller class contains handler methods for buttons and menu items.
+ * MasterController class contains handler methods for buttons and menu items.
  */
-public class Controller {
+public class MasterController {
 
     @FXML private StyleClassedTextArea console;
     @FXML private Button compileButton, compileRunButton, stopButton;

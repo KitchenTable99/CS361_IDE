@@ -1,4 +1,4 @@
-package proj6BittingCerratoCohenEllmer;
+package proj6BittingCerratoCohenEllmer.controllers;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -8,6 +8,9 @@ import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+import proj6BittingCerratoCohenEllmer.view.DialogHelper;
+import proj6BittingCerratoCohenEllmer.model.JavaCodeArea;
+import proj6BittingCerratoCohenEllmer.SaveReason;
 
 import java.io.*;
 import java.nio.file.Files;

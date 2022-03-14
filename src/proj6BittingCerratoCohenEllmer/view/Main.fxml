@@ -19,7 +19,7 @@
 
 <AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="proj6BittingCerratoCohenEllmer.Controller">
+            fx:controller="proj6BittingCerratoCohenEllmer.controllers.MasterController">
     <!-- make menu bar expand to fill the window if user resizes window  -->
     <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
              AnchorPane.topAnchor="0.0">
@@ -61,8 +61,8 @@
         </Menu>
     </MenuBar>
     <!-- use a separate FXML file to enable nested controllers  -->
-    <!-- it is necessary to have an fx:id equal to the field in the main controller minus "Controller"  -->
-    <!-- ex. in Controller.java, the controller for the element below is named tabController  -->
+    <!-- it is necessary to have an fx:id equal to the field in the main controller minus "MasterController"  -->
+    <!-- ex. in MasterController.java, the controller for the element below is named tabController  -->
     <!--     here the fx:id should be "tab" -->
     <fx:include fx:id="tab" source="CodeTabs.fxml"/>
     <!-- use a ToolBar to hold the two buttons -->

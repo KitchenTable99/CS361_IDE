@@ -14,6 +14,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import proj6BittingCerratoCohenEllmer.controllers.MasterController;
 
 import java.io.IOException;
 
@@ -44,8 +45,8 @@ public class Main extends Application {
         // TODO: handle the IOException
 
         // Load fxml file
-        Controller controller = new Controller();
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Main.fxml"));
+        MasterController controller = new MasterController();
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("view/Main.fxml"));
         Parent root = fxmlLoader.load();
 
         // handle clicking close box of the window
@@ -57,8 +58,8 @@ public class Main extends Application {
         // Load css files
         Scene scene = new Scene(root);
         ObservableList<String> stylesheets = scene.getStylesheets();
-        stylesheets.add(getClass().getResource("Main.css").toExternalForm());
-        stylesheets.add(getClass().getResource("java-keywords.css").toExternalForm());
+        stylesheets.add(getClass().getResource("view/Main.css").toExternalForm());
+        stylesheets.add(getClass().getResource("view/java-keywords.css").toExternalForm());
         primaryStage.setScene(scene);
 
         // Set the minimum height and width of the main stage
