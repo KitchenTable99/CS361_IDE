@@ -8,9 +8,10 @@ import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+import proj6BittingCerratoCohenEllmer.model.SaveFailureException;
+import proj6BittingCerratoCohenEllmer.model.SaveInformationShuttle;
 import proj6BittingCerratoCohenEllmer.view.DialogHelper;
 import proj6BittingCerratoCohenEllmer.model.JavaCodeArea;
-import proj6BittingCerratoCohenEllmer.SaveReason;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -115,9 +116,9 @@ public class CodeTabController {
      * has never been saved before. Otherwise, save the text to its corresponding
      * text file.
      *
-     * @return whether the save was successful
+     * @throws SaveFailureException if the file cannot be saved
      */
-    public boolean saveCurrentTab() {
+    public void saveCurrentTab(SaveInformationShuttle shuttle) throws SaveFailureException {
         // if the text has been saved before
         if (savedContents.containsKey(getSelectedTab())) {
             // create a File object for the corresponding text file
@@ -129,17 +130,14 @@ public class CodeTabController {
                 writer.close();
                 // update savedContents field
                 savedContents.put(getSelectedTab(), getSelectedTextBox().getText());
-
-                return true;
+                shuttle.setSuccessfulSave();
             } catch (IOException e) {
-                dialogHelper.getAlert("File Saving Error", e.getMessage()).show();
-
-                return false;
+                throw new SaveFailureException(e.getMessage(), e.getCause());
             }
         }
         // if text in selected tab was not loaded from a file nor ever saved to a file
         else {
-            return saveCurrentTabAs();
+            saveCurrentTabAs(shuttle);
         }
 
     }
@@ -148,9 +146,9 @@ public class CodeTabController {
      * Handles menu bar item Save as....  a dialog appears in which the user is asked for
      * to save a file with four permitted extensions: .java, .txt, .fxml, and .css.
      *
-     * @return whether the save was successful
+     * @throws SaveFailureException if the file cannot be saved
      */
-    public boolean saveCurrentTabAs() {
+    public void saveCurrentTabAs(SaveInformationShuttle shuttle) throws SaveFailureException {
         // create a new fileChooser
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
@@ -167,19 +165,16 @@ public class CodeTabController {
                 fw.write(this.getSelectedTextBox().getText());
                 fw.close();
                 // update savedContents field and tab text
-                this.savedContents.put(getSelectedTab(), getSelectedTextBox().getText());
-                this.savedPaths.put(getSelectedTab(), fileToSave.getPath());
-                this.getSelectedTab().setText(fileToSave.getName());
-                this.getSelectedTab().getTooltip().setText(fileToSave.getPath());
+                savedContents.put(getSelectedTab(), getSelectedTextBox().getText());
+                savedPaths.put(getSelectedTab(), fileToSave.getPath());
+                getSelectedTab().setText(fileToSave.getName());
+                getSelectedTab().getTooltip().setText(fileToSave.getPath());
 
-                return true;
+                shuttle.setSuccessfulSave();
             } catch ( IOException e ) {
-                dialogHelper.getAlert("File Saving Error", e.getMessage()).show();
-
-                return false;
+                throw new SaveFailureException(e.getMessage(), e.getCause());
             }
         }
-        return false;
     }
 
     /**
@@ -193,6 +188,7 @@ public class CodeTabController {
      *                  returns null if tab text is already saved.
      */
     public Optional<ButtonType> closeSelectedTab(SaveReason reason) {
+        // TODO remove the return value and put it into the save shuttle
         // If selectedTab is unsaved, opens dialog to ask user whether they would like to save
         if(selectedTabIsDirty()) {
             String fileName = getSelectedTab().getText();
@@ -201,7 +197,12 @@ public class CodeTabController {
             Optional<ButtonType> result  = saveDialog.showAndWait();
             // save if user chooses YES
             if (result.isPresent() && result.get() == ButtonType.YES) {
-                saveCurrentTab();
+                try {
+                    SaveInformationShuttle shuttle = new SaveInformationShuttle();
+                    saveCurrentTab(shuttle);
+                } catch (SaveFailureException e) {
+                    dialogHelper.getAlert("Unable to save file", e.getMessage()).show();
+                }
                 // Keep the tab if the save is unsuccessful (eg. canceled)
                 if (selectedTabIsDirty()) {
                     return result;
@@ -259,7 +260,7 @@ public class CodeTabController {
      */
     public ProcessBuilder prepareCompileProcess() {
         // guard against the empty tab and no save prior to compilation
-        if (!readyForCompile() || getSelectedTextBox().getText().equals("")) {
+        if (!readyForCompile()) {
             return null;
         }
 
@@ -293,15 +294,23 @@ public class CodeTabController {
      * @return whether the selected tab is ready for compilation
      */
     private boolean readyForCompile() {
+        // TODO: remove the return for this method as well and pass the shuttle up the chain
         // If selected tab is dirty, calls handleSave
         if (selectedTabIsDirty()) {
             // Creates new dialog
-            Dialog<ButtonType> saveDialog = dialogHelper.getSavingDialog(getSelectedTab().getText(), SaveReason.COMPILING);
+            String tabText = getSelectedTab().getText();
+            Dialog<ButtonType> saveDialog =
+                    dialogHelper.getSavingDialog(tabText, SaveReason.COMPILING);
             Optional<ButtonType> result = saveDialog.showAndWait();
             // call handleSave() if user chooses YES
             if (result.isPresent() && result.get() == ButtonType.YES) {
-                boolean saved = saveCurrentTab();
-                if (saved) {
+                SaveInformationShuttle shuttle = new SaveInformationShuttle();
+                try {
+                    saveCurrentTab(shuttle);
+                } catch (SaveFailureException e) {
+                    dialogHelper.getAlert("Unable to save file", e.getMessage()).show();
+                }
+                if (shuttle.isSuccessful()) {
                     return true;
                 } else {
                     String body = "Compilation was canceled because you " +
@@ -327,7 +336,7 @@ public class CodeTabController {
         } else {
             return true;
         }
-        return false; // TODO figure out how this ever gets called. added to allow compilation
+        return false;
     }
 
 
