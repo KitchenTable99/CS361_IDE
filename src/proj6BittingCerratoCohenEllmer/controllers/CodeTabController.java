@@ -383,11 +383,12 @@ public class CodeTabController {
         }
 
         // return the lowest untitled string
-        for (int i = 0; i < tabs.size(); i++) {
+        if (!untitledSet.contains(0)) {
+            return "Untitled";
+        }
+
+        for (int i = 1; i < tabs.size(); i++) {
             if (!untitledSet.contains(i)) {
-                if (i == 0) {
-                    return "Untitled";
-                }
                 return "Untitled-" + i;
             }
         }
