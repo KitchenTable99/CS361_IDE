@@ -58,7 +58,6 @@ public class Main extends Application {
         MasterController controller = new MasterController();
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("view/Main.fxml"));
         Parent root = fxmlLoader.load();
-        controller.setTabController(new CodeTabController());
 
         // handle clicking close box of the window
         primaryStage.setOnCloseRequest(windowEvent -> {
