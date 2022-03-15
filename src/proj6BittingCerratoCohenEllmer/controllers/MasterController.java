@@ -9,7 +9,6 @@
 package proj6BittingCerratoCohenEllmer.controllers;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -19,11 +18,11 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.fxmisc.richtext.StyleClassedTextArea;
+import proj6BittingCerratoCohenEllmer.model.SaveFailureException;
+import proj6BittingCerratoCohenEllmer.model.SaveInformationShuttle;
 import proj6BittingCerratoCohenEllmer.view.DialogHelper;
-import proj6BittingCerratoCohenEllmer.SaveReason;
 
 
 /**
@@ -158,11 +157,15 @@ public class MasterController {
      *              and its source.
      *
      * @see CodeTabController#saveCurrentTab
-     * @return whether the save was successful
      */
     @FXML
-    private boolean handleSave(ActionEvent event) {
-        return tabController.saveCurrentTab();
+    private void handleSave(ActionEvent event) {
+        SaveInformationShuttle saveShuttle = new SaveInformationShuttle();
+        try {
+            tabController.saveCurrentTab(saveShuttle);
+        } catch (SaveFailureException e) {
+            dialogHelper.getAlert("Unable to save file", e.getMessage()).show();
+        }
     }
 
     /**
@@ -172,12 +175,15 @@ public class MasterController {
      *              and its source.
      *
      * @see CodeTabController#saveCurrentTab
-     *
-     * @return whether the save was successful
      */
     @FXML
-    private boolean handleSaveAs(ActionEvent event) {
-        return tabController.saveCurrentTabAs();
+    private void handleSaveAs(ActionEvent event) {
+        SaveInformationShuttle saveShuttle = new SaveInformationShuttle();
+        try {
+            tabController.saveCurrentTabAs(saveShuttle);
+        } catch (SaveFailureException e) {
+            dialogHelper.getAlert("Unable to save file", e.getMessage()).show();
+        }
     }
 
     /**
@@ -309,7 +315,7 @@ public class MasterController {
         ProcessBuilder compileProcess = tabController.prepareCompileProcess();
         doCompiling(compileProcess, false);
 
-        // TODO if we want to print out compile sucessful, ensure that wait happens here.
+        // TODO if we want to print out compile successful, ensure that wait happens here.
         // TODO put this thread business in its own method the only differences are which streams are connected to the console
         // prepare running in a new thread
         ProcessBuilder runProcess = tabController.prepareRunningProcess();
