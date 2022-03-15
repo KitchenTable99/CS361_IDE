@@ -10,9 +10,20 @@ package proj6BittingCerratoCohenEllmer.view;
 
 import javafx.scene.control.*;
 import javafx.scene.control.Dialog;
-import proj6BittingCerratoCohenEllmer.SaveReason;
+import proj6BittingCerratoCohenEllmer.controllers.SaveReason;
+
+import java.util.HashMap;
 
 public class DialogHelper {
+
+    private final HashMap<SaveReason, String> reasonMap;
+
+    public DialogHelper() {
+        reasonMap = new HashMap<>();
+        reasonMap.put(SaveReason.CLOSING, "closing it?");
+        reasonMap.put(SaveReason.EXITING, "exiting?");
+        reasonMap.put(SaveReason.COMPILING, "compiling?");
+    }
 
     public Dialog<ButtonType> getAboutDialog() {
         // create a new dialog
@@ -26,7 +37,6 @@ public class DialogHelper {
     }
 
     public Alert getAlert(String title, String alertBody) {
-        // TODO: overload method and use an alert as the second parameter?
         Alert alertBox = new Alert(Alert.AlertType.ERROR);
         alertBox.setHeaderText(title);
         alertBox.setContentText(alertBody);
@@ -35,33 +45,11 @@ public class DialogHelper {
     }
 
     public Dialog<ButtonType> getSavingDialog(String fileName, SaveReason reason) {
+        String promptText = String.format("Do you want to save %s before ", fileName);
+        promptText += reasonMap.get(reason);
+
         Dialog<ButtonType> dialog = new Dialog<>();
-        // TODO: pass a tab instead of a string to extract the fileName?
-
-        String promptText;
-        switch (reason) {
-            case CLOSING:
-                promptText = String.format("Do you want to save %s before closing it?",
-                                            fileName);
-                break;
-
-            case EXITING:
-                promptText = String.format("Do you want to save %s before exiting?",
-                                            fileName);
-                break;
-
-            case COMPILING:
-                promptText = String.format("Do you want to save %s before compiling?",
-                                            fileName);
-                break;
-
-            default:
-                promptText = "How did we get here?";
-                break;
-        }
-
         dialog.setContentText(promptText);
-
         dialog.getDialogPane().getButtonTypes().addAll(
                 ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
 

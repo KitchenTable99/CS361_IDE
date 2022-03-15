@@ -6,9 +6,8 @@
  * Date: March 7
  */
 
-package proj6BittingCerratoCohenEllmer;
+package proj6BittingCerratoCohenEllmer.controllers;
 
-// TODO place this class in the appropriate package
 public enum SaveReason {
     CLOSING, EXITING, COMPILING
 }
