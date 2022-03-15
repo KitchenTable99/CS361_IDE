@@ -6,10 +6,11 @@
  * Date: March 7
  */
 
-package proj6BittingCerratoCohenEllmer;
+package proj6BittingCerratoCohenEllmer.view;
 
 import javafx.scene.control.*;
 import javafx.scene.control.Dialog;
+import proj6BittingCerratoCohenEllmer.SaveReason;
 
 public class DialogHelper {
 

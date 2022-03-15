@@ -6,7 +6,7 @@
  * Date: March 18
  */
 
-package proj6BittingCerratoCohenEllmer;
+package proj6BittingCerratoCohenEllmer.model;
 
 import java.time.Duration;
 import java.util.Collection;
