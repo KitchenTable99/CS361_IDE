@@ -14,6 +14,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import proj6BittingCerratoCohenEllmer.controllers.CodeTabController;
 import proj6BittingCerratoCohenEllmer.controllers.MasterController;
 
 import java.io.IOException;
@@ -36,6 +37,15 @@ public class Main extends Application {
 
     /**
      * Initializes the contents of the starting window.
+     *
+     * <p>BUG: When clicking the red-x in the corner, this method will throw a null pointer
+     * exception. When binding the close request to the primaryStage, the tabController
+     * field inside of the main controller is null. This happens despite the main controller
+     * being fully initialized and internally having access to its tabController.
+     * All functionality EXCEPT for this singular piece works as expected. This appears
+     * to have been a bug in netbeans 8.0 as documented shown
+     * <a href="https://stackoverflow.com/a/24387797">here</a>.
+     * </p>
      *
      * @param primaryStage A Stage object that is created by the {@code launch}
      *                     method inherited from the Application class.

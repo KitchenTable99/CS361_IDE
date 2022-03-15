@@ -225,7 +225,7 @@ public class CodeTabController {
      * the tabPane are closed properly. Attempts to close all of the tabs.
      */
     public void closeAllTabs() {
-        // TODO fix bug when clicking red 'X' with no tabs open
+        // TODO fix bug when clicking red 'X' with no tabs open -- NOT A BUG IN OUR CODE
         tabPane.getSelectionModel().selectLast();
         while (tabPane.getTabs().size() > 0) {
             // try close the currently selected tab
@@ -366,6 +366,10 @@ public class CodeTabController {
 
     /**
      * Helper method that generates a string that is the lowest "Untitled-x" available.
+     * If some file is literally named "Untitled" or "Untitled-XX" where the XX is some
+     * integer, this method will treat that tab as if it were created as a default name.
+     * If the open tabs are all loaded from files named "Untitled," "Foo," "Bar,"
+     * "Untitled-1," and "Baz" this will return "Untitled-2"
      *
      * @return String name for newTab
      */
@@ -376,7 +380,6 @@ public class CodeTabController {
         // iterate over each tab to check if it is an "Untitled" tab
         for(Tab tab : tabs){
             String tabTitle = tab.getText();
-            // TODO if a file is literally called "Untitled" this method will pick up on that
             if(tabTitle.startsWith("Untitled")) {
                 String[] splitTitle = tabTitle.split("Untitled");
                 if (splitTitle.length == 0) {
