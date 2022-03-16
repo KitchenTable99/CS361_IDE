@@ -8,8 +8,6 @@
 
 package proj6BittingCerratoCohenEllmer.controllers;
 
-import java.io.*;
-
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -23,6 +21,10 @@ import org.fxmisc.richtext.StyleClassedTextArea;
 import proj6BittingCerratoCohenEllmer.model.SaveFailureException;
 import proj6BittingCerratoCohenEllmer.model.SaveInformationShuttle;
 import proj6BittingCerratoCohenEllmer.view.DialogHelper;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 
 /**
@@ -134,7 +136,7 @@ public class MasterController {
      */
     @FXML
     public void handleClose(ActionEvent event) {
-        tabController.closeSelectedTab(SaveReason.CLOSING);
+        tabController.closeSelectedTab(SaveReason.CLOSING, new SaveInformationShuttle());
     }
 
     /**
@@ -291,16 +293,17 @@ public class MasterController {
 
 
     /**
-     * Handler method for Compile button.
+     * Handler method for Compile button. Compiles the active tab
      *
      * @param event An ActionEvent object that gives information about the event
      *              and its source.
      * @see CodeTabController#prepareCompileProcess
      */
-    // TODO update the javadoc
     @FXML
     private void handleCompile(ActionEvent event) {
-        ProcessBuilder processBuilder = tabController.prepareCompileProcess();
+        ProcessBuilderShuttle shuttle = new ProcessBuilderShuttle();
+        tabController.prepareCompileProcess(shuttle);
+        ProcessBuilder processBuilder = shuttle.getProcessBuilder();
         doCompiling(processBuilder, true);
     }
 
@@ -312,7 +315,9 @@ public class MasterController {
      */
     @FXML
     private void handleCompileRun(ActionEvent event) {
-        ProcessBuilder compileProcess = tabController.prepareCompileProcess();
+        ProcessBuilderShuttle shuttle = new ProcessBuilderShuttle();
+        tabController.prepareCompileProcess(shuttle);
+        ProcessBuilder compileProcess = shuttle.getProcessBuilder();
         doCompiling(compileProcess, false);
 
         // TODO if we want to print out compile successful, ensure that wait happens here.
@@ -415,7 +420,7 @@ public class MasterController {
     private void handleStop(ActionEvent event) {;
         if (processThread != null) {
             processThread.stop(); // TODO: do this in a non-depricated manner
-            this.isThreadActive.set(false);
+            isThreadActive.set(false);
             processThread = null;
         }
     }
