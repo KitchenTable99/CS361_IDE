@@ -8,8 +8,6 @@
 
 package proj6BittingCerratoCohenEllmer.controllers;
 
-import java.io.*;
-
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -23,6 +21,10 @@ import org.fxmisc.richtext.StyleClassedTextArea;
 import proj6BittingCerratoCohenEllmer.model.SaveFailureException;
 import proj6BittingCerratoCohenEllmer.model.SaveInformationShuttle;
 import proj6BittingCerratoCohenEllmer.view.DialogHelper;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 
 /**
@@ -415,7 +417,7 @@ public class MasterController {
     private void handleStop(ActionEvent event) {;
         if (processThread != null) {
             processThread.stop(); // TODO: do this in a non-depricated manner
-            this.isThreadActive.set(false);
+            isThreadActive.set(false);
             processThread = null;
         }
     }

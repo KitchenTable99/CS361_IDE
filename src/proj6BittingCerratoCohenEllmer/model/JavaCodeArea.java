@@ -8,6 +8,13 @@
 
 package proj6BittingCerratoCohenEllmer.model;
 
+import javafx.concurrent.Task;
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
+import org.fxmisc.richtext.model.StyleSpans;
+import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.reactfx.Subscription;
+
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,13 +23,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javafx.concurrent.Task;
-import org.fxmisc.richtext.CodeArea;
-import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
-import org.reactfx.Subscription;
 
 
 /**
@@ -104,7 +104,7 @@ public class JavaCodeArea {
      * @return  an CodeArea object stored in the private field.
      */
     public CodeArea getCodeArea() {
-        return this.codeArea;
+        return codeArea;
     }
 
     /**
