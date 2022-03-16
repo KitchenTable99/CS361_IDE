@@ -54,10 +54,12 @@ public class CodeTabController {
             if (KeyCode.ESCAPE.equals(key.getCode())) {
                 inVIMCommandMode = true;
             }
-            // dont parse command mode in command mode!
+            // dont parse "command mode" command while in command mode!
             if(inVIMCommandMode && !KeyCode.ESCAPE.equals(key.getCode()) ){
-                // prevent duplicated commands
+                // must handle all key events to supress key stroke in codeArea
+                // Only read key released to prevent duplicated commands
                 if(key.getEventType().equals(KeyEvent.KEY_RELEASED)){
+                    //store commands for chaining
                     vimCommands.add(key.getText());
                     System.out.println("Vim Commands: " + vimCommands.toString());
                     // 'i','I','a','A'-> edit mode
