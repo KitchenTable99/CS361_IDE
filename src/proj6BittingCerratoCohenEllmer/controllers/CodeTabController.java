@@ -59,7 +59,7 @@ public class CodeTabController {
         Tab newTab = new Tab(newTabName);
         newTab.setOnCloseRequest(closeEvent -> {
             tabPane.getSelectionModel().select(newTab);
-            closeSelectedTab(SaveReason.CLOSING);
+            closeSelectedTab(SaveReason.CLOSING, new SaveInformationShuttle());
             closeEvent.consume();
         });
 
@@ -183,41 +183,41 @@ public class CodeTabController {
      * chooses to save the dirty tab, the tab is closed.
      *
      * @param reason the reason that the closeTab method is being invoked
+     * @param shuttle the shuttle object used to pass out the save status and button type
+     *                if the tab is closed, the shuttle's buttonType field will be empty
      *
-     * @return Optional the Optional object returned by dialog.showAndWait().
-     *                  returns null if tab text is already saved.
      */
-    public Optional<ButtonType> closeSelectedTab(SaveReason reason) {
+    public void closeSelectedTab(SaveReason reason, SaveInformationShuttle shuttle) {
         // TODO remove the return value and put it into the save shuttle
         // If selectedTab is unsaved, opens dialog to ask user whether they would like to save
         if(selectedTabIsDirty()) {
             String fileName = getSelectedTab().getText();
             Dialog<ButtonType> saveDialog = dialogHelper.getSavingDialog(fileName, reason);
 
-            Optional<ButtonType> result  = saveDialog.showAndWait();
+            Optional<ButtonType> result = saveDialog.showAndWait();
+            shuttle.setButtonType(result);
             // save if user chooses YES
             if (result.isPresent() && result.get() == ButtonType.YES) {
                 try {
-                    SaveInformationShuttle shuttle = new SaveInformationShuttle();
                     saveCurrentTab(shuttle);
                 } catch (SaveFailureException e) {
                     dialogHelper.getAlert("Unable to save file", e.getMessage()).show();
                 }
-                // Keep the tab if the save is unsuccessful (eg. canceled)
+                // don't close the tab if it is still dirty
                 if (selectedTabIsDirty()) {
-                    return result;
+                    return;
                 }
             }
             // quit the dialog and keep selected tab if user chooses CANCEL
             else if (result.isPresent() && result.get() == ButtonType.CANCEL) {
-                return result;
+                return;
             }
         }
         // remove tab from tabPane if text is saved or user chooses NO
         savedContents.remove(getSelectedTab());
         savedPaths.remove(getSelectedTab());
         tabPane.getTabs().remove(getSelectedTab());
-        return Optional.empty();
+        shuttle.setButtonType(Optional.empty());
     }
 
     /**
@@ -229,9 +229,11 @@ public class CodeTabController {
         tabPane.getSelectionModel().selectLast();
         while (tabPane.getTabs().size() > 0) {
             // try close the currently selected tab
-            Optional<ButtonType> result = closeSelectedTab(SaveReason.EXITING);
+            SaveInformationShuttle shuttle = new SaveInformationShuttle();
+            closeSelectedTab(SaveReason.EXITING, shuttle);
             // if the user chooses Cancel at any time, then the exiting is canceled,
             // and the application stays running.
+            Optional<ButtonType> result = shuttle.getButtonType();
             if (result.isPresent() && result.get() == ButtonType.CANCEL) {
                 return;
             }
@@ -310,7 +312,7 @@ public class CodeTabController {
                 } catch (SaveFailureException e) {
                     dialogHelper.getAlert("Unable to save file", e.getMessage()).show();
                 }
-                if (shuttle.isSuccessful()) {
+                if (shuttle.isSaveSuccessful()) {
                     return true;
                 } else {
                     String body = "Compilation was canceled because you " +

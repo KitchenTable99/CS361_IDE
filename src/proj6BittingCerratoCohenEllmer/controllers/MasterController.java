@@ -134,7 +134,7 @@ public class MasterController {
      */
     @FXML
     public void handleClose(ActionEvent event) {
-        tabController.closeSelectedTab(SaveReason.CLOSING);
+        tabController.closeSelectedTab(SaveReason.CLOSING, new SaveInformationShuttle());
     }
 
     /**
