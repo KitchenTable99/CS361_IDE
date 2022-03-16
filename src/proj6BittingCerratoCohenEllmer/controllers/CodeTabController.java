@@ -267,23 +267,23 @@ public class CodeTabController {
 
     /**
      * Ensures that the tab has been saved and prepares a ProcessBuilder to actually
-     * compile the selected tab.
+     * compile the selected tab. Sets the field of the passed shuttle to the new
+     * ProcessBuilder
      *
+     * @param shuttle the object used to store the ProcessBuilder
      * @see #readyForCompile
-     * @return ProcessBuilder that will compile the current tab
      */
-    public ProcessBuilder prepareCompileProcess() {
+    public void prepareCompileProcess(ProcessBuilderShuttle shuttle) {
         // guard against the empty tab and no save prior to compilation
         if (!readyForCompile()) {
-            return null;
+            return;
         }
 
         // new process builder for compilation
         String filepath = savedPaths.get(getSelectedTab());
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.command("javac", filepath);
-
-        return processBuilder;
+        shuttle.setProcessBuilder(processBuilder);
     }
 
     /**

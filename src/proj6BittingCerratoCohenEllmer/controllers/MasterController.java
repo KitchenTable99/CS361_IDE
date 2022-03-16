@@ -293,16 +293,17 @@ public class MasterController {
 
 
     /**
-     * Handler method for Compile button.
+     * Handler method for Compile button. Compiles the active tab
      *
      * @param event An ActionEvent object that gives information about the event
      *              and its source.
      * @see CodeTabController#prepareCompileProcess
      */
-    // TODO update the javadoc
     @FXML
     private void handleCompile(ActionEvent event) {
-        ProcessBuilder processBuilder = tabController.prepareCompileProcess();
+        ProcessBuilderShuttle shuttle = new ProcessBuilderShuttle();
+        tabController.prepareCompileProcess(shuttle);
+        ProcessBuilder processBuilder = shuttle.getProcessBuilder();
         doCompiling(processBuilder, true);
     }
 
@@ -314,7 +315,9 @@ public class MasterController {
      */
     @FXML
     private void handleCompileRun(ActionEvent event) {
-        ProcessBuilder compileProcess = tabController.prepareCompileProcess();
+        ProcessBuilderShuttle shuttle = new ProcessBuilderShuttle();
+        tabController.prepareCompileProcess(shuttle);
+        ProcessBuilder compileProcess = shuttle.getProcessBuilder();
         doCompiling(compileProcess, false);
 
         // TODO if we want to print out compile successful, ensure that wait happens here.
