@@ -8,12 +8,14 @@ import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+import proj6BittingCerratoCohenEllmer.model.JavaCodeArea;
 import proj6BittingCerratoCohenEllmer.model.SaveFailureException;
 import proj6BittingCerratoCohenEllmer.model.SaveInformationShuttle;
 import proj6BittingCerratoCohenEllmer.view.DialogHelper;
-import proj6BittingCerratoCohenEllmer.model.JavaCodeArea;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -23,10 +25,10 @@ import java.util.Optional;
 public class CodeTabController {
 
     @FXML private TabPane tabPane;
-    // list of saved tabs and their content
+    // keep track of the content and where it was saved
     private final HashMap<Tab,String> savedContents = new HashMap<>();
-    // list of saved tabs and their saving path
     private final HashMap<Tab,String> savedPaths = new HashMap<>();
+
     private final DialogHelper dialogHelper = new DialogHelper();
 
     /**
@@ -49,7 +51,10 @@ public class CodeTabController {
     }
 
     /**
-     * Handles menu bar item New. Creates a new tab and adds it to the tabPane.
+     * Creates a new tab and adds it to the tabPane. The name of the tab will be the
+     * lowest "Untitled" available.
+     *
+     * @see #getNextAvailableUntitled
      */
     public void makeNewTab() {
         // calls helper method for untitled tabName generation
@@ -63,7 +68,7 @@ public class CodeTabController {
             closeEvent.consume();
         });
 
-        // installs toolTip
+        // place toolTip
         Tooltip tabToolTip = new Tooltip(newTab.getText());
         newTab.setTooltip(tabToolTip);
 
@@ -71,13 +76,14 @@ public class CodeTabController {
         JavaCodeArea javaCodeArea = new JavaCodeArea();
         CodeArea codeArea = javaCodeArea.getCodeArea();
         newTab.setContent(new VirtualizedScrollPane<>(codeArea));
+
         // add new tab to the tabPane and sets as topmost
         tabPane.getTabs().add(newTab);
         tabPane.getSelectionModel().selectLast();
     }
 
     /**
-     * Asks user to choose a file. Acceptable extentions are .java, .txt, .fxml, and .css
+     * Asks user to choose a file. Acceptable extensions are .java, .txt, .fxml, and .css
      * Creates a new tab and dumps the contents of the selected file into the editor.
      */
     public void openFile() {
@@ -118,7 +124,8 @@ public class CodeTabController {
      *
      * @throws SaveFailureException if the file cannot be saved
      */
-    public void saveCurrentTab(SaveInformationShuttle shuttle) throws SaveFailureException {
+    public void saveCurrentTab(SaveInformationShuttle shuttle)
+            throws SaveFailureException {
         // if the text has been saved before
         if (savedContents.containsKey(getSelectedTab())) {
             // create a File object for the corresponding text file
@@ -128,8 +135,11 @@ public class CodeTabController {
                 FileWriter writer = new FileWriter(savedFile);
                 writer.write(getSelectedTextBox().getText());
                 writer.close();
+
                 // update savedContents field
                 savedContents.put(getSelectedTab(), getSelectedTextBox().getText());
+
+                // store shuttle information
                 shuttle.setSuccessfulSave();
             } catch (IOException e) {
                 throw new SaveFailureException(e.getMessage(), e.getCause());
@@ -139,7 +149,6 @@ public class CodeTabController {
         else {
             saveCurrentTabAs(shuttle);
         }
-
     }
 
     /**
@@ -148,7 +157,8 @@ public class CodeTabController {
      *
      * @throws SaveFailureException if the file cannot be saved
      */
-    public void saveCurrentTabAs(SaveInformationShuttle shuttle) throws SaveFailureException {
+    public void saveCurrentTabAs(SaveInformationShuttle shuttle)
+            throws SaveFailureException {
         // create a new fileChooser
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
@@ -162,14 +172,16 @@ public class CodeTabController {
             try {
                 // save file
                 FileWriter fw = new FileWriter(fileToSave);
-                fw.write(this.getSelectedTextBox().getText());
+                fw.write(getSelectedTextBox().getText());
                 fw.close();
+
                 // update savedContents field and tab text
                 savedContents.put(getSelectedTab(), getSelectedTextBox().getText());
                 savedPaths.put(getSelectedTab(), fileToSave.getPath());
                 getSelectedTab().setText(fileToSave.getName());
                 getSelectedTab().getTooltip().setText(fileToSave.getPath());
 
+                // store information in the shuttle object
                 shuttle.setSuccessfulSave();
             } catch ( IOException e ) {
                 throw new SaveFailureException(e.getMessage(), e.getCause());
@@ -180,21 +192,19 @@ public class CodeTabController {
     /**
      * Prompts the user to save if tab is dirty. If the user chooses to save the changes,
      * the changes are saved and the tab is closed. If the tab is clean or the user
-     * chooses to save the dirty tab, the tab is closed.
+     * chooses not to save the dirty tab, the tab is summarily closed.
      *
-     * @param reason the reason that the closeTab method is being invoked
+     * @param reason  the reason that the closeTab method is being invoked
      * @param shuttle the shuttle object used to pass out the save status and button type
      *                if the tab is closed, the shuttle's buttonType field will be empty
-     *
      */
     public void closeSelectedTab(SaveReason reason, SaveInformationShuttle shuttle) {
-        // TODO remove the return value and put it into the save shuttle
-        // If selectedTab is unsaved, opens dialog to ask user whether they would like to save
+        // If selectedTab is dirty, opens dialog to ask user if they would like to save
         if(selectedTabIsDirty()) {
             String fileName = getSelectedTab().getText();
-            Dialog<ButtonType> saveDialog = dialogHelper.getSavingDialog(fileName, reason);
+            Dialog<ButtonType> dialog = dialogHelper.getSavingDialog(fileName, reason);
 
-            Optional<ButtonType> result = saveDialog.showAndWait();
+            Optional<ButtonType> result = dialog.showAndWait();
             shuttle.setButtonType(result);
             // save if user chooses YES
             if (result.isPresent() && result.get() == ButtonType.YES) {
@@ -221,8 +231,8 @@ public class CodeTabController {
     }
 
     /**
-     * When exit item of the menu bar is clicked, the application quits if all tabs in
-     * the tabPane are closed properly. Attempts to close all of the tabs.
+     * Attempts to close all the tabs. If the user clicks cancel in any tab during the
+     * closing process, this method stops.
      */
     public void closeAllTabs() {
         // TODO fix bug when clicking red 'X' with no tabs open -- NOT A BUG IN OUR CODE
@@ -244,7 +254,7 @@ public class CodeTabController {
 
 
     /**
-     * helper function to get the text box in the selected tab
+     * Gets the text box in the selected tab
      *
      * @return CodeArea the text box in the selected tab
      */
@@ -256,7 +266,9 @@ public class CodeTabController {
     }
 
     /**
-     * Ensures that the tab has been saved and prepares a ProcessBuilder to actually compile the selected tab.
+     * Ensures that the tab has been saved and prepares a ProcessBuilder to actually
+     * compile the selected tab.
+     *
      * @see #readyForCompile
      * @return ProcessBuilder that will compile the current tab
      */
@@ -279,8 +291,9 @@ public class CodeTabController {
      * @return ProcessBuilder that will run the current tab
      */
     public ProcessBuilder prepareRunningProcess() {
-        String fullpath  = savedPaths.get(getSelectedTab()).replace(".java", "");
-        String classname = fullpath.split(File.separator)[fullpath.split(File.separator).length - 1];
+        String fullpath = savedPaths.get(getSelectedTab()).replace(".java", "");
+        int splitIndex = fullpath.split(File.separator).length - 1;
+        String classname = fullpath.split(File.separator)[splitIndex];
         String classpath = fullpath.replace(File.separator + classname, "");
 
         // new process builder for running with java interpreter
@@ -289,14 +302,15 @@ public class CodeTabController {
     }
 
     /**
-     * Checks to see if the current tab is dirty. If it is, asks user if they want to save. If they do, saves the tab
-     * and returns true. If the tab is dirty, the user doesn't want to save, returns whether the file has been saved
-     * before. If user cancels or does not want to save, returns false
+     * Checks to see if the current tab is dirty. If it is, asks user if they want to
+     * save. If they do, saves the tab and returns true. If the tab is dirty, the user
+     * doesn't want to save, returns whether the file has been saved before. If user
+     * cancels or does not want to save, returns false.
      *
      * @return whether the selected tab is ready for compilation
      */
     private boolean readyForCompile() {
-        // TODO: remove the return for this method as well and pass the shuttle up the chain
+        // TODO: remove the return for this method and pass the shuttle up the chain
         // If selected tab is dirty, calls handleSave
         if (selectedTabIsDirty()) {
             // Creates new dialog
@@ -304,6 +318,7 @@ public class CodeTabController {
             Dialog<ButtonType> saveDialog =
                     dialogHelper.getSavingDialog(tabText, SaveReason.COMPILING);
             Optional<ButtonType> result = saveDialog.showAndWait();
+
             // call handleSave() if user chooses YES
             if (result.isPresent() && result.get() == ButtonType.YES) {
                 SaveInformationShuttle shuttle = new SaveInformationShuttle();
@@ -330,7 +345,8 @@ public class CodeTabController {
                     return true;
                 } else {
                     // make an alert box
-                    String body = "Current tab has not been saved. Please save before compiling.";
+                    String body = "Current tab has not been saved." +
+                            "Please save before compiling.";
                     dialogHelper.getAlert("Unable to Compile", body).show();
                     return false;
                 }
@@ -348,22 +364,24 @@ public class CodeTabController {
      * @return boolean whether the text in the selected tab is dirty (unsaved changes).
      */
     private boolean selectedTabIsDirty() {
-
         // Gets current contents of tab and its hashed contents (Null if unsaved)
         String currentContents = getSelectedTextBox().getText();
-        Tab selectedTab = this.tabPane.getSelectionModel().getSelectedItem();
-        String savedContent = this.savedContents.get(selectedTab);
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        String savedContent = savedContents.get(selectedTab);
 
         // If no saved contents, and tab is empty, contents not dirty
-        if(savedContent == null && currentContents.equals("")) {
+        if (savedContent == null && currentContents.equals("")) {
             return false;
         }
         // If no saved contents, but code area not empty, contents are dirty
-        else if(savedContent == null) {
+        else if (savedContent == null) {
             return true;
         }
         // Otherwise, returns false (not dirty) if contents equal, or true if they aren't
-        else return !savedContent.equals(currentContents);
+        else {
+            return !savedContent.equals(currentContents);
+        }
+
     }
 
     /**
