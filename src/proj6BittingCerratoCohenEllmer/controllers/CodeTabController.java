@@ -310,7 +310,6 @@ public class CodeTabController {
      * @return whether the selected tab is ready for compilation
      */
     private boolean readyForCompile() {
-        // TODO: remove the return for this method and pass the shuttle up the chain
         // If selected tab is dirty, calls handleSave
         if (selectedTabIsDirty()) {
             // Creates new dialog

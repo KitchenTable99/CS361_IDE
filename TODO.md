@@ -25,7 +25,7 @@
 
 ## Non-instruction instructions
 
-* refactor so that only void functions have side effects
+* ~~refactor so that only void functions have side effects~~
 
 # Vim Setup
 
