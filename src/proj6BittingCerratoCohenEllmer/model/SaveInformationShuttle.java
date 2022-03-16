@@ -1,3 +1,10 @@
+/*
+ * File: SaveInformationShuttle.java
+ * Names: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
+ * Class: CS 361
+ * Project 6
+ * Date: March 18
+ */
 package proj6BittingCerratoCohenEllmer.model;
 
 import javafx.scene.control.ButtonType;
