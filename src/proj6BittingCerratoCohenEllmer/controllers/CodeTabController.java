@@ -3,11 +3,15 @@ package proj6BittingCerratoCohenEllmer.controllers;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+
 import proj6BittingCerratoCohenEllmer.model.JavaCodeArea;
 import proj6BittingCerratoCohenEllmer.model.SaveFailureException;
 import proj6BittingCerratoCohenEllmer.model.SaveInformationShuttle;
@@ -30,6 +34,40 @@ public class CodeTabController {
     private final HashMap<Tab,String> savedPaths = new HashMap<>();
 
     private final DialogHelper dialogHelper = new DialogHelper();
+    
+    // Vim Command Parameters
+    private boolean inVIMCommandMode = false;
+
+    //TODO: use an Arraylist to keep track of commands for VIM chaining.
+
+    private final EventHandler<KeyEvent> vimHandler = new EventHandler<KeyEvent>() {
+        /**
+         * Route VIM key press events to implemented methods
+         * 
+         * @param key A KeyEvent object that gives information about a Key Stroke
+         */
+        @Override
+        public void handle(KeyEvent key) {
+            System.out.println("Typed: " + key.getText());
+            // Escape -> command mode
+            if (KeyCode.ESCAPE.equals(key.getCode())) {
+                inVIMCommandMode = true;
+            }
+            if(inVIMCommandMode){
+                System.out.println("eat");
+                /** BUG: key event is not prevented from being typed???
+                 */
+                // prevent keystroke from appearing in tab
+                key.consume();
+                
+                // TODO: For each command call to model method.
+                //i
+                //I
+                //a
+                //A
+            }
+        }
+    };
 
     /**
      * Returns a true BooleanBinding if there are no more tabs and a false one if there
@@ -75,8 +113,8 @@ public class CodeTabController {
         // create a code area
         JavaCodeArea javaCodeArea = new JavaCodeArea();
         CodeArea codeArea = javaCodeArea.getCodeArea();
+        codeArea.setOnKeyPressed(vimHandler);
         newTab.setContent(new VirtualizedScrollPane<>(codeArea));
-
         // add new tab to the tabPane and sets as topmost
         tabPane.getTabs().add(newTab);
         tabPane.getSelectionModel().selectLast();
