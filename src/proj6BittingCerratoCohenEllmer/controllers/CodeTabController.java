@@ -22,6 +22,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
@@ -38,7 +39,8 @@ public class CodeTabController {
     // Vim Command Parameters
     private boolean inVIMCommandMode = false;
 
-    //TODO: use an Arraylist to keep track of commands for VIM chaining.
+    //An Arraylist to keep track of commands for VIM chaining.
+    private final ArrayList<String> vimCommands = new ArrayList<String>();
 
     private final EventHandler<KeyEvent> vimHandler = new EventHandler<KeyEvent>() {
         /**
@@ -48,23 +50,30 @@ public class CodeTabController {
          */
         @Override
         public void handle(KeyEvent key) {
-            System.out.println("Typed: " + key.getText());
             // Escape -> command mode
             if (KeyCode.ESCAPE.equals(key.getCode())) {
                 inVIMCommandMode = true;
             }
-            if(inVIMCommandMode){
-                System.out.println("eat");
-                /** BUG: key event is not prevented from being typed???
-                 */
+            // dont parse command mode in command mode!
+            if(inVIMCommandMode && !KeyCode.ESCAPE.equals(key.getCode()) ){
+                // prevent duplicated commands
+                if(key.getEventType().equals(KeyEvent.KEY_RELEASED)){
+                    vimCommands.add(key.getText());
+                    System.out.println("Vim Commands: " + vimCommands.toString());
+                    // 'i','I','a','A'-> edit mode
+                    if("i".equals(key.getText()) || "I".equals(key.getText()) ||
+                            "a".equals(key.getText()) || "A".equals(key.getText()) ){
+                        inVIMCommandMode = false;
+                        vimCommands.clear();
+                        // TODO: For each command call to model method and move cursor.
+                        //i
+                        //I
+                        //a
+                        //A
+                    }
+                }
                 // prevent keystroke from appearing in tab
                 key.consume();
-                
-                // TODO: For each command call to model method.
-                //i
-                //I
-                //a
-                //A
             }
         }
     };
@@ -113,7 +122,7 @@ public class CodeTabController {
         // create a code area
         JavaCodeArea javaCodeArea = new JavaCodeArea();
         CodeArea codeArea = javaCodeArea.getCodeArea();
-        codeArea.setOnKeyPressed(vimHandler);
+        codeArea.addEventFilter(KeyEvent.ANY, vimHandler);
         newTab.setContent(new VirtualizedScrollPane<>(codeArea));
         // add new tab to the tabPane and sets as topmost
         tabPane.getTabs().add(newTab);
