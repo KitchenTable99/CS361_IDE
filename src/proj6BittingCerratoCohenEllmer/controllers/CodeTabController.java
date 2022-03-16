@@ -3,11 +3,15 @@ package proj6BittingCerratoCohenEllmer.controllers;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+
 import proj6BittingCerratoCohenEllmer.model.JavaCodeArea;
 import proj6BittingCerratoCohenEllmer.model.SaveFailureException;
 import proj6BittingCerratoCohenEllmer.model.SaveInformationShuttle;
@@ -18,6 +22,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
@@ -30,6 +35,50 @@ public class CodeTabController {
     private final HashMap<Tab,String> savedPaths = new HashMap<>();
 
     private final DialogHelper dialogHelper = new DialogHelper();
+    
+    // Vim Command Parameters
+    private boolean inVIMCommandMode = false;
+
+    //An Arraylist to keep track of commands for VIM chaining.
+    private final ArrayList<String> vimCommands = new ArrayList<String>();
+
+    private final EventHandler<KeyEvent> vimHandler = new EventHandler<KeyEvent>() {
+        /**
+         * Route VIM key press events to implemented methods
+         * 
+         * @param key A KeyEvent object that gives information about a Key Stroke
+         */
+        @Override
+        public void handle(KeyEvent key) {
+            // Escape -> command mode
+            if (KeyCode.ESCAPE.equals(key.getCode())) {
+                inVIMCommandMode = true;
+            }
+            // dont parse "command mode" command while in command mode!
+            if(inVIMCommandMode && !KeyCode.ESCAPE.equals(key.getCode()) ){
+                // must handle all key events to supress key stroke in codeArea
+                // Only read key released to prevent duplicated commands
+                if(key.getEventType().equals(KeyEvent.KEY_RELEASED)){
+                    //store commands for chaining
+                    vimCommands.add(key.getText());
+                    System.out.println("Vim Commands: " + vimCommands.toString());
+                    // 'i','I','a','A'-> edit mode
+                    if("i".equals(key.getText()) || "I".equals(key.getText()) ||
+                            "a".equals(key.getText()) || "A".equals(key.getText()) ){
+                        inVIMCommandMode = false;
+                        vimCommands.clear();
+                        // TODO: For each command call to model method and move cursor.
+                        //i
+                        //I
+                        //a
+                        //A
+                    }
+                }
+                // prevent keystroke from appearing in tab
+                key.consume();
+            }
+        }
+    };
 
     /**
      * Returns a true BooleanBinding if there are no more tabs and a false one if there
@@ -75,8 +124,8 @@ public class CodeTabController {
         // create a code area
         JavaCodeArea javaCodeArea = new JavaCodeArea();
         CodeArea codeArea = javaCodeArea.getCodeArea();
+        codeArea.addEventFilter(KeyEvent.ANY, vimHandler);
         newTab.setContent(new VirtualizedScrollPane<>(codeArea));
-
         // add new tab to the tabPane and sets as topmost
         tabPane.getTabs().add(newTab);
         tabPane.getSelectionModel().selectLast();
