@@ -87,6 +87,16 @@ public class CodeTabController {
                             }
                             
                         }
+                        else if(":x".equals(vimCommands)){
+                            inVIMCommandMode = false;
+                            vimCommands = "";
+                            try{
+                                saveCurrentTab(new SaveInformationShuttle());
+                                closeSelectedTab(SaveReason.CLOSING, new SaveInformationShuttle());
+                            } catch(SaveFailureException ex){
+                                System.out.println("Failed To Save Tab");
+                            } 
+                        }
                         else{
                             vimCommands = "";
                             System.out.println("Not a valid VIM command");
