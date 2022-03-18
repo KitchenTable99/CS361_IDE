@@ -7,6 +7,9 @@ import javafx.scene.input.KeyEvent;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class VimTab extends Tab {
 
     private boolean inVIMCommandMode;
@@ -24,15 +27,21 @@ public class VimTab extends Tab {
              */
             @Override
             public void handle(KeyEvent key) {
+                // set up set for keys that should do nothing in command mode
+                Set<KeyCode> noActionKeys = new HashSet<>();
+                noActionKeys.add(KeyCode.LEFT);
+                noActionKeys.add(KeyCode.RIGHT);
+                noActionKeys.add(KeyCode.DOWN);
+                noActionKeys.add(KeyCode.UP);
+                noActionKeys.add(KeyCode.COLON); // this will change at some point down the road
+
                 KeyCode eventKey = key.getCode();
-                if (eventKey.equals(KeyCode.LEFT)) {
-                    ;
-                } else if (!inVIMCommandMode && eventKey.equals(KeyCode.ESCAPE)) {
+                if (!inVIMCommandMode && eventKey.equals(KeyCode.ESCAPE)) {
                     inVIMCommandMode = true;
                 } else if (inVIMCommandMode && eventKey.equals(KeyCode.ESCAPE)) {
                     vimCommands = "";
                     key.consume();
-                } else if (inVIMCommandMode) {
+                } else if (inVIMCommandMode && !noActionKeys.contains(eventKey)) {
                     // must handle all key events to suppress keystroke in codeArea
                     // Only read key released to prevent duplicated commands
                     if (key.getEventType().equals(KeyEvent.KEY_RELEASED)) {
