@@ -197,10 +197,28 @@ public class VimTab extends Tab {
     }
 
     private void handleUpperCaseI() {
+        // if i is first char helper method
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        String content = codeArea.getContent().getText();
+        while(caretPos > 0 && ! "\n".equals(content.substring(caretPos - 1, caretPos))){
+            caretPos--;
+        }
+        codeArea.moveTo(caretPos);
+        inVIMCommandMode = false;
 
     }
 
     private void handleLowerCaseI() {
+        // if i is first char helper method
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        String content = codeArea.getContent().getText();
+        if(caretPos > 0 && ! "\n".equals(content.substring(caretPos - 1, caretPos))){
+            caretPos--;
+        }
+        codeArea.moveTo(caretPos);
+        inVIMCommandMode = false;
     }
 
     private CodeArea getCodeArea() {
