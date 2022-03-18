@@ -29,11 +29,11 @@
 
 # Vim Setup
 
-* create VimTab extends Tab that has two modes
-* editing mode allows typing
+* ~~create VimTab extends Tab that has two modes~~
+* ~~editing mode allows typing~~
 * command mode has a blocky cursor that highlights characters and DOES NOT TYPE
-* flip between them by changing a boolean field
-* create a keylistener that waits for keys to be pressed
+* ~~flip between them by changing a boolean field~~
+* ~~create a keylistener that waits for keys to be pressed~~
 
 # Vim Keys
 
