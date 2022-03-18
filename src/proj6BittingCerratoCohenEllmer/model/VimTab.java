@@ -189,36 +189,67 @@ public class VimTab extends Tab {
     }
 
     private void handleUpperCaseA() {
-
+        if(vimCommands.startsWith("A")){
+            CodeArea codeArea = getCodeArea();
+            int caretPos = codeArea.getCaretPosition();
+            String content = codeArea.getContent().getText();
+            while(caretPos < content.length()
+                && ! "\n".equals(content.substring(caretPos, caretPos + 1))){
+                caretPos++;
+            }
+            codeArea.moveTo(caretPos);
+            inVIMCommandMode = false;
+            return;
+        }
+        vimCommands += "A";
     }
 
     private void handleLowerCaseA() {
+        if(vimCommands.startsWith("a")){
+            CodeArea codeArea = getCodeArea();
+            int caretPos = codeArea.getCaretPosition();
+            String content = codeArea.getContent().getText();
+            if(caretPos < content.length()
+                && ! "\n".equals(content.substring(caretPos, caretPos + 1))){
+                caretPos++;
+            }
+            codeArea.moveTo(caretPos);
+            inVIMCommandMode = false;
+            return;
+        }
+        vimCommands += "a";
 
     }
 
     private void handleUpperCaseI() {
-        // if i is first char helper method
-        CodeArea codeArea = getCodeArea();
-        int caretPos = codeArea.getCaretPosition();
-        String content = codeArea.getContent().getText();
-        while(caretPos > 0 && ! "\n".equals(content.substring(caretPos - 1, caretPos))){
-            caretPos--;
+        if(vimCommands.startsWith("I")){
+            CodeArea codeArea = getCodeArea();
+            int caretPos = codeArea.getCaretPosition();
+            String content = codeArea.getContent().getText();
+            while(caretPos > 0 && ! "\n".equals(content.substring(caretPos - 1, caretPos))){
+                caretPos--;
+            }
+            codeArea.moveTo(caretPos);
+            inVIMCommandMode = false;
+            return;
         }
-        codeArea.moveTo(caretPos);
-        inVIMCommandMode = false;
+        vimCommands += "I";
 
     }
 
     private void handleLowerCaseI() {
-        // if i is first char helper method
-        CodeArea codeArea = getCodeArea();
-        int caretPos = codeArea.getCaretPosition();
-        String content = codeArea.getContent().getText();
-        if(caretPos > 0 && ! "\n".equals(content.substring(caretPos - 1, caretPos))){
-            caretPos--;
+        if(vimCommands.startsWith("i")){
+            CodeArea codeArea = getCodeArea();
+            int caretPos = codeArea.getCaretPosition();
+            String content = codeArea.getContent().getText();
+            if(caretPos > 0 && ! "\n".equals(content.substring(caretPos - 1, caretPos))){
+                caretPos--;
+            }
+            codeArea.moveTo(caretPos);
+            inVIMCommandMode = false;
+            return;
         }
-        codeArea.moveTo(caretPos);
-        inVIMCommandMode = false;
+        vimCommands += "i";
     }
 
     private CodeArea getCodeArea() {
