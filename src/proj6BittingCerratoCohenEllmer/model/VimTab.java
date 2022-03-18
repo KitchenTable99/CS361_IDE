@@ -37,6 +37,7 @@ public class VimTab extends Tab {
                 noActionKeys.add(KeyCode.RIGHT);
                 noActionKeys.add(KeyCode.DOWN);
                 noActionKeys.add(KeyCode.UP);
+                noActionKeys.add(KeyCode.SHIFT);
                 noActionKeys.add(KeyCode.COLON); // this will change at some point down the road
 
                 KeyCode eventKey = key.getCode();
@@ -100,23 +101,44 @@ public class VimTab extends Tab {
     }
 
     private void handleUpperCaseP() {
+        if (notReadyForP()) {
+            return;
+        }
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        codeArea.insertText(caretPos, yankRegister);
 
+        vimCommands = "";
     }
 
     private void handleLowerCaseP() {
+        if (notReadyForP()) {
+            return;
+        }
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        codeArea.insertText(caretPos + 1, yankRegister);
 
+        vimCommands = "";
+    }
+
+    private boolean notReadyForP() {
+        return yankRegister.equals("");
     }
 
     private void handleY() {
         // TODO only implement the yy functionality of y
+        // is ready method == "yy" and should take \n + line + \n into the register
     }
 
     private void handleD() {
         // TODO only implement the dd functionality of d
+        // is ready method == "yy" and should take \n + line + \n into the register and delete it
     }
 
     private void handleS() {
-
+        handleX();
+        inVIMCommandMode = false;
     }
 
     private void handleX() {
