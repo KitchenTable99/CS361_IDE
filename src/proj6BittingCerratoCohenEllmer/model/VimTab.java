@@ -13,6 +13,7 @@ import java.util.Set;
 public class VimTab extends Tab {
 
     private boolean inVIMCommandMode;
+    private int currentColumn = 0;
     private String vimCommands = "";
     private String yankRegister = "";
 
@@ -43,6 +44,7 @@ public class VimTab extends Tab {
                 KeyCode eventKey = key.getCode();
                 if (!inVIMCommandMode && eventKey.equals(KeyCode.ESCAPE)) {
                     inVIMCommandMode = true;
+                    updateColumnTracker();
                 } else if (inVIMCommandMode && eventKey.equals(KeyCode.ESCAPE)) {
                     vimCommands = "";
                     key.consume();
@@ -175,23 +177,66 @@ public class VimTab extends Tab {
     private void handleL() {
         CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
-        codeArea.moveTo(caretPos + 1);
+        if(caretPos < codeArea.getContent().getLength()){
+            codeArea.moveTo(caretPos + 1);
+        }
         vimCommands = "";
+        updateColumnTracker();
     }
+
     //up
     private void handleK() {
-
+        CodeArea codeArea = getCodeArea();
+        // Move to previous line
+        int previous_line = getStartOfLine() - 1;
+        if(previous_line > 0){
+            codeArea.moveTo(previous_line);
+        }
+        // Move to correct collumn
+        int lineLength = getEndOfLine() - getStartOfLine();
+        if(currentColumn < lineLength){
+            codeArea.moveTo(getStartOfLine() + currentColumn);
+        }else{
+            codeArea.moveTo(getStartOfLine() + lineLength);
+        }
+        vimCommands = "";
     }
+
     //down
     private void handleJ() {
-
+        CodeArea codeArea = getCodeArea();
+        // Move to start of next line then add
+        if(notLastLine()){
+            codeArea.moveTo(getEndOfLine() + 1);
+            int lineLength = getEndOfLine() - getStartOfLine();
+            if(currentColumn < lineLength){
+                codeArea.moveTo(codeArea.getCaretPosition() + currentColumn);
+            }else{
+                codeArea.moveTo(codeArea.getCaretPosition() + lineLength);
+            }
+        }
+        vimCommands = "";
     }
+
+    private boolean notLastLine(){
+        CodeArea codeArea = getCodeArea();
+        // Move to start of next line then add
+        if(getEndOfLine() + 1 < codeArea.getContent().getLength()){
+            return true;
+        }
+        return false;
+    }
+
+
     //left
     private void handleH() {
         CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
-        codeArea.moveTo(caretPos - 1);
+        if(caretPos > 0){
+            codeArea.moveTo(caretPos - 1);
+        }
         vimCommands = "";
+        updateColumnTracker();
     }
 
     private void handleUpperCaseA() {
@@ -200,17 +245,6 @@ public class VimTab extends Tab {
             codeArea.moveTo(getEndOfLine());
             inVIMCommandMode = false;
         }
-    }
-
-    private int getEndOfLine(){
-        CodeArea codeArea = getCodeArea();
-        int caretPos = codeArea.getCaretPosition();
-        String content = codeArea.getContent().getText();
-        while(caretPos < content.length()
-            && ! "\n".equals(content.substring(caretPos, caretPos + 1))){
-            caretPos++;
-        }
-        return caretPos;
     }
 
     private void handleLowerCaseA() {
@@ -225,7 +259,6 @@ public class VimTab extends Tab {
             codeArea.moveTo(caretPos);
             inVIMCommandMode = false;
         }
-
     }
 
     private void handleUpperCaseI() {
@@ -234,16 +267,6 @@ public class VimTab extends Tab {
             codeArea.moveTo(getStartOfLine());
             inVIMCommandMode = false;
         }
-    }
-
-    private int getStartOfLine(){
-        CodeArea codeArea = getCodeArea();
-        int caretPos = codeArea.getCaretPosition();
-        String content = codeArea.getContent().getText();
-        while(caretPos > 0 && ! "\n".equals(content.substring(caretPos - 1, caretPos))){
-            caretPos--;
-        }
-        return caretPos;
     }
 
     private void handleLowerCaseI() {
@@ -259,8 +282,34 @@ public class VimTab extends Tab {
         }
     }
 
+    private int getEndOfLine(){
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        String content = codeArea.getContent().getText();
+        while(caretPos < content.length()
+            && ! "\n".equals(content.substring(caretPos, caretPos + 1))){
+            caretPos++;
+        }
+        return caretPos;
+    }
+
+    private int getStartOfLine(){
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        String content = codeArea.getContent().getText();
+        while(caretPos > 0 && ! "\n".equals(content.substring(caretPos - 1, caretPos))){
+            caretPos--;
+        }
+        return caretPos;
+    }
+
+
     private CodeArea getCodeArea() {
         return ((VirtualizedScrollPane<CodeArea>) getContent()).getContent();
+    }
+
+    private void updateColumnTracker(){
+        currentColumn = getCodeArea().getCaretColumn();
     }
 
 }
