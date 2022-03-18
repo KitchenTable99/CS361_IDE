@@ -68,6 +68,9 @@ public class VimTab extends Tab {
     }
 
     private void dispatchVimCommand() {
+        if(vimCommands.length() < 1){
+            return;
+        }
         Character starting_char = vimCommands.charAt(0);
         if (starting_char.equals('i')) {
             handleLowerCaseI();
@@ -129,13 +132,57 @@ public class VimTab extends Tab {
     }
 
     private void handleY() {
-        // TODO only implement the yy functionality of y
-        // is ready method == "yy" and should take \n + line + \n into the register
+        if( isReadyForyy()){
+            yank(getYankStart() , getYankEnd());
+            vimCommands = "";
+        }
+    }
+
+    private boolean isReadyForyy() {
+        return "yy".equals(vimCommands);
     }
 
     private void handleD() {
-        // TODO only implement the dd functionality of d
-        // is ready method == "yy" and should take \n + line + \n into the register and delete it
+        if( isReadyFordd()){
+            CodeArea codeArea = getCodeArea();
+            String content = codeArea.getContent().getText();
+            yank(getYankStart() , getYankEnd());
+            String preYank = content.substring(0, getYankStart());
+            String postYank = content.substring(getYankEnd());
+            codeArea.replaceText(preYank+postYank);
+            vimCommands = "";
+        }
+    }
+
+    private boolean isReadyFordd() {
+        return "dd".equals(vimCommands);
+    }
+
+    private int getYankStart(){
+        CodeArea codeArea = getCodeArea();
+        codeArea.getContent().getText();
+        int startYank = getStartOfLine();
+        if(startYank > 0){
+            startYank--;
+        }
+        return startYank;
+    }
+
+    private int getYankEnd(){
+        CodeArea codeArea = getCodeArea();
+        String content = codeArea.getContent().getText();
+        int endYank = getEndOfLine();
+        if(endYank < content.length()){
+            endYank++;
+        }
+        return endYank;
+    }
+
+
+
+    private void yank(int start, int end){
+        CodeArea codeArea = getCodeArea();
+        yankRegister = codeArea.getContent().getText().substring(start, end);
     }
 
     private void handleS() {
