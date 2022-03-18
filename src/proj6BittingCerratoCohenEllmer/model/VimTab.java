@@ -173,10 +173,12 @@ public class VimTab extends Tab {
     private boolean isReadyForR() {
         return vimCommands.length() == 2;
     }
+
     //right
     private void handleL() {
         CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
+        // move right if not the last character 
         if(caretPos < codeArea.getContent().getLength()){
             codeArea.moveTo(caretPos + 1);
         }
@@ -205,9 +207,10 @@ public class VimTab extends Tab {
     //down
     private void handleJ() {
         CodeArea codeArea = getCodeArea();
-        // Move to start of next line then add
         if(notLastLine()){
+            // Move to start of next line 
             codeArea.moveTo(getEndOfLine() + 1);
+            // Move to correct collumn
             int lineLength = getEndOfLine() - getStartOfLine();
             if(currentColumn < lineLength){
                 codeArea.moveTo(codeArea.getCaretPosition() + currentColumn);
@@ -232,6 +235,7 @@ public class VimTab extends Tab {
     private void handleH() {
         CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
+        // if not first character move left
         if(caretPos > 0){
             codeArea.moveTo(caretPos - 1);
         }
