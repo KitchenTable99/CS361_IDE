@@ -171,21 +171,27 @@ public class VimTab extends Tab {
     private boolean isReadyForR() {
         return vimCommands.length() == 2;
     }
-
+    //right
     private void handleL() {
-
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        codeArea.moveTo(caretPos + 1);
+        vimCommands = "";
     }
-
+    //up
     private void handleK() {
 
     }
-
+    //down
     private void handleJ() {
 
     }
-
+    //left
     private void handleH() {
-
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        codeArea.moveTo(caretPos - 1);
+        vimCommands = "";
     }
 
     private void handleUpperCaseA() {
@@ -193,9 +199,7 @@ public class VimTab extends Tab {
             CodeArea codeArea = getCodeArea();
             codeArea.moveTo(getEndOfLine());
             inVIMCommandMode = false;
-            return;
         }
-        vimCommands += "A";
     }
 
     private int getEndOfLine(){
@@ -220,9 +224,7 @@ public class VimTab extends Tab {
             }
             codeArea.moveTo(caretPos);
             inVIMCommandMode = false;
-            return;
         }
-        vimCommands += "a";
 
     }
 
@@ -231,9 +233,7 @@ public class VimTab extends Tab {
             CodeArea codeArea = getCodeArea();
             codeArea.moveTo(getStartOfLine());
             inVIMCommandMode = false;
-            return;
         }
-        vimCommands += "I";
     }
 
     private int getStartOfLine(){
@@ -256,9 +256,7 @@ public class VimTab extends Tab {
             }
             codeArea.moveTo(caretPos);
             inVIMCommandMode = false;
-            return;
         }
-        vimCommands += "i";
     }
 
     private CodeArea getCodeArea() {
