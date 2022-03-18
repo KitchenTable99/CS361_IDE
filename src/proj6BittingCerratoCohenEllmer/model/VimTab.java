@@ -27,6 +27,10 @@ public class VimTab extends Tab {
              */
             @Override
             public void handle(KeyEvent key) {
+                // don't do anything if keyboard shortcut pressed
+                if (key.isShortcutDown()) {
+                    return;
+                }
                 // set up set for keys that should do nothing in command mode
                 Set<KeyCode> noActionKeys = new HashSet<>();
                 noActionKeys.add(KeyCode.LEFT);
