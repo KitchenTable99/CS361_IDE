@@ -191,17 +191,22 @@ public class VimTab extends Tab {
     private void handleUpperCaseA() {
         if(vimCommands.startsWith("A")){
             CodeArea codeArea = getCodeArea();
-            int caretPos = codeArea.getCaretPosition();
-            String content = codeArea.getContent().getText();
-            while(caretPos < content.length()
-                && ! "\n".equals(content.substring(caretPos, caretPos + 1))){
-                caretPos++;
-            }
-            codeArea.moveTo(caretPos);
+            codeArea.moveTo(getEndOfLine());
             inVIMCommandMode = false;
             return;
         }
         vimCommands += "A";
+    }
+
+    private int getEndOfLine(){
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        String content = codeArea.getContent().getText();
+        while(caretPos < content.length()
+            && ! "\n".equals(content.substring(caretPos, caretPos + 1))){
+            caretPos++;
+        }
+        return caretPos;
     }
 
     private void handleLowerCaseA() {
@@ -224,17 +229,21 @@ public class VimTab extends Tab {
     private void handleUpperCaseI() {
         if(vimCommands.startsWith("I")){
             CodeArea codeArea = getCodeArea();
-            int caretPos = codeArea.getCaretPosition();
-            String content = codeArea.getContent().getText();
-            while(caretPos > 0 && ! "\n".equals(content.substring(caretPos - 1, caretPos))){
-                caretPos--;
-            }
-            codeArea.moveTo(caretPos);
+            codeArea.moveTo(getStartOfLine());
             inVIMCommandMode = false;
             return;
         }
         vimCommands += "I";
+    }
 
+    private int getStartOfLine(){
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        String content = codeArea.getContent().getText();
+        while(caretPos > 0 && ! "\n".equals(content.substring(caretPos - 1, caretPos))){
+            caretPos--;
+        }
+        return caretPos;
     }
 
     private void handleLowerCaseI() {
