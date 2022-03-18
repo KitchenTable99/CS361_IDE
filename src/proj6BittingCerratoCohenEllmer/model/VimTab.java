@@ -121,7 +121,7 @@ public class VimTab extends Tab {
 
     private void handleX() {
         // no need to call an isReady method as 'x' is a single character command.
-        CodeArea codeArea = ((VirtualizedScrollPane<CodeArea>) getContent()).getContent();
+        CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
         if (caretPos == 0) {
             caretPos = 1;
@@ -132,7 +132,22 @@ public class VimTab extends Tab {
     }
 
     private void handleR() {
+        if (!isReadyForR()) {
+            return;
+        }
+        CodeArea codeArea = getCodeArea();
+        int caretPos = codeArea.getCaretPosition();
+        if (caretPos == 0) {
+            caretPos = 1;
+        }
+        String replaceString = Character.toString(vimCommands.charAt(1));
+        codeArea.replaceText(caretPos - 1, caretPos, replaceString);
 
+        vimCommands = "";
+    }
+
+    private boolean isReadyForR() {
+        return vimCommands.length() == 2;
     }
 
     private void handleL() {
@@ -165,5 +180,10 @@ public class VimTab extends Tab {
 
     private void handleLowerCaseI() {
     }
+
+    private CodeArea getCodeArea() {
+        return ((VirtualizedScrollPane<CodeArea>) getContent()).getContent();
+    }
+
 }
 
