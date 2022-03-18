@@ -1,3 +1,11 @@
+/*
+ * File: VimTab.java
+ * Names: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
+ * Class: CS 361
+ * Project 6
+ * Date: March 18
+ */
+
 package proj6BittingCerratoCohenEllmer.model;
 
 import javafx.event.EventHandler;
@@ -10,13 +18,26 @@ import org.fxmisc.richtext.CodeArea;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * VimTab class implements a basic set of Vim commands
+ * 
+ */
 public class VimTab extends Tab {
 
+    // VIM command vs insert mode
     private boolean inVIMCommandMode;
-    private int currentColumn = 0;
+    // set of character used in current command
     private String vimCommands = "";
+    // holds a clipboard like register
     private String yankRegister = "";
+    //used for keeping place when traversing text area rows 
+    private int currentColumn = 0;
 
+    /**
+     * Constructs a new VimTab with a JavaCodeArea.
+     * 
+     * @param tabName String to name the tab
+     */
     public VimTab(String tabName) {
         super(tabName);
 
@@ -41,6 +62,7 @@ public class VimTab extends Tab {
                 noActionKeys.add(KeyCode.SHIFT);
                 noActionKeys.add(KeyCode.COLON); // this will change at some point down the road
 
+                // Determine VIM mode
                 KeyCode eventKey = key.getCode();
                 if (!inVIMCommandMode && eventKey.equals(KeyCode.ESCAPE)) {
                     inVIMCommandMode = true;
@@ -61,12 +83,17 @@ public class VimTab extends Tab {
             }
         };
 
+        // set tab content
         JavaCodeArea javaCodeArea = new JavaCodeArea();
         CodeArea codeArea = javaCodeArea.getCodeArea();
         codeArea.addEventFilter(KeyEvent.ANY, vimHandler);
         setContent(new VirtualizedScrollPane<>(codeArea));
     }
 
+    /**
+     * routes the current vimCommand string to the appropriate
+     * handler method
+     */
     private void dispatchVimCommand() {
         if(vimCommands.length() < 1){
             return;
@@ -105,6 +132,10 @@ public class VimTab extends Tab {
         }
     }
 
+    /**
+     * "Put" VIM Command
+     * pastes the yank register at the current Caret Position
+     */
     private void handleUpperCaseP() {
         if (notReadyForP()) {
             return;
@@ -116,6 +147,10 @@ public class VimTab extends Tab {
         vimCommands = "";
     }
 
+    /**
+     * "put" VIM Command
+     * pastes the yank register after the current Caret Position
+     */
     private void handleLowerCaseP() {
         if (notReadyForP()) {
             return;
@@ -127,10 +162,19 @@ public class VimTab extends Tab {
         vimCommands = "";
     }
 
+    /**
+     * Checks if the put/Put command makes sense to use.
+     * 
+     * @return boolean representing whether "put/Put" can be used
+     */
     private boolean notReadyForP() {
         return yankRegister.equals("");
     }
 
+    /**
+     * Only set to handle the yy Vim Command
+     * This yanks the current line from "\n" to "\n"
+     */
     private void handleY() {
         if( isReadyForyy()){
             yank(getYankStart() , getYankEnd());
@@ -138,10 +182,19 @@ public class VimTab extends Tab {
         }
     }
 
+    /**
+     * Checks if the vimCommand is "yy"
+     * @return boolean true if vimCommand is "yy"
+     */
     private boolean isReadyForyy() {
         return "yy".equals(vimCommands);
     }
 
+    /**
+     * Only set to handle the dd Vim Command
+     * This yanks the current line from "\n" to "\n"
+     * and then deletes the current line from "\n" to "\n"
+     */
     private void handleD() {
         if( isReadyFordd()){
             CodeArea codeArea = getCodeArea();
@@ -154,10 +207,19 @@ public class VimTab extends Tab {
         }
     }
 
+    /**
+     * Checks if the vimCommand is "dd"
+     * @return boolean true if vimCommand is "dd"
+     */
     private boolean isReadyFordd() {
         return "dd".equals(vimCommands);
     }
 
+    /**
+     * Finds the start of the current line for yank
+     * either "\n" or start of the text
+     * @return int position in code area
+     */
     private int getYankStart(){
         CodeArea codeArea = getCodeArea();
         codeArea.getContent().getText();
@@ -168,6 +230,11 @@ public class VimTab extends Tab {
         return startYank;
     }
 
+    /**
+     * Finds the end of the current line for yank
+     * either "\n" or end of the text
+     * @return int position in code area
+     */
     private int getYankEnd(){
         CodeArea codeArea = getCodeArea();
         String content = codeArea.getContent().getText();
@@ -178,18 +245,27 @@ public class VimTab extends Tab {
         return endYank;
     }
 
-
-
+    /**
+     * Yanks text from the code area
+     * @param start an int position to start the yank
+     * @param end an int position to end the yank
+     */
     private void yank(int start, int end){
         CodeArea codeArea = getCodeArea();
         yankRegister = codeArea.getContent().getText().substring(start, end);
     }
 
+    /**
+     * yanks the current character and enters insert mode
+     */
     private void handleS() {
         handleX();
         inVIMCommandMode = false;
     }
 
+    /**
+     * yanks the current character 
+     */
     private void handleX() {
         // no need to call an isReady method as 'x' is a single character command.
         CodeArea codeArea = getCodeArea();
@@ -202,6 +278,10 @@ public class VimTab extends Tab {
         vimCommands = "";
     }
 
+    /**
+     * replaces the current character with last character 
+     * in VimCommands string
+     */
     private void handleR() {
         if (!isReadyForR()) {
             return;
@@ -217,6 +297,10 @@ public class VimTab extends Tab {
         vimCommands = "";
     }
 
+    /**
+     * checks if ready to replace the current character 
+     * @return if VIMcommand length is 2 characters
+     */
     private boolean isReadyForR() {
         return vimCommands.length() == 2;
     }
