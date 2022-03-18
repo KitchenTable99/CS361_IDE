@@ -40,7 +40,7 @@ public class CodeTabController {
     private boolean inVIMCommandMode = false;
 
     //An Arraylist to keep track of commands for VIM chaining.
-    private final ArrayList<String> vimCommands = new ArrayList<String>();
+    private String vimCommands = "";
 
     private final EventHandler<KeyEvent> vimHandler = new EventHandler<KeyEvent>() {
         /**
@@ -60,18 +60,47 @@ public class CodeTabController {
                 // Only read key released to prevent duplicated commands
                 if(key.getEventType().equals(KeyEvent.KEY_RELEASED)){
                     //store commands for chaining
-                    vimCommands.add(key.getText());
+                    if (!KeyCode.ENTER.equals(key.getCode())){
+                        vimCommands += key.getText();
+                    }
+                    
                     System.out.println("Vim Commands: " + vimCommands.toString());
                     // 'i','I','a','A'-> edit mode
-                    if("i".equals(key.getText()) || "I".equals(key.getText()) ||
-                            "a".equals(key.getText()) || "A".equals(key.getText()) ){
+                    if("i".equals(vimCommands) || "I".equals(vimCommands) ||
+                            "a".equals(vimCommands) || "A".equals(vimCommands) ){
                         inVIMCommandMode = false;
-                        vimCommands.clear();
+                        vimCommands = "";
                         // TODO: For each command call to model method and move cursor.
                         //i
                         //I
                         //a
                         //A
+                    }
+                    if (KeyCode.ENTER.equals(key.getCode())){
+                        if(":w".equals(vimCommands)){
+                            inVIMCommandMode = false;
+                            vimCommands = "";
+                            try{
+                                saveCurrentTab(new SaveInformationShuttle());
+                            } catch(SaveFailureException ex){
+                                System.out.println("Failed To Save Tab");
+                            }
+                            
+                        }
+                        else if(":x".equals(vimCommands)){
+                            inVIMCommandMode = false;
+                            vimCommands = "";
+                            try{
+                                saveCurrentTab(new SaveInformationShuttle());
+                                closeSelectedTab(SaveReason.CLOSING, new SaveInformationShuttle());
+                            } catch(SaveFailureException ex){
+                                System.out.println("Failed To Save Tab");
+                            } 
+                        }
+                        else{
+                            vimCommands = "";
+                            System.out.println("Not a valid VIM command");
+                        }
                     }
                 }
                 // prevent keystroke from appearing in tab
