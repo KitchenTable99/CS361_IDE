@@ -3,18 +3,14 @@ package proj6BittingCerratoCohenEllmer.controllers;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
-
-import proj6BittingCerratoCohenEllmer.model.JavaCodeArea;
 import proj6BittingCerratoCohenEllmer.model.SaveFailureException;
 import proj6BittingCerratoCohenEllmer.model.SaveInformationShuttle;
+import proj6BittingCerratoCohenEllmer.model.VimTab;
 import proj6BittingCerratoCohenEllmer.view.DialogHelper;
 
 import java.io.File;
@@ -22,7 +18,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
@@ -42,72 +37,6 @@ public class CodeTabController {
     //An Arraylist to keep track of commands for VIM chaining.
     private String vimCommands = "";
 
-    private final EventHandler<KeyEvent> vimHandler = new EventHandler<KeyEvent>() {
-        /**
-         * Route VIM key press events to implemented methods
-         * 
-         * @param key A KeyEvent object that gives information about a Key Stroke
-         */
-        @Override
-        public void handle(KeyEvent key) {
-            // Escape -> command mode
-            if (KeyCode.ESCAPE.equals(key.getCode())) {
-                inVIMCommandMode = true;
-            }
-            // dont parse "command mode" command while in command mode!
-            if(inVIMCommandMode && !KeyCode.ESCAPE.equals(key.getCode()) ){
-                // must handle all key events to supress key stroke in codeArea
-                // Only read key released to prevent duplicated commands
-                if(key.getEventType().equals(KeyEvent.KEY_RELEASED)){
-                    //store commands for chaining
-                    if (!KeyCode.ENTER.equals(key.getCode())){
-                        vimCommands += key.getText();
-                    }
-                    
-                    System.out.println("Vim Commands: " + vimCommands.toString());
-                    // 'i','I','a','A'-> edit mode
-                    if("i".equals(vimCommands) || "I".equals(vimCommands) ||
-                            "a".equals(vimCommands) || "A".equals(vimCommands) ){
-                        inVIMCommandMode = false;
-                        vimCommands = "";
-                        // TODO: For each command call to model method and move cursor.
-                        //i
-                        //I
-                        //a
-                        //A
-                    }
-                    if (KeyCode.ENTER.equals(key.getCode())){
-                        if(":w".equals(vimCommands)){
-                            inVIMCommandMode = false;
-                            vimCommands = "";
-                            try{
-                                saveCurrentTab(new SaveInformationShuttle());
-                            } catch(SaveFailureException ex){
-                                System.out.println("Failed To Save Tab");
-                            }
-                            
-                        }
-                        else if(":x".equals(vimCommands)){
-                            inVIMCommandMode = false;
-                            vimCommands = "";
-                            try{
-                                saveCurrentTab(new SaveInformationShuttle());
-                                closeSelectedTab(SaveReason.CLOSING, new SaveInformationShuttle());
-                            } catch(SaveFailureException ex){
-                                System.out.println("Failed To Save Tab");
-                            } 
-                        }
-                        else{
-                            vimCommands = "";
-                            System.out.println("Not a valid VIM command");
-                        }
-                    }
-                }
-                // prevent keystroke from appearing in tab
-                key.consume();
-            }
-        }
-    };
 
     /**
      * Returns a true BooleanBinding if there are no more tabs and a false one if there
@@ -139,7 +68,7 @@ public class CodeTabController {
         String newTabName = getNextAvailableUntitled();
 
         // creates tab and sets close behavior
-        Tab newTab = new Tab(newTabName);
+        VimTab newTab = new VimTab(newTabName);
         newTab.setOnCloseRequest(closeEvent -> {
             tabPane.getSelectionModel().select(newTab);
             closeSelectedTab(SaveReason.CLOSING, new SaveInformationShuttle());
@@ -150,11 +79,6 @@ public class CodeTabController {
         Tooltip tabToolTip = new Tooltip(newTab.getText());
         newTab.setTooltip(tabToolTip);
 
-        // create a code area
-        JavaCodeArea javaCodeArea = new JavaCodeArea();
-        CodeArea codeArea = javaCodeArea.getCodeArea();
-        codeArea.addEventFilter(KeyEvent.ANY, vimHandler);
-        newTab.setContent(new VirtualizedScrollPane<>(codeArea));
         // add new tab to the tabPane and sets as topmost
         tabPane.getTabs().add(newTab);
         tabPane.getSelectionModel().selectLast();
