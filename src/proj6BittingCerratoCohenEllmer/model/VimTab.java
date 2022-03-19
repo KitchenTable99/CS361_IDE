@@ -137,12 +137,19 @@ public class VimTab extends Tab {
      * pastes the yank register at the current Caret Position
      */
     private void handleUpperCaseP() {
+        // todo update by splitting paste by new line and mention not moving cursor
         if (notReadyForP()) {
             return;
         }
         CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
-        codeArea.insertText(caretPos, yankRegister);
+        if (yankRegister.contains("\n")) {
+            String trimmedYankRegister = yankRegister.trim();
+            codeArea.insertText(getStartOfLine() - 1, "\n" + trimmedYankRegister);
+        } else {
+            codeArea.insertText(caretPos, yankRegister);
+        }
+
 
         vimCommands = "";
     }
