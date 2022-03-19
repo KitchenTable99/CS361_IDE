@@ -177,7 +177,15 @@ public class VimTab extends Tab {
      */
     private void handleY() {
         if( isReadyForyy()){
-            yank(getYankStart() , getYankEnd());
+            String content = getCodeArea().getContent().getText();
+            int start = getYankStart();
+            int end = getYankEnd();
+            if (start != 0 || end != content.length()) {
+                start++;
+            }
+            yank(start, end);
+
+            yank(getYankStart(), getYankEnd());
             vimCommands = "";
         }
     }
@@ -196,15 +204,25 @@ public class VimTab extends Tab {
      * and then deletes the current line from "\n" to "\n"
      */
     private void handleD() {
-        if( isReadyFordd()){
-            CodeArea codeArea = getCodeArea();
-            String content = codeArea.getContent().getText();
-            yank(getYankStart() , getYankEnd());
-            String preYank = content.substring(0, getYankStart());
-            String postYank = content.substring(getYankEnd());
-            codeArea.replaceText(preYank+postYank);
-            vimCommands = "";
+        // todo update javadoc: only deletes one \n and not exactly vim dd, caret goes to the very end of the file
+        if (!isReadyFordd()) {
+            return;
         }
+
+        CodeArea codeArea = getCodeArea();
+        String content = codeArea.getContent().getText();
+        int start = getYankStart();
+        int end = getYankEnd();
+        if (start != 0 || end != content.length()) {
+            start++;
+        }
+        yank(start, end);
+        String preYank = content.substring(0, start);
+        String postYank = content.substring(end);
+        codeArea.replaceText(preYank + postYank);
+        updateColumnTracker();
+        vimCommands = "";
+
     }
 
     /**
