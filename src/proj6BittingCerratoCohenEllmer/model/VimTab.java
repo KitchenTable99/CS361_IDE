@@ -159,12 +159,20 @@ public class VimTab extends Tab {
      * pastes the yank register after the current Caret Position
      */
     private void handleLowerCaseP() {
+        // todo update javadoc the same as upper case p
         if (notReadyForP()) {
             return;
         }
         CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
-        codeArea.insertText(caretPos + 1, yankRegister);
+        if (yankRegister.contains("\n")) {
+            String trimmedYankRegister = yankRegister.trim();
+            codeArea.insertText(getEndOfLine(), "\n" + trimmedYankRegister);
+        } else if (caretPos < codeArea.getContent().getText().length()) {
+            codeArea.insertText(caretPos + 1, yankRegister);
+        } else {
+            codeArea.insertText(caretPos, yankRegister);
+        }
 
         vimCommands = "";
     }
