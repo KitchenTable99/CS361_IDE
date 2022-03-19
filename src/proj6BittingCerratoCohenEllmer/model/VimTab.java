@@ -305,7 +305,10 @@ public class VimTab extends Tab {
         return vimCommands.length() == 2;
     }
 
-    //right
+    /**
+     * "l" VIM command
+     * Moves caret to the right (if not at the end of the document)
+     */
     private void handleL() {
         CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
@@ -317,7 +320,10 @@ public class VimTab extends Tab {
         updateColumnTracker();
     }
 
-    //up
+    /**
+     * "k" VIM command
+     * Moves caret up (if not in the first row)
+     */
     private void handleK() {
         CodeArea codeArea = getCodeArea();
         // Move to previous line
@@ -335,7 +341,10 @@ public class VimTab extends Tab {
         vimCommands = "";
     }
 
-    //down
+    /**
+     * "j" VIM command
+     * Moves caret down (if not in the last row)
+     */
     private void handleJ() {
         CodeArea codeArea = getCodeArea();
         if(notLastLine()){
@@ -352,6 +361,10 @@ public class VimTab extends Tab {
         vimCommands = "";
     }
 
+    /**
+     * Finds if in last line of document
+     * @return boolean representing if in the last line of document
+     */
     private boolean notLastLine(){
         CodeArea codeArea = getCodeArea();
         // Move to start of next line then add
@@ -361,8 +374,10 @@ public class VimTab extends Tab {
         return false;
     }
 
-
-    //left
+    /**
+     * "h" VIM command
+     * Moves caret to the left (if not at the start of the document)
+     */
     private void handleH() {
         CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
@@ -374,6 +389,10 @@ public class VimTab extends Tab {
         updateColumnTracker();
     }
 
+    /**
+     * "A" VIM command
+     * Moves caret to the end of the line and enter insert mode
+     */
     private void handleUpperCaseA() {
         if(vimCommands.startsWith("A")){
             CodeArea codeArea = getCodeArea();
@@ -382,6 +401,10 @@ public class VimTab extends Tab {
         }
     }
 
+    /**
+     * "a" VIM command
+     * Enter insert mode after current caret position
+     */
     private void handleLowerCaseA() {
         if(vimCommands.startsWith("a")){
             CodeArea codeArea = getCodeArea();
@@ -396,6 +419,10 @@ public class VimTab extends Tab {
         }
     }
 
+    /**
+     * "I" VIM command
+     * Moves caret to the start of the line and enter insert mode
+     */
     private void handleUpperCaseI() {
         if(vimCommands.startsWith("I")){
             CodeArea codeArea = getCodeArea();
@@ -404,6 +431,10 @@ public class VimTab extends Tab {
         }
     }
 
+    /**
+     * "i" VIM command
+     * Enter insert mode before current caret position
+     */
     private void handleLowerCaseI() {
         if(vimCommands.startsWith("i")){
             CodeArea codeArea = getCodeArea();
@@ -417,6 +448,10 @@ public class VimTab extends Tab {
         }
     }
 
+    /**
+     * Find the end of the current line
+     * @return int representing the end of the current line
+     */
     private int getEndOfLine(){
         CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
@@ -428,6 +463,10 @@ public class VimTab extends Tab {
         return caretPos;
     }
 
+    /**
+     * Find the start of the current line
+     * @return int representing the start of the current line
+     */
     private int getStartOfLine(){
         CodeArea codeArea = getCodeArea();
         int caretPos = codeArea.getCaretPosition();
@@ -438,11 +477,18 @@ public class VimTab extends Tab {
         return caretPos;
     }
 
-
+    /**
+     * Returns content of VIMTab Object
+     * @return CodeArea stored in current tab
+     */
     private CodeArea getCodeArea() {
         return ((VirtualizedScrollPane<CodeArea>) getContent()).getContent();
     }
 
+    /**
+     * keeps track of the caret column position for moving
+     * between rows
+     */
     private void updateColumnTracker(){
         currentColumn = getCodeArea().getCaretColumn();
     }

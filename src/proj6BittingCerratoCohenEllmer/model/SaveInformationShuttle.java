@@ -11,7 +11,9 @@ import javafx.scene.control.ButtonType;
 
 import java.util.Optional;
 
-
+/**
+ * Hold save information
+ */
 public class SaveInformationShuttle {
 
     private boolean saveSuccessful;
