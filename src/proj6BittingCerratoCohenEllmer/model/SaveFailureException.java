@@ -7,6 +7,9 @@
  */
 package proj6BittingCerratoCohenEllmer.model;
 
+/**
+ * Specialized Exception for CS361 GUI
+ */
 public class SaveFailureException extends Exception{
     public SaveFailureException(String errorMessage, Throwable err) {
         super(errorMessage, err);
