@@ -6,7 +6,7 @@
  * Date: March 18
  */
 
-package proj6BittingCerratoCohenEllmer.controllers;
+package proj7BittingCerratoCohenEllmer.controllers;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -18,9 +18,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import org.fxmisc.richtext.StyleClassedTextArea;
-import proj6BittingCerratoCohenEllmer.model.SaveFailureException;
-import proj6BittingCerratoCohenEllmer.model.SaveInformationShuttle;
-import proj6BittingCerratoCohenEllmer.view.DialogHelper;
+import proj7BittingCerratoCohenEllmer.model.SaveFailureException;
+import proj7BittingCerratoCohenEllmer.model.SaveInformationShuttle;
+import proj7BittingCerratoCohenEllmer.view.DialogHelper;
 
 import java.io.IOException;
 import java.io.InputStream;

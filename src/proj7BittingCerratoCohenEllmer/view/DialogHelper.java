@@ -6,11 +6,12 @@
  * Date: March 7
  */
 
-package proj6BittingCerratoCohenEllmer.view;
+package proj7BittingCerratoCohenEllmer.view;
 
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import proj6BittingCerratoCohenEllmer.controllers.SaveReason;
+import proj7BittingCerratoCohenEllmer.controllers.SaveReason;
 
 import java.util.HashMap;
 

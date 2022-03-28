@@ -6,7 +6,7 @@
  * Date: March 18
  */
 
-package proj6BittingCerratoCohenEllmer.model;
+package proj7BittingCerratoCohenEllmer.model;
 
 import javafx.event.EventHandler;
 import javafx.scene.control.Tab;

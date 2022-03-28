@@ -5,7 +5,7 @@
  * Project 6
  * Date: March 18
  */
-package proj6BittingCerratoCohenEllmer.model;
+package proj7BittingCerratoCohenEllmer.model;
 
 import javafx.scene.control.ButtonType;
 

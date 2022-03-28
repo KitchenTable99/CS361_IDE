@@ -6,7 +6,7 @@
  * Date: March 7
  */
 
-package proj6BittingCerratoCohenEllmer.controllers;
+package proj7BittingCerratoCohenEllmer.controllers;
 
 public enum SaveReason {
     CLOSING, EXITING, COMPILING

@@ -6,7 +6,7 @@
  * Date: March 18
  */
 
-package proj6BittingCerratoCohenEllmer.controllers;
+package proj7BittingCerratoCohenEllmer.controllers;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -16,10 +16,10 @@ import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
-import proj6BittingCerratoCohenEllmer.model.SaveFailureException;
-import proj6BittingCerratoCohenEllmer.model.SaveInformationShuttle;
-import proj6BittingCerratoCohenEllmer.model.VimTab;
-import proj6BittingCerratoCohenEllmer.view.DialogHelper;
+import proj7BittingCerratoCohenEllmer.model.SaveFailureException;
+import proj7BittingCerratoCohenEllmer.model.SaveInformationShuttle;
+import proj7BittingCerratoCohenEllmer.model.VimTab;
+import proj7BittingCerratoCohenEllmer.view.DialogHelper;
 
 import java.io.File;
 import java.io.FileWriter;
