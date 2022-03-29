@@ -16,7 +16,7 @@
 
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
-import bantam.util.CompilationException;
+import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;

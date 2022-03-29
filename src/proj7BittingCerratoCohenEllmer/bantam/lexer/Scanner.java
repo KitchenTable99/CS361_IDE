@@ -1,6 +1,6 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
-import bantam.util.ErrorHandler;
+import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 import java.io.Reader;
 
@@ -26,7 +26,6 @@ public class Scanner {
      */
     public Scanner(String filename, ErrorHandler handler) {
         errorHandler = handler;
-        currentChar = ' ';
         sourceFile = new SourceFile(filename);
     }
 
