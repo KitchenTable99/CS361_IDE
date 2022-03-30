@@ -1,6 +1,6 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
-import bantam.util.ErrorHandler;
+import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 import java.io.Reader;
 
