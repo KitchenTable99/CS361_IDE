@@ -50,21 +50,65 @@ public class Scanner {
      */
     private boolean keepWhiteSpace(String spelling){
         if(spelling.startsWith("\"") 
-            || spelling.startsWith("\'") 
+            || spelling.startsWith("//'") 
             || spelling.startsWith("/*")){
                 return true;
             }
         return false;
     }
 
+    /**
+     * checks if letter is whitesace, a carrage, or a tab
+     *
+     * @param letter the current letter being checked
+     */
     private boolean isWhiteSpace(String letter){
-        if(letter.equals(" ")
-            || letter.equals("\t") 
-            || letter.equals("\n")){
+        if(Character.isWhitespace(letter.charAt(0))){
                 return true;
             }
         return false;
     }
+
+    /**
+     * checks if some string is an Identifier
+     * 
+     * @param spelling the current spelling of the token to check
+     * 
+     * @return returns true if an identifier 
+     */
+    private boolean isIdentifier(String spelling){
+        //must start with a letter
+        char start = spelling.charAt(0);
+        if(start >= 'A' && start <= 'Z' ||
+            start >= 'a' && start <= 'z'){
+            // only contains letters, numbers, and underscores
+            for (char character : spelling.toCharArray()) {
+                if(character < '0' ||
+                        character > '9' && character < 'A' ||
+                        character > 'Z' && character < '_' ||
+                        character > '_' && character < 'a' ||
+                        character > 'z'){
+                    return false;
+                }
+            } 
+            return true;
+        } // doesnt start with letter
+        return false;
+    }
+
+    /**
+     * checks if string contains a valid int
+     * 
+     * @param integer the current spelling of the token to check
+     * 
+     * @return returns true if an integer
+     */
+    private boolean isValidInt(String integer){
+            // else check int
+                    //Integer constants (9, 32, etc.) 0 and ((2^31)-1) INTCONST, 
+        return false;
+    }
+
 
     /**
      * read characters and collect them into a Token.
@@ -79,60 +123,60 @@ public class Scanner {
         while(true){
             try {
                 String letter = String.valueOf(sourceFile.getNextChar());
-                if(isWhiteSpace(letter) && keepWhiteSpace(spelling)){
+                // Next token is delimited by white space
+                while(true){
+                    //ignore white space in file
+                    if(isWhiteSpace(letter) && spelling.equals("")){
+                        letter = String.valueOf(sourceFile.getNextChar());
+                        continue;
+                    }
+                    if(isWhiteSpace(letter)){
+                        // keep white space in strings and comments
+                        if(keepWhiteSpace(spelling)){
+                            System.out.println("keep");
+                            spelling += letter;
+                        }else{ // stop parsing -> create token
+                            break;
+                        }
+                    }
                     spelling += letter;
+                    letter = String.valueOf(sourceFile.getNextChar());
                 }
+
+                //check if spelling is a special symbol
+                // check if ){
+                
+                    // '(', ')', '{', '}', ';', '+', '-', '++', '==',
+                    // '&', '|', '&&', '||', '--', '!', '.', ';', ':', ',', '[', ']')
+                        //create token with kind
+
+                if(isIdentifier(spelling)){
+                    return new Token(Kind.IDENTIFIER, spelling, 
+                                sourceFile.getCurrentLineNumber());
+                }
+                // if(isValidInt(spelling)){
+                //     return new Token(Kind.INTCONST, spelling, 
+                //                 sourceFile.getCurrentLineNumber());
+                // }
+                
+                
+                return new Token(Kind.ERROR, "missed", 999);
+                    
+                    //else check if spelling starts and ends with double quotes
+                    /**String constants ("abc", etc.) String constants start and end with double quotes. 
+                    They may contain the following special symbols: 
+                    \n (newline), \t (tab), \" (double quote),
+                    \\ (backslash), and \f (form feed). 
+                    A string constant cannot exceed 5000 characters and cannot span multiple lines. STRCONST */
+                    
+                //else check if spelling is comment
+                    //Comments. include the "//" or the "/*" and "*/" delimiters.
             } catch (IOException e) {
                 System.out.println(e);
             }
 
         }
 
-    }
-
-    /**
-     * Test function for scanner code
-     * Called when scanner.java is run on command line
-     *
-     * @param args a list of files to be scanned
-     */
-    public static void main(String[] args) {
-        // files specified on cmd line
-        if(args.length > 0){
-            Scanner bantamScanner;
-            ErrorHandler bantamErrorHandler;
-            Token currentToken;
-            // scan each file
-            for(String filename : args){
-                //file may not be opened -> CompilationException
-                try {
-                    // initialize scanner for each file
-                    bantamErrorHandler = new ErrorHandler();
-                    bantamScanner = new Scanner(filename, bantamErrorHandler);
-                    // move through file tokens until "End Of File" reached
-                    do{
-                        currentToken = bantamScanner.scan();
-                    }while(currentToken.kind != Kind.EOF); 
-                    // Check Scanner's Error Handler
-                    if (bantamErrorHandler.errorsFound()){
-                        int errorCount = bantamErrorHandler.getErrorList().size();
-                        System.out.println(
-                            "*** " + filename + " had " 
-                                + errorCount + " errors! ***");
-                    }else{
-                        System.out.println(
-                            "*** Scanning file " + filename 
-                                + " was Successfull! ***");
-                        
-                    }
-                } catch (CompilationException e) {
-                    System.out.println(e);
-                }
-            }
-        }else{
-            System.out.println("Please provide a file in the Command Line arguments!");
-        }
-        
     }
 
 }
