@@ -1,7 +1,8 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
-
+import proj7BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
+import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import java.io.Reader;
 
 /**
@@ -32,7 +33,7 @@ public class Scanner {
     /**
      * creates a new scanner for the given file
      *
-     * @param filename the name of the file to be scanned
+     * @param reader reader object for the file to be scanned
      * @param handler  the ErrorHandler that collects all the errors found
      */
     public Scanner(Reader reader, ErrorHandler handler) {
@@ -50,6 +51,51 @@ public class Scanner {
      */
     public Token scan() {
         return null;  // REMOVE THIS LINE AND REPLACE IT WITH YOUR CODE
+    }
+
+    /**
+     * Test function for scanner code
+     * Called when scanner.java is run on command line
+     *
+     * @param args a list of files to be scanned
+     */
+    public static void main(String[] args) {
+        // files specified on cmd line
+        if(args.length > 0){
+            Scanner bantamScanner;
+            ErrorHandler bantamErrorHandler;
+            Token currentToken;
+            // scan each file
+            for(String filename : args){
+                //file may not be opened -> CompilationException
+                try {
+                    // initialize scanner for each file
+                    bantamErrorHandler = new ErrorHandler();
+                    bantamScanner = new Scanner(filename, bantamErrorHandler);
+                    // move through file tokens until "End Of File" reached
+                    do{
+                        currentToken = bantamScanner.scan();
+                    }while(currentToken.kind != Kind.EOF); 
+                    // Check Scanner's Error Handler
+                    if (bantamErrorHandler.errorsFound()){
+                        int errorCount = bantamErrorHandler.getErrorList().size();
+                        System.out.println(
+                            "*** " + filename + " had " 
+                                + errorCount + " errors! ***");
+                    }else{
+                        System.out.println(
+                            "*** Scanning file " + filename 
+                                + " was Successfull! ***");
+                        
+                    }
+                } catch (CompilationException e) {
+                    System.out.println(e);
+                }
+            }
+        }else{
+            System.out.println("Please provide a file in the Command Line arguments!");
+        }
+        
     }
 
 }
