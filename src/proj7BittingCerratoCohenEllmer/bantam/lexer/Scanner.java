@@ -3,6 +3,8 @@ package proj7BittingCerratoCohenEllmer.bantam.lexer;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
 import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
+
+import java.io.IOException;
 import java.io.Reader;
 
 /**
@@ -42,6 +44,29 @@ public class Scanner {
     }
 
     /**
+     * checks if white space should be kept
+     *
+     * @param spelling the current spelling of the token to return
+     */
+    private boolean keepWhiteSpace(String spelling){
+        if(spelling.startsWith("\"") 
+            || spelling.startsWith("\'") 
+            || spelling.startsWith("/*")){
+                return true;
+            }
+        return false;
+    }
+
+    private boolean isWhiteSpace(String letter){
+        if(letter.equals(" ")
+            || letter.equals("\t") 
+            || letter.equals("\n")){
+                return true;
+            }
+        return false;
+    }
+
+    /**
      * read characters and collect them into a Token.
      * It ignores white space unless it is inside a string or a comment.
      * It returns an EOF Token if all characters from the sourceFile have
@@ -50,7 +75,19 @@ public class Scanner {
      * @return the Token containing the characters read
      */
     public Token scan() {
-        return null;  // REMOVE THIS LINE AND REPLACE IT WITH YOUR CODE
+        String spelling = "";
+        while(true){
+            try {
+                String letter = String.valueOf(sourceFile.getNextChar());
+                if(isWhiteSpace(letter) && keepWhiteSpace(spelling)){
+                    spelling += letter;
+                }
+            } catch (IOException e) {
+                System.out.println(e);
+            }
+
+        }
+
     }
 
     /**
