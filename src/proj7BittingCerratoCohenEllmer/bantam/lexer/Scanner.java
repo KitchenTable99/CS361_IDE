@@ -1,11 +1,11 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
-import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
-import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
+import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.HashSet;
 
 /**
  * This class reads characters from a file or a Reader
@@ -15,11 +15,23 @@ public class Scanner {
     /**
      * the source of the characters to be broken into tokens
      */
-    private SourceFile sourceFile;
+    private final SourceFile sourceFile;
     /**
      * collector of all errors that occur
      */
-    private ErrorHandler errorHandler;
+    private final ErrorHandler errorHandler;
+
+    private String skippedLastToken;
+    private final HashSet<String> validSolo = new HashSet<>() {{
+        add("{");
+        add("}");
+        add("(");
+        add(")");
+        add(";");
+        add(".");
+        add("[");
+        add("]");
+    }};
 
     /**
      * creates a new scanner for the given file
@@ -30,6 +42,7 @@ public class Scanner {
     public Scanner(String filename, ErrorHandler handler) {
         errorHandler = handler;
         sourceFile = new SourceFile(filename);
+        skippedLastToken = "";
     }
 
     /**
@@ -44,29 +57,12 @@ public class Scanner {
     }
 
     /**
-     * checks if white space should be kept
-     *
-     * @param spelling the current spelling of the token to return
-     */
-    private boolean keepWhiteSpace(String spelling){
-        if(spelling.startsWith("\"") 
-            || spelling.startsWith("//'") 
-            || spelling.startsWith("/*")){
-                return true;
-            }
-        return false;
-    }
-
-    /**
-     * checks if letter is whitesace, a carrage, or a tab
+     * checks if letter is whitespace, a carriage, or a tab
      *
      * @param letter the current letter being checked
      */
     private boolean isWhiteSpace(String letter){
-        if(Character.isWhitespace(letter.charAt(0))){
-                return true;
-            }
-        return false;
+        return Character.isWhitespace(letter.charAt(0));
     }
 
     /**
@@ -96,30 +92,17 @@ public class Scanner {
         return false;
     }
 
-    /**
-     * checks if string contains a valid int
-     * 
-     * @param integer the current spelling of the token to check
-     * 
-     * @return returns true if an integer
-     */
-    private boolean isValidInt(String integer){
-            // else check int
-                    //Integer constants (9, 32, etc.) 0 and ((2^31)-1) INTCONST, 
-        return false;
-    }
+    private Token createTken(String spelling) {
+        //check if spelling is a special symbol
+        // check if ){
+        // '(', ')', '{', '}', ';', '+', '-', '++', '==',
+        // '&', '|', '&&', '||', '--', '!', '.', ';', ':', ',', '[', ']')
+        //create token with kind
 
-    private Token createToken(String spelling){
-            //check if spelling is a special symbol
-            // check if ){
-            // '(', ')', '{', '}', ';', '+', '-', '++', '==',
-            // '&', '|', '&&', '||', '--', '!', '.', ';', ':', ',', '[', ']')
-                //create token with kind
-
-            if(isIdentifier(spelling)){
-                return new Token(Kind.IDENTIFIER, spelling, 
-                            sourceFile.getCurrentLineNumber());
-            }
+        if (isIdentifier(spelling)) {
+            return new Token(Kind.IDENTIFIER, spelling,
+                    sourceFile.getCurrentLineNumber());
+        }
             // if(isValidInt(spelling)){
             //     return new Token(Kind.INTCONST, spelling, 
             //                 sourceFile.getCurrentLineNumber());
@@ -148,45 +131,79 @@ public class Scanner {
      * @return the Token containing the characters read
      */
     public Token scan() {
-        String spelling = "";
-        while(true){
+        String spelling = skippedLastToken;
+
+        do {
             try {
                 String letter = String.valueOf(sourceFile.getNextChar());
-                // Next token is delimited by white space or "special character"
-                while(true){
-                    //check if letter is a special symbol
-                    // check if ){
-                    // '(', ')', '{', '}', ';', '+', '-', '++', '==',
-                    // '&', '|', '&&', '||', '--', '!', '.', ';', ':', ',', '[', ']')
-                        //createToken(spelling);
-                        //spelling = letter;
-
-                    //ignore random white space in file
-                    if(isWhiteSpace(letter) && spelling.equals("")){
-                        letter = String.valueOf(sourceFile.getNextChar());
-                        continue;
-                    }
-                    if(isWhiteSpace(letter)){
-                        // keep white space in strings and comments
-                        if(keepWhiteSpace(spelling)){
-                            System.out.println("keep");
-                            spelling += letter;
-                        }else{ // stop parsing -> create token
-                            break;
-                        }
-                    }
+                if (!isWhiteSpace(letter) && spelling.equals("")) {
                     spelling += letter;
-                    letter = String.valueOf(sourceFile.getNextChar());
                 }
-
-                return createToken(spelling);
-
             } catch (IOException e) {
-                System.out.println(e);
+                // if there are no more character then check to see if the final token is invalid
+                e.printStackTrace(); // todo: make this elegant
             }
 
+        } while (!isCompleteToken(spelling));
+
+        return createToken(spelling);
+    }
+
+    private boolean isCompleteToken(String spelling) {
+        if (validSolo.contains(spelling)) {
+            return true;
         }
 
+        if (spelling.startsWith("/")) {
+            return isCompleteSlash(spelling); // checks comments and divided by
+        } else if (spelling.startsWith("+") || spelling.startsWith("-")
+                || spelling.startsWith("*") || spelling.startsWith("%")
+                || spelling.startsWith("<") || spelling.startsWith(">")) {
+            return isCompleteMath(spelling);
+        } else if (spelling.startsWith("=")) {
+            return isCompleteEquals(); // make sure to handle === should not return == and then =
+        } else if (isInt(spelling)) {
+            return isCompleteInt();
+        } else if (spelling.startsWith("\"")) {
+            return isCompleteString(); // make sure to handle the case in the above line "\" is not a valid string
+        } else {
+            return isCompleteWord();
+        }
+        // todo confirm that char does not exist
     }
+
+    private boolean isCompleteSlash(String spelling) {
+        if (spelling.length() > 1 && spelling.substring(1).equals("/")) {
+            return isCompleteComment();
+        } else if (spelling.length() > 1 && spelling.substring(1).equals("*")) {
+            return isCompleteComment();
+        } else {
+            return isCompleteMath();
+        }
+    }
+
+    private boolean isCompleteMath(String spelling) {
+        String lastCharacter = spelling.substring(spelling.length() - 1);
+        if (lastCharacter.equals(" ") || lastCharacter.equals("=")) {
+            // set token type
+            skippedLastToken = "";
+            return true;
+        } else if (alphaNumeric.contains(spelling.substring(spelling.length() - 1))) {
+            // set token type
+            skippedLastToken = lastCharacter;
+            return true;
+        } else if (spelling.equals("++") || spelling.equals("--")) {
+            // set token type
+            skippedLastToken = "";
+            return true;
+        } else if (lastCharacter.equals(";")) {
+            // set token type
+            skippedLastToken = ";";
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
 }
