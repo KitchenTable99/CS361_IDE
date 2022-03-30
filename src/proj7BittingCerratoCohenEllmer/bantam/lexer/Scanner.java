@@ -109,6 +109,35 @@ public class Scanner {
         return false;
     }
 
+    private Token createToken(String spelling){
+            //check if spelling is a special symbol
+            // check if ){
+            // '(', ')', '{', '}', ';', '+', '-', '++', '==',
+            // '&', '|', '&&', '||', '--', '!', '.', ';', ':', ',', '[', ']')
+                //create token with kind
+
+            if(isIdentifier(spelling)){
+                return new Token(Kind.IDENTIFIER, spelling, 
+                            sourceFile.getCurrentLineNumber());
+            }
+            // if(isValidInt(spelling)){
+            //     return new Token(Kind.INTCONST, spelling, 
+            //                 sourceFile.getCurrentLineNumber());
+            // }
+
+            //else check if spelling starts and ends with double quotes
+                /**String constants ("abc", etc.) String constants start and end with double quotes. 
+                They may contain the following special symbols: 
+                \n (newline), \t (tab), \" (double quote),
+                \\ (backslash), and \f (form feed). 
+                A string constant cannot exceed 5000 characters and cannot span multiple lines. STRCONST */
+                
+            //else check if spelling is comment
+                //Comments. include the "//" or the "/*" and "*/" delimiters.
+
+            return new Token(Kind.ERROR, "missed: " + spelling , 999);
+    }
+
 
     /**
      * read characters and collect them into a Token.
@@ -123,9 +152,16 @@ public class Scanner {
         while(true){
             try {
                 String letter = String.valueOf(sourceFile.getNextChar());
-                // Next token is delimited by white space
+                // Next token is delimited by white space or "special character"
                 while(true){
-                    //ignore white space in file
+                    //check if letter is a special symbol
+                    // check if ){
+                    // '(', ')', '{', '}', ';', '+', '-', '++', '==',
+                    // '&', '|', '&&', '||', '--', '!', '.', ';', ':', ',', '[', ']')
+                        //createToken(spelling);
+                        //spelling = letter;
+
+                    //ignore random white space in file
                     if(isWhiteSpace(letter) && spelling.equals("")){
                         letter = String.valueOf(sourceFile.getNextChar());
                         continue;
@@ -143,34 +179,8 @@ public class Scanner {
                     letter = String.valueOf(sourceFile.getNextChar());
                 }
 
-                //check if spelling is a special symbol
-                // check if ){
-                
-                    // '(', ')', '{', '}', ';', '+', '-', '++', '==',
-                    // '&', '|', '&&', '||', '--', '!', '.', ';', ':', ',', '[', ']')
-                        //create token with kind
+                return createToken(spelling);
 
-                if(isIdentifier(spelling)){
-                    return new Token(Kind.IDENTIFIER, spelling, 
-                                sourceFile.getCurrentLineNumber());
-                }
-                // if(isValidInt(spelling)){
-                //     return new Token(Kind.INTCONST, spelling, 
-                //                 sourceFile.getCurrentLineNumber());
-                // }
-                
-                
-                return new Token(Kind.ERROR, "missed", 999);
-                    
-                    //else check if spelling starts and ends with double quotes
-                    /**String constants ("abc", etc.) String constants start and end with double quotes. 
-                    They may contain the following special symbols: 
-                    \n (newline), \t (tab), \" (double quote),
-                    \\ (backslash), and \f (form feed). 
-                    A string constant cannot exceed 5000 characters and cannot span multiple lines. STRCONST */
-                    
-                //else check if spelling is comment
-                    //Comments. include the "//" or the "/*" and "*/" delimiters.
             } catch (IOException e) {
                 System.out.println(e);
             }
