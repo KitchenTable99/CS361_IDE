@@ -32,6 +32,45 @@ public class Scanner {
         add("[");
         add("]");
     }};
+    private final HashSet<String> alphaNumeric = new HashSet<>() {{
+        add("a");
+        add("b");
+        add("c");
+        add("d");
+        add("e");
+        add("f");
+        add("g");
+        add("h");
+        add("i");
+        add("j");
+        add("k");
+        add("l");
+        add("m");
+        add("n");
+        add("o");
+        add("p");
+        add("q");
+        add("r");
+        add("s");
+        add("t");
+        add("u");
+        add("v");
+        add("w");
+        add("x");
+        add("y");
+        add("z");
+
+        add("0");
+        add("1");
+        add("2");
+        add("3");
+        add("4");
+        add("5");
+        add("6");
+        add("7");
+        add("8");
+        add("9");
+    }};
 
     /**
      * creates a new scanner for the given file
@@ -136,7 +175,7 @@ public class Scanner {
         do {
             try {
                 String letter = String.valueOf(sourceFile.getNextChar());
-                if (!isWhiteSpace(letter) && spelling.equals("")) {
+                if (!isWhiteSpace(letter) || spelling.equals("")) {
                     spelling += letter;
                 }
             } catch (IOException e) {
@@ -178,7 +217,7 @@ public class Scanner {
         } else if (spelling.length() > 1 && spelling.substring(1).equals("*")) {
             return isCompleteComment();
         } else {
-            return isCompleteMath();
+            return isCompleteMath(spelling);
         }
     }
 
