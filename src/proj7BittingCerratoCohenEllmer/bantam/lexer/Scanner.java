@@ -272,7 +272,7 @@ public class Scanner {
 
         } while (!isCompleteToken(spelling));
 
-        return new Token(Kind.BOOLEAN, spelling, -1);
+        return createToken(spelling);
         // todo: add all the token types to the logic below
         // todo: implement EOF token ASAP so we can test the rest of the tokens
     }
