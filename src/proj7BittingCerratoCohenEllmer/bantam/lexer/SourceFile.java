@@ -46,7 +46,7 @@ class SourceFile {
         try {
             sourceReader = new FileReader(filename);
         } catch (FileNotFoundException e) {
-            throw new CompilationException("File " + filename + "not found.", e);
+            throw new CompilationException("File " + filename + " not found.", e);
         }
         currentLineNumber = 1;
         prevChar = -1;
