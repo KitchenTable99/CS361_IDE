@@ -5,6 +5,8 @@ import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 
 /**
@@ -111,11 +113,19 @@ public class Scanner {
      * 
      * @return returns true if an identifier 
      */
+
+    /**
+     * checks if some string is an Identifier
+     *
+     * @param spelling the current spelling of the token to check
+     *
+     * @return returns true if an identifier
+     */
     private boolean isIdentifier(String spelling){
         //must start with a letter
         char start = spelling.charAt(0);
         if(start >= 'A' && start <= 'Z' ||
-            start >= 'a' && start <= 'z'){
+                start >= 'a' && start <= 'z'){
             // only contains letters, numbers, and underscores
             for (char character : spelling.toCharArray()) {
                 if(character < '0' ||
@@ -125,40 +135,117 @@ public class Scanner {
                         character > 'z'){
                     return false;
                 }
-            } 
+            }
             return true;
         } // doesnt start with letter
         return false;
     }
 
-    private Token createTken(String spelling) {
-        //check if spelling is a special symbol
-        // check if ){
-        // '(', ')', '{', '}', ';', '+', '-', '++', '==',
-        // '&', '|', '&&', '||', '--', '!', '.', ';', ':', ',', '[', ']')
-        //create token with kind
+    /**
+     * checks if string contains a valid int
+     *
+     * @param integer the current spelling of the token to check
+     *
+     * @return returns true if an integer
+     */
+    private boolean isValidInt(String integer){
+        try{
+            Integer.parseInt(integer);
+            return true;
+        }
+        catch (NumberFormatException ex){
+            return false;
+        }
+    }
 
-        if (isIdentifier(spelling)) {
+
+    private boolean isValidString(String spelling){
+        return false;
+    }
+
+
+
+    private Kind specialSymbolToKind(String symbol){
+        if(symbol.equals("(")){
+            return Kind.LPAREN;
+        }else if(symbol.equals(")")){
+            return Kind.RPAREN;
+        }else if(symbol.equals("{")){
+            return Kind.LCURLY;
+        }else if(symbol.equals("}")){
+            return Kind.RCURLY;
+        }else if(symbol.equals(";")){
+            return Kind.SEMICOLON;
+        }else if(symbol.equals("+")){
+            return Kind.PLUSMINUS;
+        }else if(symbol.equals("-")){
+            return Kind.PLUSMINUS;
+        }else if(symbol.equals("++")){
+            return Kind.UNARYINCR;
+        }else if(symbol.equals("==")){
+            return Kind.COMPARE;
+        }else if(symbol.equals("&")){
+            return Kind.BINARYLOGIC;
+        }else if(symbol.equals("|")){
+            return Kind.BINARYLOGIC;
+        }else if(symbol.equals("&&")){
+            return Kind.BINARYLOGIC;
+        }else if(symbol.equals("||")){
+            return Kind.BINARYLOGIC;
+        }else if(symbol.equals("--")){
+            return Kind.UNARYDECR;
+        }else if(symbol.equals("!")){
+            return Kind.UNARYNOT;
+        }else if(symbol.equals(".")){
+            return Kind.DOT;
+        }else if(symbol.equals(":")){
+            return Kind.COLON;
+        }else if(symbol.equals(",")) {
+            return Kind.COMMA;
+        }else if(symbol.equals("*")){
+            return Kind.MULDIV;
+        }else if(symbol.equals("/")){
+            return Kind.MULDIV;
+        }
+        return null;
+    }
+
+    private boolean isSpecialSymbol(String symbol){
+        String[] specialSymbolsArray = { "(", ")", "{", "}", ";", "+", "-", "++", "==",
+                "&", "|", "&&", "||", "--", "!", ".", ":", ",", "*", "/"};
+        ArrayList<String> specialSymbols = new ArrayList<>(Arrays.asList(specialSymbolsArray));
+        return specialSymbols.contains(symbol);
+    }
+
+    private Token createToken(String spelling){
+
+
+        if(isSpecialSymbol(spelling)){
+            return new Token(specialSymbolToKind(spelling), spelling, sourceFile.getCurrentLineNumber());
+        }
+
+        if(isIdentifier(spelling)){
             return new Token(Kind.IDENTIFIER, spelling,
                     sourceFile.getCurrentLineNumber());
         }
-            // if(isValidInt(spelling)){
-            //     return new Token(Kind.INTCONST, spelling, 
-            //                 sourceFile.getCurrentLineNumber());
-            // }
+        if(isValidInt(spelling)){
+            return new Token(Kind.INTCONST, spelling,
+                    sourceFile.getCurrentLineNumber());
+        }
 
-            //else check if spelling starts and ends with double quotes
-                /**String constants ("abc", etc.) String constants start and end with double quotes. 
-                They may contain the following special symbols: 
-                \n (newline), \t (tab), \" (double quote),
-                \\ (backslash), and \f (form feed). 
-                A string constant cannot exceed 5000 characters and cannot span multiple lines. STRCONST */
-                
-            //else check if spelling is comment
-                //Comments. include the "//" or the "/*" and "*/" delimiters.
+        //else check if spelling starts and ends with double quotes
+        /**String constants ("abc", etc.) String constants start and end with double quotes.
+         They may contain the following special symbols:
+         \n (newline), \t (tab), \" (double quote),
+         \\ (backslash), and \f (form feed).
+         A string constant cannot exceed 5000 characters and cannot span multiple lines. STRCONST */
 
-            return new Token(Kind.ERROR, "missed: " + spelling , 999);
+        //else check if spelling is comment
+        //Comments. include the "//" or the "/*" and "*/" delimiters.
+
+        return new Token(Kind.ERROR, "missed: " + spelling , 999);
     }
+
 
 
     /**
