@@ -105,9 +105,9 @@ public class Scanner {
      */
     private boolean isWhiteSpace(String letter){
         return Character.isWhitespace(letter.charAt(0)) 
-                || letter.startsWith("\t")
-                || letter.startsWith("\n")
-                || letter.startsWith("\r");
+                || letter.startsWith(String.valueOf('\t'))
+                || letter.startsWith(String.valueOf('\n'))
+                || letter.startsWith(String.valueOf('\r'));
     }
 
     /**
@@ -268,7 +268,9 @@ public class Scanner {
                 // delimit based on symbols i.e. "sourceFile" + "." + "getNextChar()"
                 }else if(isSpecialSymbol(spelling) || isSpecialSymbol(letter)){
                     if( !spelling.equals("") ){
-                        skippedLastToken = letter;
+                        if(!isWhiteSpace(letter)){
+                            skippedLastToken = letter;
+                        }
                         return createToken(spelling);
                     }else{
                         return createToken(letter);
