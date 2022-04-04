@@ -224,7 +224,6 @@ public class Scanner {
         }
 
         if(isCompleteIdentifier(spelling)){
-            System.out.println("new guy : " + spelling);
             return new Token(Kind.IDENTIFIER, spelling,
                     sourceFile.getCurrentLineNumber());
         }
@@ -259,6 +258,7 @@ public class Scanner {
      */
     public Token scan() {
         String spelling = skippedLastToken;
+        skippedLastToken = "";
         do {
             try {
                 String letter = String.valueOf(sourceFile.getNextChar());
@@ -266,11 +266,13 @@ public class Scanner {
                 if(keepWhiteSpace(spelling)){
                     spelling += letter;
                 // delimit based on symbols i.e. "sourceFile" + "." + "getNextChar()"
-                }else if(isSpecialSymbol(letter)){
-                    if(spelling != ""){
-                        createToken(spelling);
+                }else if(isSpecialSymbol(spelling) || isSpecialSymbol(letter)){
+                    if( !spelling.equals("") ){
+                        skippedLastToken = letter;
+                        return createToken(spelling);
+                    }else{
+                        return createToken(letter);
                     }
-                    spelling = letter;
                 // delimt based on white space
                 }else if (!isWhiteSpace(letter)){
                     spelling += letter;
@@ -283,7 +285,7 @@ public class Scanner {
             }
 
         } while (!isCompleteToken(spelling));
-
+        skippedLastToken = "";
         return createToken(spelling);
         // todo: add all the token types to the logic below
         // todo: implement EOF token ASAP so we can test the rest of the tokens
