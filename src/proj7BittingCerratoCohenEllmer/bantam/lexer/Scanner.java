@@ -7,6 +7,7 @@ import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashSet;
+import java.util.Stack;
 
 /**
  * This class reads characters from a file or a Reader
@@ -22,16 +23,16 @@ public class Scanner {
      */
     private final ErrorHandler errorHandler;
 
-    private String skippedLastToken;
-    private final HashSet<String> validSolo = new HashSet<>() {{
-        add("{");
-        add("}");
-        add("(");
-        add(")");
-        add(";");
-        add(".");
-        add("[");
-        add("]");
+    private char skippedLastToken;
+    private final HashSet<Character> validSolo = new HashSet<>() {{
+        add('{');
+        add('}');
+        add('(');
+        add(')');
+        add(';');
+        add('.');
+        add('[');
+        add(']');
     }};
     private final HashSet<String> alphaNumeric = new HashSet<>() {{
         add("a");
@@ -106,74 +107,78 @@ public class Scanner {
      * @return the Token containing the characters read
      */
     public Token scan() {
-        String spelling = skippedLastToken;
+        Stack<Character> spellingStack = new Stack<>();
+        if (skippedLastToken != '') {
+            spellingStack.push(skippedLastToken);
+        }
 
         do {
             try {
-                String letter = String.valueOf(sourceFile.getNextChar());
-                if (!isWhiteSpace(letter) || spelling.equals("")) {
-                    spelling += letter;
+                char letter = sourceFile.getNextChar();
+                if (!Character.isWhitespace(letter) || !spellingStack.empty()) {
+                    spellingStack.push(letter);
                 }
             } catch (IOException e) {
                 // if there are no more character then check to see if the final token is invalid
                 e.printStackTrace(); // todo: make this elegant
             }
 
-        } while (!isCompleteToken(spelling));
-        skippedLastToken = ""; // todo look at this
-        return createToken(spelling);
+        } while (!isCompleteToken(spellingStack));
+        skippedLastToken = ''; // todo look at this
+        return createToken(spellingStack);
         // todo: add all the token types to the logic below
         // todo: implement EOF token ASAP so we can test the rest of the tokens
     }
 
-    /**
-     * checks if letter is whitespace, a carriage, or a tab
-     *
-     * @param letter the current letter being checked
-     */
-    private boolean isWhiteSpace(String letter) {
-        return Character.isWhitespace(letter.charAt(0));
-    }
-
     // todo: elegance improvement: switch spelling to a stack. We do a lot of peeking
     // todo: elegance improvement: create an object that holds a reference to the spelling string and can do all this validation
-    private boolean isCompleteToken(String spelling) {
-        if (validSolo.contains(spelling)) {
+
+    /**
+     * This method checks to see if the spelling stack contains a valid token. If a valid
+     * token can be constructed from the complete stack, this method return true. In the
+     * case that a valid token can be made from all but the last char in the stack, this
+     * method pops that character into skippedLastToken and returns true.
+     *
+     * @param spellingStack containing all the character read so far
+     * @return whether a valid token can be created
+     */
+    private boolean isCompleteToken(Stack<Character> spellingStack) {
+        if (validSolo.contains(spellingStack.lastElement())) {
             return true;
-        } else if (isEOF(spelling)) {
+        } else if (isEOF(spellingStack)) {
             return true;
-        } else if (spelling.startsWith("/")) {
-            return isCompleteSlash(spelling); // checks comments and divided by
-        } else if (spelling.startsWith("+") || spelling.startsWith("-")
-                || spelling.startsWith("*") || spelling.startsWith("%")
-                || spelling.startsWith("<") || spelling.startsWith(">")) {
-            return isCompleteMath(spelling);
-        } else if (spelling.startsWith("=")) {
-            return isCompleteEquals(spelling); // make sure to handle === should not return == and then =
-        } else if (isInt(spelling)) {
-            return isCompleteInt(spelling);
-        } else if (spelling.startsWith("\"")) {
-            return isCompleteString(spelling); // make sure to handle the case in the above line "\" is not a valid string
+        } else if (spellingStack.lastElement() == '/') {
+            return isCompleteSlash(spellingStack); // checks comments and divided by
+        } else if (spellingStack.startsWith("+") || spellingStack.startsWith("-")
+                || spellingStack.startsWith("*") || spellingStack.startsWith("%")
+                || spellingStack.startsWith("<") || spellingStack.startsWith(">")) {
+            return isCompleteMath(spellingStack);
+        } else if (spellingStack.startsWith("=")) {
+            return isCompleteEquals(spellingStack); // make sure to handle === should not return == and then =
+        } else if (isInt(spellingStack)) {
+            return isCompleteInt(spellingStack);
+        } else if (spellingStack.startsWith("\"")) {
+            return isCompleteString(spellingStack); // make sure to handle the case in the above line "\" is not a valid string
         } else {
-            return isCompleteIdentifier(spelling);
+            return isCompleteIdentifier(spellingStack);
         }
     }
 
-    private boolean isEOF(String spelling) {
-        return spelling.equals(String.valueOf('\u0000'));
+    private boolean isEOF(Stack<Character> spellingStack) {
+        return spellingStack.lastElement() == '\u0000';
     }
 
-    private boolean isCompleteSlash(String spelling) {
-        if (spelling.startsWith("//")) {
-            return isCompleteComment(spelling);
-        } else if (spelling.startsWith("/*")) {
-            return isCompleteComment(spelling);
+    private boolean isCompleteSlash(Stack<Character> spellingStack) {
+        if (spellingStack.size() >= 2 && spellingStack.get(1) == '/') {
+            return isCompleteComment(spellingStack);
+        } else if (spellingStack.size() >= 2 && spellingStack.get(1) == '*') {
+            return isCompleteComment(spellingStack);
         } else {
-            return isCompleteMath(spelling);
+            return isCompleteMath(spellingStack);
         }
     }
 
-    private boolean isCompleteComment(String spelling) {
+    private boolean isCompleteComment(Stack<Character> spellingStack) {
         if (spelling.startsWith("//")) {
             return (spelling.endsWith("\n") || spelling.endsWith("\r"));
         } else if (spelling.startsWith("/*")) {
@@ -182,7 +187,7 @@ public class Scanner {
         return false;
     }
 
-    private boolean isCompleteMath(String spelling) {
+    private boolean isCompleteMath(Stack<Character> spellingStack) {
         String lastCharacter = spelling.substring(spelling.length() - 1);
         if (lastCharacter.equals(" ") || lastCharacter.equals("=")) {
             // set token type
@@ -205,11 +210,11 @@ public class Scanner {
         }
     }
 
-    private boolean isCompleteEquals(String spelling) {
+    private boolean isCompleteEquals(Stack<Character> spellingStack) {
         return false;
     }
 
-    private boolean isCompleteInt(String spelling) {
+    private boolean isCompleteInt(Stack<Character> spellingStack) {
         return false;
     }
 
@@ -228,7 +233,7 @@ public class Scanner {
      * @param integer the current spelling of the token to check
      * @return returns true if an integer
      */
-    private boolean isCompleteString(String spelling) {
+    private boolean isCompleteString(Stack<Character> spellingStack) {
         if (spelling.length() > 1 && // prevent " from triggering "valid string"
                 spelling.startsWith("\"") && spelling.endsWith("\"")) {
             //System.out.println("good start");
@@ -247,14 +252,14 @@ public class Scanner {
      * @param spelling the current spelling of the token to check
      * @return returns true if an identifier
      */
-    private boolean isCompleteIdentifier(String spelling) {
+    private boolean isCompleteIdentifier(Stack<Character> spellingStack) {
         //must start with a letter
         char start = spelling.charAt(0);
-        if(start >= 'A' && start <= 'Z' ||
-                start >= 'a' && start <= 'z'){
+        if (start >= 'A' && start <= 'Z' ||
+                start >= 'a' && start <= 'z') {
             // only contains letters, numbers, and underscores
             for (char character : spelling.toCharArray()) {
-                if(character < '0' ||
+                if (character < '0' ||
                         character > '9' && character < 'A' ||
                         character > 'Z' && character < '_' ||
                         character > '_' && character < 'a' ||
@@ -270,7 +275,7 @@ public class Scanner {
         return false;
     }
 
-    private Token createToken(String spelling) {
+    private Token createToken(Stack<Character> spellingStack) {
         //System.out.println("create token: " + spelling);
 
         if (specialSymbolToKind(spelling) != null) {
