@@ -185,13 +185,17 @@ public class Scanner {
 
         } while (!isCompleteToken(spelling));
 
-        return createToken(spelling);
+        return new Token(Kind.BOOLEAN, spelling, -1);
+        // todo: add all the token types to the logic below
+        // todo: implement EOF token ASAP so we can test the rest of the tokens
     }
 
     private boolean isCompleteToken(String spelling) {
         if (validSolo.contains(spelling)) {
             return true;
         }
+        // todo: elegance improvement: switch spelling to a stack. We do a lot of peeking
+        // todo: elegance improvement: create an object that holds a reference to the spelling string and can do all this validation
 
         if (spelling.startsWith("/")) {
             return isCompleteSlash(spelling); // checks comments and divided by
@@ -200,25 +204,48 @@ public class Scanner {
                 || spelling.startsWith("<") || spelling.startsWith(">")) {
             return isCompleteMath(spelling);
         } else if (spelling.startsWith("=")) {
-            return isCompleteEquals(); // make sure to handle === should not return == and then =
+            return isCompleteEquals(spelling); // make sure to handle === should not return == and then =
         } else if (isInt(spelling)) {
-            return isCompleteInt();
+            return isCompleteInt(spelling);
         } else if (spelling.startsWith("\"")) {
-            return isCompleteString(); // make sure to handle the case in the above line "\" is not a valid string
+            return isCompleteString(spelling); // make sure to handle the case in the above line "\" is not a valid string
         } else {
-            return isCompleteWord();
+            return isCompleteIndentifier(spelling);
         }
-        // todo confirm that char does not exist
+    }
+
+    private boolean isCompleteIndentifier(String spelling) {
+        return false;
+    }
+
+    private boolean isCompleteString(String spelling) {
+        return false;
+    }
+
+    private boolean isCompleteInt(String spelling) {
+        return false;
+    }
+
+    private boolean isInt(String spelling) {
+        return false;
+    }
+
+    private boolean isCompleteEquals(String spelling) {
+        return false;
     }
 
     private boolean isCompleteSlash(String spelling) {
         if (spelling.length() > 1 && spelling.substring(1).equals("/")) {
-            return isCompleteComment();
+            return isCompleteComment(spelling);
         } else if (spelling.length() > 1 && spelling.substring(1).equals("*")) {
-            return isCompleteComment();
+            return isCompleteComment(spelling);
         } else {
             return isCompleteMath(spelling);
         }
+    }
+
+    private boolean isCompleteComment(String spelling) {
+        return false;
     }
 
     private boolean isCompleteMath(String spelling) {
