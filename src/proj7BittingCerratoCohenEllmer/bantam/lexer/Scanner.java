@@ -206,11 +206,29 @@ public class Scanner {
     }
 
     private boolean isCompleteEquals(String spelling) {
-        return false;
+        // == returns immediately
+        if (spelling.equals("==")) {
+            // set token type
+            skippedLastToken = "";
+            return true;
+        } else if (spelling.length() == 2) {
+            // set token type
+            skippedLastToken = spelling.substring(spelling.length() - 1); //todo check for whitespace after stack implemented
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private boolean isCompleteInt(String spelling) {
-        return false;
+        // keep as many integers as possible so check the last character for non-integer
+        if (isInt(spelling.substring(spelling.length() - 1))) {
+            return false;
+        } else {
+            // set token type
+            skippedLastToken = spelling.substring(spelling.length() - 1);
+            return true;
+        }
     }
 
     /**
@@ -225,7 +243,7 @@ public class Scanner {
      * \f (form feed).
      * A string constant cannot exceed 5000 characters and cannot span multiple lines.
      *
-     * @param integer the current spelling of the token to check
+     * @param spelling the current spelling of the token to check
      * @return returns true if an integer
      */
     private boolean isCompleteString(String spelling) {
