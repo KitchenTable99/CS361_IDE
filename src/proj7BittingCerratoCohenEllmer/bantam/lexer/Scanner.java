@@ -181,6 +181,7 @@ public class Scanner {
         }
         
         return new Token(Kind.ERROR, "missed: " + spelling , 999);
+        // todo
     }
 
         // todo: elegance improvement: switch spelling to a stack. We do a lot of peeking
