@@ -6,6 +6,7 @@ import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -23,6 +24,12 @@ public class Scanner {
     private final ErrorHandler errorHandler;
 
     private String skippedLastToken;
+    private final ArrayList<String> nonValidSpecialStringSymbs = new ArrayList<>(){{
+        add("\b");
+        add("\r");
+        add("\'");
+
+    }};
     private final HashSet<String> validSolo = new HashSet<>() {{
         add("{");
         add("}");
@@ -225,7 +232,7 @@ public class Scanner {
      * \f (form feed).
      * A string constant cannot exceed 5000 characters and cannot span multiple lines.
      *
-     * @param integer the current spelling of the token to check
+     * @param spelling the current spelling of the token to check
      * @return returns true if an integer
      */
     private boolean isCompleteString(String spelling) {
@@ -233,6 +240,11 @@ public class Scanner {
                 spelling.startsWith("\"") && spelling.endsWith("\"")) {
             //System.out.println("good start");
             if (spelling.length() <= 5000) {
+                for(String sym: nonValidSpecialStringSymbs){
+                    if(spelling.contains(sym)){
+                        return false;
+                    }
+                }
                 // TODO: needs regex? idk how to check for symbols
                 return true;
             }
@@ -288,7 +300,7 @@ public class Scanner {
                     sourceFile.getCurrentLineNumber());
         }
 
-        if (isValidInt(spelling)) {
+        if (isInt(spelling)) {
             return new Token(Kind.INTCONST, spelling,
                     sourceFile.getCurrentLineNumber());
         }
@@ -313,7 +325,7 @@ public class Scanner {
      * @param integer the current spelling of the token to check
      * @return returns true if an integer
      */
-    private boolean isValidInt(String integer) {
+    private boolean isInt(String integer) {
         try {
             Integer.parseInt(integer);
             return true;
@@ -322,9 +334,7 @@ public class Scanner {
         }
     }
 
-    private boolean isInt(String spelling) {
-        return false;
-    }
+
 
     /**
      * checks if some string is an Identifier
