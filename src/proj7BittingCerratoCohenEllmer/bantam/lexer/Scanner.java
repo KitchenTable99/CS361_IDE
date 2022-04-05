@@ -6,8 +6,6 @@ import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 
 /**
@@ -96,73 +94,8 @@ public class Scanner {
     public Scanner(Reader reader, ErrorHandler handler) {
         errorHandler = handler;
         sourceFile = new SourceFile(reader);
+        skippedLastToken = "";
     }
-
-    /**
-     * checks if letter is whitespace, a carriage, or a tab
-     *
-     * @param letter the current letter being checked
-     */
-    private boolean isWhiteSpace(String letter){
-        return Character.isWhitespace(letter.charAt(0));
-    }
-
-    /**
-     * checks if some string is an Identifier
-     *
-     * @param spelling the current spelling of the token to check
-     *
-     * @return returns true if an identifier
-     */
-    private boolean isIdentifier(String spelling){
-        //must start with a letter
-        char start = spelling.charAt(0);
-        if(start >= 'A' && start <= 'Z' ||
-            start >= 'a' && start <= 'z'){
-            // only contains letters, numbers, and underscores
-            for (char character : spelling.toCharArray()) {
-                if(character < '0' ||
-                        character > '9' && character < 'A' ||
-                        character > 'Z' && character < '_' ||
-                        character > '_' && character < 'a' ||
-                        character > 'z'){
-                    return false;
-                }
-            }
-            return true;
-        } // doesnt start with letter
-        return false;
-    }
-
-    private Token createTken(String spelling) {
-        //check if spelling is a special symbol
-        // check if ){
-        // '(', ')', '{', '}', ';', '+', '-', '++', '==',
-        // '&', '|', '&&', '||', '--', '!', '.', ';', ':', ',', '[', ']')
-        //create token with kind
-
-        if (isIdentifier(spelling)) {
-            return new Token(Kind.IDENTIFIER, spelling,
-                    sourceFile.getCurrentLineNumber());
-        }
-            // if(isValidInt(spelling)){
-            //     return new Token(Kind.INTCONST, spelling,
-            //                 sourceFile.getCurrentLineNumber());
-            // }
-
-            //else check if spelling starts and ends with double quotes
-                /**String constants ("abc", etc.) String constants start and end with double quotes.
-                They may contain the following special symbols:
-                \n (newline), \t (tab), \" (double quote),
-                \\ (backslash), and \f (form feed).
-                A string constant cannot exceed 5000 characters and cannot span multiple lines. STRCONST */
-
-            //else check if spelling is comment
-                //Comments. include the "//" or the "/*" and "*/" delimiters.
-
-            return new Token(Kind.ERROR, "missed: " + spelling , 999);
-    }
-
 
     /**
      * read characters and collect them into a Token.
@@ -193,53 +126,23 @@ public class Scanner {
         // todo: implement EOF token ASAP so we can test the rest of the tokens
     }
 
-    private Token createToken(String spelling){
-        //System.out.println("create token: " + spelling);
-
-        if(isSpecialSymbol(spelling)){
-            return new Token(specialSymbolToKind(spelling), spelling,
-                    sourceFile.getCurrentLineNumber());
-        }
-
-        if(isCompleteString(spelling)){
-            return new Token(Kind.STRCONST, spelling,
-                    sourceFile.getCurrentLineNumber());
-        }
-
-        if(isCompleteIdentifier(spelling)){
-            return new Token(Kind.IDENTIFIER, spelling,
-                    sourceFile.getCurrentLineNumber());
-        }
-
-        if(isValidInt(spelling)){
-            return new Token(Kind.INTCONST, spelling,
-                    sourceFile.getCurrentLineNumber());
-        }
-
-        if(isEOF(spelling)){
-            return new Token(Kind.EOF, spelling,
-                    sourceFile.getCurrentLineNumber());
-        }
-
-        if(isCompleteComment(spelling)){
-            return new Token(Kind.COMMENT, spelling,
-                    sourceFile.getCurrentLineNumber());
-        }
-        
-        return new Token(Kind.ERROR, "missed: " + spelling , 999);
-        // todo
+    /**
+     * checks if letter is whitespace, a carriage, or a tab
+     *
+     * @param letter the current letter being checked
+     */
+    private boolean isWhiteSpace(String letter) {
+        return Character.isWhitespace(letter.charAt(0));
     }
 
-        // todo: elegance improvement: switch spelling to a stack. We do a lot of peeking
-        // todo: elegance improvement: create an object that holds a reference to the spelling string and can do all this validation
+    // todo: elegance improvement: switch spelling to a stack. We do a lot of peeking
+    // todo: elegance improvement: create an object that holds a reference to the spelling string and can do all this validation
     private boolean isCompleteToken(String spelling) {
         if (validSolo.contains(spelling)) {
             return true;
-        }
-        if(isEOF(spelling)){
+        } else if (isEOF(spelling)) {
             return true;
-        }
-        else if (spelling.startsWith("/")) {
+        } else if (spelling.startsWith("/")) {
             return isCompleteSlash(spelling); // checks comments and divided by
         } else if (spelling.startsWith("+") || spelling.startsWith("-")
                 || spelling.startsWith("*") || spelling.startsWith("%")
@@ -252,112 +155,12 @@ public class Scanner {
         } else if (spelling.startsWith("\"")) {
             return isCompleteString(spelling); // make sure to handle the case in the above line "\" is not a valid string
         } else {
-            return isCompleteIndentifier(spelling);
+            return isCompleteIdentifier(spelling);
         }
     }
 
-    /**
-     * checks if some string is an Identifier
-     *
-     * @param spelling the current spelling of the token to check
-     *
-     * @return returns true if an identifier
-     */
-    private boolean isCompleteIdentifier(String spelling){
-        //must start with a letter
-        char start = spelling.charAt(0);
-        if(start >= 'A' && start <= 'Z' ||
-                start >= 'a' && start <= 'z'){
-            // only contains letters, numbers, and underscores
-            for (char character : spelling.toCharArray()) {
-                if(character < '0' ||
-                        character > '9' && character < 'A' ||
-                        character > 'Z' && character < '_' ||
-                        character > '_' && character < 'a' ||
-                        character > 'z'){
-                    errorHandler.register(Error.Kind.LEX_ERROR, sourceFile.getFilename(), 
-                                    sourceFile.getCurrentLineNumber(),
-                                    "Unsupported Symbol, " + character + " in: " + spelling);
-                    return false;
-                }
-            }
-            return true;
-        } // doesnt start with letter
-        return false;
-    }
-
-    /**
-     * checks if letter is whitespace, a carriage, or a tab
-     *
-     * @param letter the current letter being checked
-     */
-    private boolean isWhiteSpace(String letter){
-        return Character.isWhitespace(letter.charAt(0)) 
-                || letter.startsWith(String.valueOf('\t'))
-                || letter.startsWith(String.valueOf('\n'))
-                || letter.startsWith(String.valueOf('\r'));
-    }
-
-    /**
-     * checks if string contains a valid int
-     *
-     * @param integer the current spelling of the token to check
-     *
-     * @return returns true if an integer
-     */
-    private boolean isValidInt(String integer){
-        try{
-            Integer.parseInt(integer);
-            return true;
-        }
-        catch (NumberFormatException ex){
-            return false;
-        }
-    }
-
-    /**
-     * checks if string contains valid characters
-     * 
-     * String constants start and end with double quotes. 
-     * They may contain the following special symbols: 
-     * \n (newline), 
-     * \t (tab), 
-     * \" (double quote), 
-     * \\ (backslash), and 
-     * \f (form feed). 
-     * A string constant cannot exceed 5000 characters and cannot span multiple lines.
-     *
-     * @param integer the current spelling of the token to check
-     *
-     * @return returns true if an integer
-     */
-    private boolean isCompleteString(String spelling){
-        if (spelling.length() > 1 && // prevent " from triggering "valid string"
-            spelling.startsWith("\"") && spelling.endsWith("\"")){
-            //System.out.println("good start");
-            if(spelling.length() <= 5000){
-                // TODO: needs regex? idk how to check for symbols
-                return true;
-            }
-        }
-        // not encased in double quote
-        return false;
-    }
-
-    private boolean isCompleteInt(String spelling) {
-        return false;
-    }
-
-    private boolean isInt(String spelling) {
-        return false;
-    }
-
-    private boolean isEOF(String spelling){
+    private boolean isEOF(String spelling) {
         return spelling.equals(String.valueOf('\u0000'));
-    }
-
-    private boolean isCompleteEquals(String spelling) {
-        return false;
     }
 
     private boolean isCompleteSlash(String spelling) {
@@ -371,9 +174,9 @@ public class Scanner {
     }
 
     private boolean isCompleteComment(String spelling) {
-        if(spelling.startsWith("//")){
-            return (spelling.endsWith("\n") || spelling.endsWith("\r") );
-        }else if(spelling.startsWith("/*")){
+        if (spelling.startsWith("//")) {
+            return (spelling.endsWith("\n") || spelling.endsWith("\r"));
+        } else if (spelling.startsWith("/*")) {
             return spelling.endsWith("*/");
         }
         return false;
@@ -402,68 +205,199 @@ public class Scanner {
         }
     }
 
-    private boolean keepWhiteSpace(String spelling){
-        return (isSlash(spelling) || isString(spelling));
+    private boolean isCompleteEquals(String spelling) {
+        return false;
     }
 
-    private boolean isSlash(String spelling){
+    private boolean isCompleteInt(String spelling) {
+        return false;
+    }
+
+    /**
+     * checks if string contains valid characters
+     * <p>
+     * String constants start and end with double quotes.
+     * They may contain the following special symbols:
+     * \n (newline),
+     * \t (tab),
+     * \" (double quote),
+     * \\ (backslash), and
+     * \f (form feed).
+     * A string constant cannot exceed 5000 characters and cannot span multiple lines.
+     *
+     * @param integer the current spelling of the token to check
+     * @return returns true if an integer
+     */
+    private boolean isCompleteString(String spelling) {
+        if (spelling.length() > 1 && // prevent " from triggering "valid string"
+                spelling.startsWith("\"") && spelling.endsWith("\"")) {
+            //System.out.println("good start");
+            if (spelling.length() <= 5000) {
+                // TODO: needs regex? idk how to check for symbols
+                return true;
+            }
+        }
+        // not encased in double quote
+        return false;
+    }
+
+    /**
+     * checks if some string is an Identifier
+     *
+     * @param spelling the current spelling of the token to check
+     * @return returns true if an identifier
+     */
+    private boolean isCompleteIdentifier(String spelling) {
+        //must start with a letter
+        char start = spelling.charAt(0);
+        if(start >= 'A' && start <= 'Z' ||
+                start >= 'a' && start <= 'z'){
+            // only contains letters, numbers, and underscores
+            for (char character : spelling.toCharArray()) {
+                if(character < '0' ||
+                        character > '9' && character < 'A' ||
+                        character > 'Z' && character < '_' ||
+                        character > '_' && character < 'a' ||
+                        character > 'z'){
+                    errorHandler.register(Error.Kind.LEX_ERROR, sourceFile.getFilename(),
+                            sourceFile.getCurrentLineNumber(),
+                            "Unsupported Symbol, " + character + " in: " + spelling);
+                    return false;
+                }
+            }
+            return true;
+        } // doesnt start with letter
+        return false;
+    }
+
+    private Token createToken(String spelling) {
+        //System.out.println("create token: " + spelling);
+
+        if (specialSymbolToKind(spelling) != null) {
+            return new Token(specialSymbolToKind(spelling), spelling,
+                    sourceFile.getCurrentLineNumber());
+        }
+
+        if (isCompleteString(spelling)) {
+            return new Token(Kind.STRCONST, spelling,
+                    sourceFile.getCurrentLineNumber());
+        }
+
+        if (isCompleteIdentifier(spelling)) {
+            return new Token(Kind.IDENTIFIER, spelling,
+                    sourceFile.getCurrentLineNumber());
+        }
+
+        if (isValidInt(spelling)) {
+            return new Token(Kind.INTCONST, spelling,
+                    sourceFile.getCurrentLineNumber());
+        }
+
+        if (isEOF(spelling)) {
+            return new Token(Kind.EOF, spelling,
+                    sourceFile.getCurrentLineNumber());
+        }
+
+        if (isCompleteComment(spelling)) {
+            return new Token(Kind.COMMENT, spelling,
+                    sourceFile.getCurrentLineNumber());
+        }
+
+        return new Token(Kind.ERROR, "missed: " + spelling, 999);
+        // todo
+    }
+
+    /**
+     * checks if string contains a valid int
+     *
+     * @param integer the current spelling of the token to check
+     * @return returns true if an integer
+     */
+    private boolean isValidInt(String integer) {
+        try {
+            Integer.parseInt(integer);
+            return true;
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+    }
+
+    private boolean isInt(String spelling) {
+        return false;
+    }
+
+    /**
+     * checks if some string is an Identifier
+     *
+     * @param spelling the current spelling of the token to check
+     * @return returns true if an identifier
+     */
+    private boolean isIdentifier(String spelling) {
+        //must start with a letter
+        char start = spelling.charAt(0);
+        if (start >= 'A' && start <= 'Z' ||
+                start >= 'a' && start <= 'z') {
+            // only contains letters, numbers, and underscores
+            for (char character : spelling.toCharArray()) {
+                if (character < '0' ||
+                        character > '9' && character < 'A' ||
+                        character > 'Z' && character < '_' ||
+                        character > '_' && character < 'a' ||
+                        character > 'z') {
+                    return false;
+                }
+            }
+            return true;
+        } // doesnt start with letter
+        return false;
+    }
+
+    private boolean isSlash(String spelling) {
         return spelling.startsWith("/'");
     }
 
-    private boolean isString(String spelling){
+    private boolean isString(String spelling) {
         return spelling.startsWith("\"");
     }
 
-    private Kind specialSymbolToKind(String symbol){
-        if(symbol.equals("(")){
-            return Kind.LPAREN;
-        }else if(symbol.equals(")")){
-            return Kind.RPAREN;
-        }else if(symbol.equals("{")){
-            return Kind.LCURLY;
-        }else if(symbol.equals("}")){
-            return Kind.RCURLY;
-        }else if(symbol.equals(";")){
-            return Kind.SEMICOLON;
-        }else if(symbol.equals("+")){
-            return Kind.PLUSMINUS;
-        }else if(symbol.equals("-")){
-            return Kind.PLUSMINUS;
-        }else if(symbol.equals("++")){
-            return Kind.UNARYINCR;
-        }else if(symbol.equals("==")){
-            return Kind.COMPARE;
-        }else if(symbol.equals("&")){
-            return Kind.BINARYLOGIC;
-        }else if(symbol.equals("|")){
-            return Kind.BINARYLOGIC;
-        }else if(symbol.equals("&&")){
-            return Kind.BINARYLOGIC;
-        }else if(symbol.equals("||")){
-            return Kind.BINARYLOGIC;
-        }else if(symbol.equals("--")){
-            return Kind.UNARYDECR;
-        }else if(symbol.equals("!")){
-            return Kind.UNARYNOT;
-        }else if(symbol.equals(".")){
-            return Kind.DOT;
-        }else if(symbol.equals(":")){
-            return Kind.COLON;
-        }else if(symbol.equals(",")) {
-            return Kind.COMMA;
-        }else if(symbol.equals("*")){
-            return Kind.MULDIV;
-        }else if(symbol.equals("/")){
-            return Kind.MULDIV;
+    private Kind specialSymbolToKind(String symbol) {
+        switch (symbol) {
+            case "(":
+                return Kind.LPAREN;
+            case ")":
+                return Kind.RPAREN;
+            case "{":
+                return Kind.LCURLY;
+            case "}":
+                return Kind.RCURLY;
+            case ";":
+                return Kind.SEMICOLON;
+            case "+":
+            case "-":
+                return Kind.PLUSMINUS;
+            case "++":
+                return Kind.UNARYINCR;
+            case "==":
+                return Kind.COMPARE;
+            case "&":
+            case "|":
+            case "&&":
+            case "||":
+                return Kind.BINARYLOGIC;
+            case "--":
+                return Kind.UNARYDECR;
+            case "!":
+                return Kind.UNARYNOT;
+            case ".":
+                return Kind.DOT;
+            case ":":
+                return Kind.COLON;
+            case ",":
+                return Kind.COMMA;
+            case "*":
+            case "/":
+                return Kind.MULDIV;
         }
         return null;
     }
-
-    private boolean isSpecialSymbol(String symbol){
-        String[] specialSymbolsArray = { "(", ")", "{", "}", ";", "+", "-", "++", "==",
-                "&", "|", "&&", "||", "--", "!", ".", ":", ",", "*", "/"};
-        ArrayList<String> specialSymbols = new ArrayList<>(Arrays.asList(specialSymbolsArray));
-        return specialSymbols.contains(symbol);
-    }
-
 }
