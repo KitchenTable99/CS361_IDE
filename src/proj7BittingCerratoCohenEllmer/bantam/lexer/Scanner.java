@@ -1,7 +1,6 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
-import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 import java.io.IOException;
@@ -113,6 +112,7 @@ public class Scanner {
                 String letter = String.valueOf(sourceFile.getNextChar());
                 if (!isWhiteSpace(letter) || spelling.equals("")) {
                     spelling += letter;
+//                    System.out.println(spelling);
                 }
             } catch (IOException e) {
                 // if there are no more character then check to see if the final token is invalid
@@ -120,7 +120,6 @@ public class Scanner {
             }
 
         } while (!isCompleteToken(spelling));
-        skippedLastToken = ""; // todo look at this
         return createToken(spelling);
         // todo: add all the token types to the logic below
         // todo: implement EOF token ASAP so we can test the rest of the tokens
@@ -267,25 +266,14 @@ public class Scanner {
      */
     private boolean isCompleteIdentifier(String spelling) {
         //must start with a letter
-        char start = spelling.charAt(0);
-        if(start >= 'A' && start <= 'Z' ||
-                start >= 'a' && start <= 'z'){
-            // only contains letters, numbers, and underscores
-            for (char character : spelling.toCharArray()) {
-                if(character < '0' ||
-                        character > '9' && character < 'A' ||
-                        character > 'Z' && character < '_' ||
-                        character > '_' && character < 'a' ||
-                        character > 'z'){
-                    errorHandler.register(Error.Kind.LEX_ERROR, sourceFile.getFilename(),
-                            sourceFile.getCurrentLineNumber(),
-                            "Unsupported Symbol, " + character + " in: " + spelling);
-                    return false;
-                }
-            }
+        String last = spelling.substring(spelling.length() - 1);
+        if (!alphaNumeric.contains(last)) {
+            // set token type
+            skippedLastToken = last;
             return true;
-        } // doesnt start with letter
-        return false;
+        } else {
+            return false;
+        }
     }
 
     private Token createToken(String spelling) {
