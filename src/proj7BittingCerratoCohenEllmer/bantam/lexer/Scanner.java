@@ -233,7 +233,7 @@ public class Scanner {
      * A string constant cannot exceed 5000 characters and cannot span multiple lines.
      *
      * @param spelling the current spelling of the token to check
-     * @return returns true if an integer
+     * @return returns true if valid string
      */
     private boolean isCompleteString(String spelling) {
         if (spelling.length() > 1 && // prevent " from triggering "valid string"
@@ -336,39 +336,7 @@ public class Scanner {
 
 
 
-    /**
-     * checks if some string is an Identifier
-     *
-     * @param spelling the current spelling of the token to check
-     * @return returns true if an identifier
-     */
-    private boolean isIdentifier(String spelling) {
-        //must start with a letter
-        char start = spelling.charAt(0);
-        if (start >= 'A' && start <= 'Z' ||
-                start >= 'a' && start <= 'z') {
-            // only contains letters, numbers, and underscores
-            for (char character : spelling.toCharArray()) {
-                if (character < '0' ||
-                        character > '9' && character < 'A' ||
-                        character > 'Z' && character < '_' ||
-                        character > '_' && character < 'a' ||
-                        character > 'z') {
-                    return false;
-                }
-            }
-            return true;
-        } // doesnt start with letter
-        return false;
-    }
 
-    private boolean isSlash(String spelling) {
-        return spelling.startsWith("/'");
-    }
-
-    private boolean isString(String spelling) {
-        return spelling.startsWith("\"");
-    }
 
     private Kind specialSymbolToKind(String symbol) {
         switch (symbol) {
