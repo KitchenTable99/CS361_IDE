@@ -22,15 +22,14 @@ public class Scanner {
      * collector of all errors that occur
      */
     private final ErrorHandler errorHandler;
-
     private String skippedLastToken;
+    private boolean endOfToken;
     private final ArrayList<String> nonValidSpecialStringSymbs = new ArrayList<>(){{
         add("\b");
         add("\r");
         add("\'");
 
     }};
-    private boolean endOfToken;
     private final HashSet<String> validSolo = new HashSet<>() {{
         add("{");
         add("}");
@@ -117,14 +116,16 @@ public class Scanner {
         String spelling = skippedLastToken;
         boolean startedToken = false;
         endOfToken = false;
-        skippedLastToken = ""; // todo look at this
+        skippedLastToken = "";
         while (!isCompleteToken(spelling)){
             try {
                 String letter = String.valueOf(sourceFile.getNextChar());
                 if(startedToken && isWhiteSpace(letter)){
                     endOfToken = true;
                 }
-                if (!isWhiteSpace(letter)) {
+                if (!isWhiteSpace(letter) 
+                    || isComment(spelling)
+                    || isString(spelling)) {
                     startedToken = true;
                     spelling += letter;
                 }
@@ -133,7 +134,9 @@ public class Scanner {
                 e.printStackTrace(); // todo: make this elegant
             }
         }
-        if( spelling.length() > 1 && validSolo.contains(lastSymbol(spelling))){
+        if( spelling.length() > 1 && validSolo.contains(lastSymbol(spelling))
+            && (!isComment(spelling) || !isString(spelling))
+        ){
             endOfToken = true;
             skippedLastToken = lastSymbol(spelling);
             return createToken(dropLastSymbol(spelling));
@@ -333,6 +336,9 @@ public class Scanner {
         }
 
         if (isCompleteComment(spelling)) {
+            if(spelling.endsWith("\n") || spelling.endsWith("\r")){
+                spelling = spelling.substring(0, spelling.length()-1);
+            }
             return new Token(Kind.COMMENT, spelling,
                     sourceFile.getCurrentLineNumber());
         }
@@ -357,8 +363,18 @@ public class Scanner {
     }
 
     private boolean isSlash(String spelling) {
-        return spelling.startsWith("/'");
+        return spelling.startsWith("/") && spelling.length() > 0;
     }
+
+    private boolean isComment(String spelling) {
+        return spelling.startsWith("//") || spelling.startsWith("/*")
+                && spelling.length() > 1;
+    }
+
+    private boolean isString(String spelling) {
+        return spelling.startsWith("\"") && spelling.length() > 1;
+    }
+    
 
     private Kind specialSymbolToKind(String symbol) {
         switch (symbol) {
