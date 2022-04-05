@@ -32,8 +32,6 @@ public class Main {
                         currentToken = bantamScanner.scan();
                         System.out.println(currentToken.toString());
                     }while(currentToken.kind != Token.Kind.EOF); 
-                    //print EOF
-                    System.out.println(currentToken.toString());
 
                     // Check Scanner's Error Handler
                     if (bantamErrorHandler.errorsFound()){

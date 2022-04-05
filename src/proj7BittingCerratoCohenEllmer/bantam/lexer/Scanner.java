@@ -30,6 +30,7 @@ public class Scanner {
         add("\'");
 
     }};
+    private boolean endOfToken;
     private final HashSet<String> validSolo = new HashSet<>() {{
         add("{");
         add("}");
@@ -114,20 +115,29 @@ public class Scanner {
      */
     public Token scan() {
         String spelling = skippedLastToken;
-
-        do {
+        boolean startedToken = false;
+        endOfToken = false;
+        skippedLastToken = ""; // todo look at this
+        while (!isCompleteToken(spelling)){
             try {
                 String letter = String.valueOf(sourceFile.getNextChar());
-                if (!isWhiteSpace(letter) || spelling.equals("")) {
+                if(startedToken && isWhiteSpace(letter)){
+                    endOfToken = true;
+                }
+                if (!isWhiteSpace(letter)) {
+                    startedToken = true;
                     spelling += letter;
                 }
             } catch (IOException e) {
                 // if there are no more character then check to see if the final token is invalid
                 e.printStackTrace(); // todo: make this elegant
             }
-
-        } while (!isCompleteToken(spelling));
-        skippedLastToken = ""; // todo look at this
+        }
+        if( spelling.length() > 1 && validSolo.contains(lastSymbol(spelling))){
+            endOfToken = true;
+            skippedLastToken = lastSymbol(spelling);
+            return createToken(dropLastSymbol(spelling));
+        }
         return createToken(spelling);
         // todo: add all the token types to the logic below
         // todo: implement EOF token ASAP so we can test the rest of the tokens
@@ -145,7 +155,10 @@ public class Scanner {
     // todo: elegance improvement: switch spelling to a stack. We do a lot of peeking
     // todo: elegance improvement: create an object that holds a reference to the spelling string and can do all this validation
     private boolean isCompleteToken(String spelling) {
-        if (validSolo.contains(spelling)) {
+        if(spelling.length()<1){
+            return false;
+        }
+        if (validSolo.contains(spelling) || validSolo.contains(lastSymbol(spelling))){
             return true;
         } else if (isEOF(spelling)) {
             return true;
@@ -212,6 +225,14 @@ public class Scanner {
         }
     }
 
+    private String lastSymbol(String spelling){
+        return spelling.substring(spelling.length() - 1);
+    }
+
+    private String dropLastSymbol(String spelling){
+        return spelling.substring(0, spelling.length() - 1);
+    }
+
     private boolean isCompleteEquals(String spelling) {
         return false;
     }
@@ -238,7 +259,6 @@ public class Scanner {
     private boolean isCompleteString(String spelling) {
         if (spelling.length() > 1 && // prevent " from triggering "valid string"
                 spelling.startsWith("\"") && spelling.endsWith("\"")) {
-            //System.out.println("good start");
             if (spelling.length() <= 5000) {
                 for(String sym: nonValidSpecialStringSymbs){
                     if(spelling.contains(sym)){
@@ -260,25 +280,27 @@ public class Scanner {
      * @return returns true if an identifier
      */
     private boolean isCompleteIdentifier(String spelling) {
-        //must start with a letter
-        char start = spelling.charAt(0);
-        if(start >= 'A' && start <= 'Z' ||
-                start >= 'a' && start <= 'z'){
-            // only contains letters, numbers, and underscores
-            for (char character : spelling.toCharArray()) {
-                if(character < '0' ||
-                        character > '9' && character < 'A' ||
-                        character > 'Z' && character < '_' ||
-                        character > '_' && character < 'a' ||
-                        character > 'z'){
-                    errorHandler.register(Error.Kind.LEX_ERROR, sourceFile.getFilename(),
-                            sourceFile.getCurrentLineNumber(),
-                            "Unsupported Symbol, " + character + " in: " + spelling);
-                    return false;
+        if(endOfToken){
+            //must start with a letter
+            char start = spelling.charAt(0);
+            if(start >= 'A' && start <= 'Z' ||
+                    start >= 'a' && start <= 'z'){
+                // only contains letters, numbers, and underscores
+                for (char character : spelling.toCharArray()) {
+                    if(character < '0' ||
+                            character > '9' && character < 'A' ||
+                            character > 'Z' && character < '_' ||
+                            character > '_' && character < 'a' ||
+                            character > 'z'){
+                        errorHandler.register(Error.Kind.LEX_ERROR, sourceFile.getFilename(),
+                                sourceFile.getCurrentLineNumber(),
+                                "Unsupported Symbol, " + character + " in: " + spelling);
+                        return false;
+                    }
                 }
-            }
-            return true;
-        } // doesnt start with letter
+                return true;
+            } 
+        }
         return false;
     }
 
@@ -334,9 +356,9 @@ public class Scanner {
         }
     }
 
-
-
-
+    private boolean isSlash(String spelling) {
+        return spelling.startsWith("/'");
+    }
 
     private Kind specialSymbolToKind(String symbol) {
         switch (symbol) {
