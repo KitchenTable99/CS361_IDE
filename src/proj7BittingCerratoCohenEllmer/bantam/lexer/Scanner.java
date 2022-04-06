@@ -128,7 +128,7 @@ public class Scanner {
                         && !addAllCharacters(spellingStack)){
                         errorHandler.register(Error.Kind.LEX_ERROR,
                             sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
-                            "Unsupported Character" + letter);
+                            "Unsupported Character " + letter);
                     }
                     spellingStack.push(letter);
                 }
