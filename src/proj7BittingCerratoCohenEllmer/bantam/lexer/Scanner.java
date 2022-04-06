@@ -108,7 +108,6 @@ public class Scanner {
                 e.printStackTrace(); // TODO: make this elegant
             }
         }
-        System.out.println(spellingStack.toString());
         return createToken(spellingStack);
     }
 
@@ -116,7 +115,10 @@ public class Scanner {
         return !(Character.isLetterOrDigit(symbol) 
                 || Character.isWhitespace(symbol)
                 || validSolo.contains(symbol)
-                || leadingMathChars.contains(symbol));
+                || leadingMathChars.contains(symbol)
+                || symbol == '\n'
+                || symbol == '\r'
+                || symbol == '\u0000');
     }
 
     private boolean addAllCharacters(Stack<Character> spellingStack) {
