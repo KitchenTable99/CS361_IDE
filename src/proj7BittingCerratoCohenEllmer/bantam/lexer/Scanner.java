@@ -271,6 +271,13 @@ public class Scanner {
         // todo: check for illegal characters
         int stackSize = spellingStack.size();
         if (stackSize > 1 && stackSize <= 5000) {
+            if (spellingStack.peek() == '\u0000'){
+                currentTokenError = true;
+                errorHandler.register(Error.Kind.LEX_ERROR,
+                                sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                                "Unterminated String Constant!"); //TODO: change message
+            }
+            
             if (spellingStack.peek() == '"' && spellingStack.get(stackSize - 2) != '\\') {
                 skippedLastToken = '\0';
                 return true;
