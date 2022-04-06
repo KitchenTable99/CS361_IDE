@@ -25,6 +25,8 @@ class HelloWorld {
     *
     % < > <= ! %
 
+    >=
+
     identifier
     identifier1
             "\t hey"

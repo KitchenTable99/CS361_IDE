@@ -96,7 +96,6 @@ public class Scanner {
                 if (!Character.isWhitespace(letter) || !spellingStack.empty()) {
                     if(isUnsupportedCharacter(letter)
                         && !addAllCharacters(spellingStack)){
-                        currentTokenError = true;
                         errorHandler.register(Error.Kind.LEX_ERROR,
                             sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
                             "Unsupported Character" + letter);
@@ -118,7 +117,10 @@ public class Scanner {
                 || leadingMathChars.contains(symbol)
                 || symbol == '\n'
                 || symbol == '\r'
-                || symbol == '\u0000');
+                || symbol == '\u0000'
+                || symbol == '\"'
+                || symbol == '_'
+                || symbol == '=');
     }
 
     private boolean addAllCharacters(Stack<Character> spellingStack) {
@@ -398,7 +400,6 @@ public class Scanner {
     }
 
     private boolean isValidIntegerSize(Stack<Character> spellingStack){
-        System.out.println(spellingStack.toString()); 
         return true;
     }
 
