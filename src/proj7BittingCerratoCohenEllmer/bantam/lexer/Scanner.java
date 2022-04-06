@@ -34,6 +34,23 @@ public class Scanner {
     private char skippedLastToken;
 
     /**
+     * keeps track if next character escaped in string
+     * default false
+     */
+    private boolean charIsEscaped = false;
+
+    /**
+     * Holds legal escaped characters in strings
+     */
+    private final HashSet<Character> validEscapedCharacter = new HashSet<>(){{
+        add('n');
+        add('t');
+        add('"');
+        add('\\');
+        add('f');
+    }};
+
+    /**
      * Holds Tokens that can be one character
      */
     private final HashSet<Character> validSolo = new HashSet<>() {{
@@ -330,6 +347,10 @@ public class Scanner {
         // TODO: check for illegal characters
         int stackSize = spellingStack.size();
         if (stackSize > 1 && stackSize <= 5000) {
+            if (spellingStack.peek() == '"' && !charIsEscaped) {
+                skippedLastToken = '\0';
+                return true;
+            }
             if (spellingStack.peek() == '\u0000'){
                 currentTokenError = true;
                 errorHandler.register(Error.Kind.LEX_ERROR,
@@ -337,13 +358,24 @@ public class Scanner {
                                 "Unterminated String Constant!");
                 return true;
             }
-            
-            if (spellingStack.peek() == '"' && spellingStack.get(stackSize - 2) != '\\') {
-                skippedLastToken = '\0';
-                return true;
-            } else {
+            if (spellingStack.peek() == '\\'){
+                charIsEscaped = true;
                 return false;
             }
+            if (charIsEscaped && !validEscapedCharacter.contains(spellingStack.peek())){
+                errorHandler.register(Error.Kind.LEX_ERROR,
+                                sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                                "Invalid Escaped Character \\" + spellingStack.peek());
+                charIsEscaped = false;
+                return false;
+            } else{
+                charIsEscaped = false;
+                return false;
+            }
+            
+            
+            
+            
         } else if (stackSize > 5000) {
             // TODO: don't prematurely end. check string size once returning.
             //raise error;
