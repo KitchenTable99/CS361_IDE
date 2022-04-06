@@ -2,11 +2,14 @@ package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
+import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashSet;
 import java.util.Stack;
+
+import javax.swing.text.StyledEditorKit.BoldAction;
 
 /**
  * This class reads characters from a file or a Reader
@@ -21,6 +24,8 @@ public class Scanner {
      * collector of all errors that occur
      */
     private final ErrorHandler errorHandler;
+
+    private boolean currentTokenError;
 
     private char skippedLastToken;
     private final HashSet<Character> validSolo = new HashSet<>() {{
@@ -45,6 +50,7 @@ public class Scanner {
         add('>');
         add('/');
     }};
+    
 
     /**
      * creates a new scanner for the given file
@@ -80,15 +86,23 @@ public class Scanner {
      */
     public Token scan() {
         Stack<Character> spellingStack = new Stack<>();
+        currentTokenError = false;
         if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
             spellingStack.push(skippedLastToken);
+            
         }
 
         while (!isCompleteToken(spellingStack)) {
             try {
                 char letter = sourceFile.getNextChar();
                 if (!Character.isWhitespace(letter) || !spellingStack.empty()) {
-                    // todo: handle illegal characters
+                    if(isUnsupportedCharacter(letter)
+                        && !addAllCharacters(spellingStack)){
+                        currentTokenError = true;
+                        errorHandler.register(Error.Kind.LEX_ERROR,
+                            sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                            "Unsupported Character" + letter);
+                    }
                     spellingStack.push(letter);
                 }
             } catch (IOException e) {
@@ -97,6 +111,21 @@ public class Scanner {
             }
         }
         return createToken(spellingStack);
+    }
+
+    private Boolean isUnsupportedCharacter(Character symbol){
+        return !(Character.isLetterOrDigit(symbol) 
+                || Character.isWhitespace(symbol)
+                || validSolo.contains(symbol)
+                || leadingMathChars.contains(symbol));
+    }
+
+    private boolean addAllCharacters(Stack<Character> spellingStack) {
+        if(spellingStack.size() < 1){
+            return false;
+        }
+        char leadingChar = spellingStack.firstElement();
+        return leadingChar == '/' || leadingChar == '\"';
     }
 
     /**
@@ -130,7 +159,10 @@ public class Scanner {
         } else if (leadingChar == '"') {
             return isCompleteString(spellingStack);
         } else {
-            return isCompleteIdentifier(spellingStack); // todo: method assumes only alphabetic characters land here. verify this
+            if(Character.isAlphabetic(leadingChar)){
+                return isCompleteIdentifier(spellingStack);
+            }
+        return true;
         }
     }
 
@@ -150,7 +182,6 @@ public class Scanner {
     }
 
     private boolean isCompleteComment(Stack<Character> spellingStack) {
-        // todo: if EOF is the last char then this is unterminated comment
         char secondChar = spellingStack.get(1);
         char lastChar = spellingStack.peek();
         if (secondChar == '/') {
@@ -160,6 +191,12 @@ public class Scanner {
             }
         } else if (secondChar == '*') {
             char secondToLastChar = spellingStack.get(spellingStack.size() - 2);
+            if (lastChar == '\u0000'){
+                currentTokenError = true;
+                errorHandler.register(Error.Kind.LEX_ERROR,
+                                sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                                "Unterminated Block Comment!"); //TODO: change message
+            }
             if (secondToLastChar == '*' && lastChar == '/') {
                 skippedLastToken = '\0';
                 return true;
@@ -274,70 +311,85 @@ public class Scanner {
         return new Token(tokenKind, makeStackString(spellingStack, false), sourceFile.getCurrentLineNumber());
     }
 
+
     private Kind getTokenKind(Stack<Character> spellingStack) {
         char leadingChar = spellingStack.firstElement();
-        if (validSolo.contains(leadingChar)) {
-            switch (leadingChar) {
-                case '(':
-                    return Kind.LPAREN;
-                case ')':
-                    return Kind.RPAREN;
-                case '{':
-                    return Kind.LCURLY;
-                case '}':
-                    return Kind.RCURLY;
-                case ';':
-                    return Kind.SEMICOLON;
-                case '!': // todo: should this be here or do we need a new method?
-                    return Kind.UNARYNOT;
-                case '.':
-                    return Kind.DOT;
-                case ':':
-                    return Kind.COLON;
-                case ',':
-                    return Kind.COMMA;
-                default:
-                    return null;
+        if(!currentTokenError){
+            if (validSolo.contains(leadingChar)) {
+                switch (leadingChar) {
+                    case '(':
+                        return Kind.LPAREN;
+                    case ')':
+                        return Kind.RPAREN;
+                    case '{':
+                        return Kind.LCURLY;
+                    case '}':
+                        return Kind.RCURLY;
+                    case ';':
+                        return Kind.SEMICOLON;
+                    case '!': // todo: should this be here or do we need a new method?
+                        return Kind.UNARYNOT;
+                    case '.':
+                        return Kind.DOT;
+                    case ':':
+                        return Kind.COLON;
+                    case ',':
+                        return Kind.COMMA;
+                    default:
+                        return null;
+                }
+            } else if (isEOF(spellingStack)) {
+                return Kind.EOF;
+            } else if (leadingChar == '/' && spellingStack.size() != 1) {
+                return Kind.COMMENT;
+            } else if (leadingMathChars.contains(leadingChar)) {
+                String tokenString = makeStackString(spellingStack, true);
+                switch (tokenString) {
+                    case "+":
+                    case "-":
+                        return Kind.PLUSMINUS;
+                    case "*":
+                    case "/":
+                        return Kind.MULDIV;
+                    case "%":
+                    case ">":
+                    case "<":
+                    case "&&":
+                    case ">=":
+                    case "<=":
+                    case "||":
+                        return Kind.BINARYLOGIC; //todo fix modulus
+                    case "++":
+                        return Kind.UNARYINCR;
+                    case "--":
+                        return Kind.UNARYDECR;
+                    default:
+                        return null;
+                }
+            } else if (leadingChar == '=' && spellingStack.size() == 1) {
+                return Kind.ASSIGN;
+            } else if (leadingChar == '=') {
+                return Kind.COMPARE;
+            } else if (Character.isDigit(leadingChar)) {
+                if (isValidIntegerSize(spellingStack)){
+                    return Kind.INTCONST;
+                }
+                currentTokenError = true;
+                errorHandler.register(Error.Kind.LEX_ERROR,
+                            sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                            "Integer Constant too large."); //TODO : update error message?
+            } else if (leadingChar == '"') {
+                return Kind.STRCONST;
+            }else if (Character.isAlphabetic(leadingChar)){
+                return Kind.IDENTIFIER;
             }
-        } else if (isEOF(spellingStack)) {
-            return Kind.EOF;
-        } else if (leadingChar == '/' && spellingStack.size() != 1) {
-            return Kind.COMMENT;
-        } else if (leadingMathChars.contains(leadingChar)) {
-            String tokenString = makeStackString(spellingStack, true);
-            switch (tokenString) {
-                case "+":
-                case "-":
-                    return Kind.PLUSMINUS;
-                case "*":
-                case "/":
-                    return Kind.MULDIV;
-                case "%":
-                case ">":
-                case "<":
-                case "&&":
-                case ">=":
-                case "<=":
-                case "||":
-                    return Kind.BINARYLOGIC; //todo fix modulus
-                case "++":
-                    return Kind.UNARYINCR;
-                case "--":
-                    return Kind.UNARYDECR;
-                default:
-                    return null;
-            }
-        } else if (leadingChar == '=' && spellingStack.size() == 1) {
-            return Kind.ASSIGN;
-        } else if (leadingChar == '=') {
-            return Kind.COMPARE;
-        } else if (Character.isDigit(leadingChar)) { // todo: check that int is small enough
-            return Kind.INTCONST;
-        } else if (leadingChar == '"') {
-            return Kind.STRCONST;
-        } else {
-            return Kind.IDENTIFIER; // todo: assumes same as check token with respect to else clause.
         }
+        return Kind.ERROR;
+    }
+
+    private boolean isValidIntegerSize(Stack<Character> spellingStack){
+        System.out.println(spellingStack.toString()); 
+        return true;
     }
 
     private String makeStackString(Stack<Character> spellingStack, boolean copyStack) {
