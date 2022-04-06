@@ -28,12 +28,10 @@ public class Main {
                     bantamScanner = new Scanner(filename, bantamErrorHandler);
 
                     // move through file tokens until "End Of File" reached
-                    do{
+                    do {
                         currentToken = bantamScanner.scan();
                         System.out.println(currentToken.toString());
-                    }while(currentToken.kind != Token.Kind.EOF); 
-                    //print EOF
-                    System.out.println(currentToken.toString());
+                    } while (currentToken.kind != Token.Kind.EOF);
 
                     // Check Scanner's Error Handler
                     if (bantamErrorHandler.errorsFound()){

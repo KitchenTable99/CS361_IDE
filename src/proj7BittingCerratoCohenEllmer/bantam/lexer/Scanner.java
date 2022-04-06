@@ -1,7 +1,6 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
-import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 import java.io.IOException;
@@ -29,49 +28,22 @@ public class Scanner {
         add('}');
         add('(');
         add(')');
-        add(';');
-        add('.');
-        add('[');
-        add(']');
-    }};
-    private final HashSet<String> alphaNumeric = new HashSet<>() {{
-        add("a");
-        add("b");
-        add("c");
-        add("d");
-        add("e");
-        add("f");
-        add("g");
-        add("h");
-        add("i");
-        add("j");
-        add("k");
-        add("l");
-        add("m");
-        add("n");
-        add("o");
-        add("p");
-        add("q");
-        add("r");
-        add("s");
-        add("t");
-        add("u");
-        add("v");
-        add("w");
-        add("x");
-        add("y");
-        add("z");
 
-        add("0");
-        add("1");
-        add("2");
-        add("3");
-        add("4");
-        add("5");
-        add("6");
-        add("7");
-        add("8");
-        add("9");
+        add(';');
+        add(':');
+        add(',');
+        add('.');
+        add('!');
+    }};
+
+    private final HashSet<Character> leadingMathChars = new HashSet<>() {{
+        add('+');
+        add('-');
+        add('*');
+        add('%');
+        add('<');
+        add('>');
+        add('/');
     }};
 
     /**
@@ -108,11 +80,11 @@ public class Scanner {
      */
     public Token scan() {
         Stack<Character> spellingStack = new Stack<>();
-        if (skippedLastToken != '\0') {
+        if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
             spellingStack.push(skippedLastToken);
         }
 
-        do {
+        while (!isCompleteToken(spellingStack)) {
             try {
                 char letter = sourceFile.getNextChar();
                 if (!Character.isWhitespace(letter) || !spellingStack.empty()) {
@@ -122,16 +94,9 @@ public class Scanner {
                 // if there are no more character then check to see if the final token is invalid
                 e.printStackTrace(); // todo: make this elegant
             }
-
-        } while (!isCompleteToken(spellingStack));
-//        skippedLastToken = '\0'; // todo look at this
+        }
         return createToken(spellingStack);
-        // todo: add all the token types to the logic below
-        // todo: implement EOF token ASAP so we can test the rest of the tokens
     }
-
-    // todo: elegance improvement: switch spelling to a stack. We do a lot of peeking
-    // todo: elegance improvement: create an object that holds a reference to the spelling string and can do all this validation
 
     /**
      * This method checks to see if the spelling stack contains a valid token. If a valid
@@ -146,30 +111,31 @@ public class Scanner {
         if (spellingStack.size() == 0) {
             return false;
         }
-        char leadingChar = spellingStack.lastElement();
+        char leadingChar = spellingStack.firstElement();
         if (validSolo.contains(leadingChar)) {
+            skippedLastToken = '\0';
             return true;
         } else if (isEOF(spellingStack)) {
+            skippedLastToken = '\0';
             return true;
         } else if (leadingChar == '/') {
             return isCompleteSlash(spellingStack); // checks comments and divided by
-        } else if (leadingChar == '+' || leadingChar == '-'
-                || leadingChar == '*' || leadingChar == '%'
-                || leadingChar == '<' || leadingChar == '>') {
+        } else if (leadingMathChars.contains(leadingChar)) {
             return isCompleteMath(spellingStack);
         } else if (leadingChar == '=') {
-            return isCompleteEquals(spellingStack); // make sure to handle === should return == and then =
+            return isCompleteEquals(spellingStack);
         } else if (Character.isDigit(leadingChar)) {
             return isCompleteInt(spellingStack);
-        } else if (leadingChar == '\'') {
-            return isCompleteString(spellingStack); // make sure to handle the case in the above line "\" is not a valid string
+        } else if (leadingChar == '"') {
+            return isCompleteString(spellingStack);
         } else {
             return isCompleteIdentifier(spellingStack); // todo: method assumes only alphabetic characters land here. verify this
         }
     }
 
+    // todo: add javadoc once the functionality is complete
     private boolean isEOF(Stack<Character> spellingStack) {
-        return spellingStack.lastElement() == '\u0000';
+        return spellingStack.firstElement() == '\u0000';
     }
 
     private boolean isCompleteSlash(Stack<Character> spellingStack) {
@@ -186,26 +152,34 @@ public class Scanner {
         char secondChar = spellingStack.get(1);
         char lastChar = spellingStack.peek();
         if (secondChar == '/') {
-            return lastChar == '\n' || lastChar == '\r';
+            if (lastChar == '\n' || lastChar == '\r') {
+                skippedLastToken = '\0';
+                return true;
+            }
         } else if (secondChar == '*') {
-            char secondToLastChar = spellingStack.get(spellingStack.size() - 1);
-            return secondToLastChar == '*' && lastChar == '/';
+            char secondToLastChar = spellingStack.get(spellingStack.size() - 2);
+            if (secondToLastChar == '*' && lastChar == '/') {
+                skippedLastToken = '\0';
+                return true;
+            }
         }
         return false;
     }
 
     private boolean isCompleteMath(Stack<Character> spellingStack) {
         char lastChar = spellingStack.peek();
-        if (lastChar == ' ' || lastChar == '=') {
-            // set token type
+        if (Character.isWhitespace(lastChar)) {
+            skippedLastToken = spellingStack.pop();
+            return true;
+        } else if (lastChar == '=') {
             skippedLastToken = '\0';
             return true;
         } else if (Character.isAlphabetic(lastChar) || Character.isDigit(lastChar)) {
             // set token type
-            skippedLastToken = lastChar;
+            skippedLastToken = spellingStack.pop();
             return true;
-        } else if (makeStackString(spellingStack).equals("++")
-                || makeStackString(spellingStack).equals("--")) {
+        } else if (makeStackString(spellingStack, true).equals("++")
+                || makeStackString(spellingStack, true).equals("--")) {
             // set token type
             skippedLastToken = '\0';
             return true;
@@ -260,9 +234,15 @@ public class Scanner {
     private boolean isCompleteString(Stack<Character> spellingStack) {
         int stackSize = spellingStack.size();
         if (stackSize > 1 && stackSize <= 5000) {
-            return spellingStack.peek() == '"' && spellingStack.get(stackSize - 1) != '\\';
+            if (spellingStack.peek() == '"' && spellingStack.get(stackSize - 2) != '\\') {
+                skippedLastToken = '\0';
+                return true;
+            } else {
+                return false;
+            }
         } else if (stackSize > 5000) {
             //raise error;
+            skippedLastToken = '\0';
             return true; // todo figure out if this should be true or false
         } else {
             return false;
@@ -289,132 +269,86 @@ public class Scanner {
     }
 
     private Token createToken(Stack<Character> spellingStack) {
-        if (isEOF(spellingStack)) {
-            return new Token(Kind.EOF, "bye bitch", 999);
-        } else {
-            return new Token(Kind.IDENTIFIER, makeStackString(spellingStack), sourceFile.getCurrentLineNumber());
-        }
-        /*
-        if (isCompleteString(spellingStack)) {
-            return new Token(Kind.STRCONST, spellingStack,
-                    sourceFile.getCurrentLineNumber());
-        }
-
-        if (isCompleteIdentifier(spellingStack)) {
-            return new Token(Kind.IDENTIFIER, spellingStack,
-                    sourceFile.getCurrentLineNumber());
-        }
-
-        if (isValidInt(spellingStack)) {
-            return new Token(Kind.INTCONST, spellingStack,
-                    sourceFile.getCurrentLineNumber());
-        }
-
-        if (isEOF(spellingStack)) {
-            return new Token(Kind.EOF, spellingStack,
-                    sourceFile.getCurrentLineNumber());
-        }
-
-        if (isCompleteComment(spellingStack)) {
-            return new Token(Kind.COMMENT, spellingStack,
-                    sourceFile.getCurrentLineNumber());
-        }
-
-        return new Token(Kind.ERROR, "missed: " + spellingStack, 999);
-        */
+        Kind tokenKind = getTokenKind(spellingStack);
+        return new Token(tokenKind, makeStackString(spellingStack, false), sourceFile.getCurrentLineNumber());
     }
 
-    /**
-     * checks if string contains a valid int
-     *
-     * @param integer the current spelling of the token to check
-     * @return returns true if an integer
-     */
-    private boolean isValidInt(String integer) {
-        try {
-            Integer.parseInt(integer);
-            return true;
-        } catch (NumberFormatException ex) {
-            return false;
-        }
-    }
-
-    /**
-     * checks if some string is an Identifier
-     *
-     * @param spelling the current spelling of the token to check
-     * @return returns true if an identifier
-     */
-    private boolean isIdentifier(String spelling) {
-        //must start with a letter
-        char start = spelling.charAt(0);
-        if (start >= 'A' && start <= 'Z' ||
-                start >= 'a' && start <= 'z') {
-            // only contains letters, numbers, and underscores
-            for (char character : spelling.toCharArray()) {
-                if (character < '0' ||
-                        character > '9' && character < 'A' ||
-                        character > 'Z' && character < '_' ||
-                        character > '_' && character < 'a' ||
-                        character > 'z') {
-                    return false;
-                }
+    private Kind getTokenKind(Stack<Character> spellingStack) {
+        char leadingChar = spellingStack.firstElement();
+        if (validSolo.contains(leadingChar)) {
+            switch (leadingChar) {
+                case '(':
+                    return Kind.LPAREN;
+                case ')':
+                    return Kind.RPAREN;
+                case '{':
+                    return Kind.LCURLY;
+                case '}':
+                    return Kind.RCURLY;
+                case ';':
+                    return Kind.SEMICOLON;
+                case '!': // todo: should this be here or do we need a new method?
+                    return Kind.UNARYNOT;
+                case '.':
+                    return Kind.DOT;
+                case ':':
+                    return Kind.COLON;
+                case ',':
+                    return Kind.COMMA;
+                default:
+                    return null;
             }
-            return true;
-        } // doesnt start with letter
-        return false;
-    }
-
-    private boolean isSlash(String spelling) {
-        return spelling.startsWith("/'");
-    }
-
-    private boolean isString(String spelling) {
-        return spelling.startsWith("\"");
-    }
-
-    private Kind specialSymbolToKind(String symbol) {
-        switch (symbol) {
-            case "(":
-                return Kind.LPAREN;
-            case ")":
-                return Kind.RPAREN;
-            case "{":
-                return Kind.LCURLY;
-            case "}":
-                return Kind.RCURLY;
-            case ";":
-                return Kind.SEMICOLON;
-            case "+":
-            case "-":
-                return Kind.PLUSMINUS;
-            case "++":
-                return Kind.UNARYINCR;
-            case "==":
-                return Kind.COMPARE;
-            case "&":
-            case "|":
-            case "&&":
-            case "||":
-                return Kind.BINARYLOGIC;
-            case "--":
-                return Kind.UNARYDECR;
-            case "!":
-                return Kind.UNARYNOT;
-            case ".":
-                return Kind.DOT;
-            case ":":
-                return Kind.COLON;
-            case ",":
-                return Kind.COMMA;
-            case "*":
-            case "/":
-                return Kind.MULDIV;
+        } else if (isEOF(spellingStack)) {
+            return Kind.EOF;
+        } else if (leadingChar == '/' && spellingStack.size() != 1) {
+            return Kind.COMMENT;
+        } else if (leadingMathChars.contains(leadingChar)) {
+            String tokenString = makeStackString(spellingStack, true);
+            switch (tokenString) {
+                case "+":
+                case "-":
+                    return Kind.PLUSMINUS;
+                case "*":
+                case "/":
+                    return Kind.MULDIV;
+                case "%":
+                case ">":
+                case "<":
+                case "&&":
+                case ">=":
+                case "<=":
+                case "||":
+                    return Kind.BINARYLOGIC; //todo fix modulus
+                case "++":
+                    return Kind.UNARYINCR;
+                case "--":
+                    return Kind.UNARYDECR;
+                default:
+                    return null;
+            }
+        } else if (leadingChar == '=' && spellingStack.size() == 1) {
+            return Kind.ASSIGN;
+        } else if (leadingChar == '=') {
+            return Kind.COMPARE;
+        } else if (Character.isDigit(leadingChar)) {
+            return Kind.INTCONST;
+        } else if (leadingChar == '"') {
+            return Kind.STRCONST;
+        } else {
+            return Kind.IDENTIFIER; // todo: assumes same as check token with respect to else clause.
         }
-        return null;
     }
 
-    private String makeStackString(Stack<Character> spellingStack) {
+    private String makeStackString(Stack<Character> spellingStack, boolean copyStack) {
+        if (copyStack) {
+            Stack<Character> spellingStackCopy = (Stack<Character>) spellingStack.clone();
+            return emptyStackToString(spellingStackCopy);
+        } else {
+            return emptyStackToString(spellingStack);
+        }
+    }
+
+    private String emptyStackToString(Stack<Character> spellingStack) {
         char[] charArray = new char[spellingStack.size()];
         for (int i = spellingStack.size() - 1; i >= 0; i--) {
             charArray[i] = spellingStack.pop();

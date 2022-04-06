@@ -10,16 +10,30 @@ class HelloWorld {
     else
     extends
     for
+
+
+
     if
     instanceof
     new
     return
     while
 
+    +
+    -
+    /
+    *
+    % < > <= ! %
+
     identifier
     identifier1
-    Identi13r1084
-    this_is_validT0000000000
             "\t hey"
-    "jo\""
+    "jo\"a"
+
+    // hello from a comment
+    this_is_validT0000000000
+    /*
+    hello from a multi line comment
+     */
+            Identi13r1084
 }
