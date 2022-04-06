@@ -9,8 +9,6 @@ import java.io.Reader;
 import java.util.HashSet;
 import java.util.Stack;
 
-import javax.swing.text.StyledEditorKit.BoldAction;
-
 /**
  * This class reads characters from a file or a Reader
  * and breaks it into Tokens.
@@ -89,8 +87,8 @@ public class Scanner {
         currentTokenError = false;
         if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
             spellingStack.push(skippedLastToken);
-            
         }
+        skippedLastToken = '\0';
 
         while (!isCompleteToken(spellingStack)) {
             try {
@@ -107,9 +105,10 @@ public class Scanner {
                 }
             } catch (IOException e) {
                 // if there are no more character then check to see if the final token is invalid
-                e.printStackTrace(); // todo: make this elegant
+                e.printStackTrace(); // TODO: make this elegant
             }
         }
+        System.out.println(spellingStack.toString());
         return createToken(spellingStack);
     }
 
@@ -166,7 +165,7 @@ public class Scanner {
         }
     }
 
-    // todo: add javadoc once the functionality is complete
+    // TODO: add javadoc once the functionality is complete
     private boolean isEOF(Stack<Character> spellingStack) {
         return spellingStack.firstElement() == '\u0000';
     }
@@ -267,8 +266,8 @@ public class Scanner {
      * @return returns true if the stack contains a complete string
      */
     private boolean isCompleteString(Stack<Character> spellingStack) {
-        // todo: if EOF is the last char then this is an terminated string
-        // todo: check for illegal characters
+        // TODO: if EOF is the last char then this is an terminated string
+        // TODO: check for illegal characters
         int stackSize = spellingStack.size();
         if (stackSize > 1 && stackSize <= 5000) {
             if (spellingStack.peek() == '\u0000'){
@@ -285,10 +284,10 @@ public class Scanner {
                 return false;
             }
         } else if (stackSize > 5000) {
-            // todo: don't prematurely end. check string size once returning.
+            // TODO: don't prematurely end. check string size once returning.
             //raise error;
             skippedLastToken = '\0';
-            return true; // todo figure out if this should be true or false
+            return true; // TODO: figure out if this should be true or false
         } else {
             return false;
         }
@@ -303,9 +302,11 @@ public class Scanner {
     private boolean isCompleteIdentifier(Stack<Character> spellingStack) {
         if (spellingStack.size() == 1) {
             return false;
-        } else if (Character.isAlphabetic(spellingStack.peek()) ||
-                Character.isDigit(spellingStack.peek()) ||
-                spellingStack.peek() == '_') {
+        }
+        Character lastChar = spellingStack.peek();
+        if (Character.isAlphabetic(lastChar) ||
+                Character.isDigit(lastChar) ||
+                lastChar == '_') {
             return false;
         } else {
             skippedLastToken = spellingStack.pop();
@@ -334,7 +335,7 @@ public class Scanner {
                         return Kind.RCURLY;
                     case ';':
                         return Kind.SEMICOLON;
-                    case '!': // todo: should this be here or do we need a new method?
+                    case '!': // TODO: should this be here or do we need a new method?
                         return Kind.UNARYNOT;
                     case '.':
                         return Kind.DOT;
@@ -365,7 +366,7 @@ public class Scanner {
                     case ">=":
                     case "<=":
                     case "||":
-                        return Kind.BINARYLOGIC; //todo fix modulus
+                        return Kind.BINARYLOGIC; //TODO: fix modulus
                     case "++":
                         return Kind.UNARYINCR;
                     case "--":

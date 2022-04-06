@@ -31,6 +31,14 @@ public class Main {
                     do {
                         currentToken = bantamScanner.scan();
                         System.out.println(currentToken.toString());
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+
+
                     } while (currentToken.kind != Token.Kind.EOF);
 
                     // Check Scanner's Error Handler
