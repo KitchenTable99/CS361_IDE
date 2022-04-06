@@ -198,7 +198,7 @@ public class Scanner {
                 currentTokenError = true;
                 errorHandler.register(Error.Kind.LEX_ERROR,
                                 sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
-                                "Unterminated Block Comment!"); //TODO: change message
+                                "Unterminated Block Comment!");
             }
             if (secondToLastChar == '*' && lastChar == '/') {
                 skippedLastToken = '\0';
@@ -270,7 +270,6 @@ public class Scanner {
      * @return returns true if the stack contains a complete string
      */
     private boolean isCompleteString(Stack<Character> spellingStack) {
-        // TODO: if EOF is the last char then this is an terminated string
         // TODO: check for illegal characters
         int stackSize = spellingStack.size();
         if (stackSize > 1 && stackSize <= 5000) {
@@ -278,7 +277,8 @@ public class Scanner {
                 currentTokenError = true;
                 errorHandler.register(Error.Kind.LEX_ERROR,
                                 sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
-                                "Unterminated String Constant!"); //TODO: change message
+                                "Unterminated String Constant!");
+                return true;
             }
             
             if (spellingStack.peek() == '"' && spellingStack.get(stackSize - 2) != '\\') {
@@ -328,56 +328,14 @@ public class Scanner {
         char leadingChar = spellingStack.firstElement();
         if(!currentTokenError){
             if (validSolo.contains(leadingChar)) {
-                switch (leadingChar) {
-                    case '(':
-                        return Kind.LPAREN;
-                    case ')':
-                        return Kind.RPAREN;
-                    case '{':
-                        return Kind.LCURLY;
-                    case '}':
-                        return Kind.RCURLY;
-                    case ';':
-                        return Kind.SEMICOLON;
-                    case '!': // TODO: should this be here or do we need a new method?
-                        return Kind.UNARYNOT;
-                    case '.':
-                        return Kind.DOT;
-                    case ':':
-                        return Kind.COLON;
-                    case ',':
-                        return Kind.COMMA;
-                    default:
-                        return null;
-                }
+                return getSoloTokenKind(leadingChar);
             } else if (isEOF(spellingStack)) {
                 return Kind.EOF;
             } else if (leadingChar == '/' && spellingStack.size() != 1) {
                 return Kind.COMMENT;
             } else if (leadingMathChars.contains(leadingChar)) {
                 String tokenString = makeStackString(spellingStack, true);
-                switch (tokenString) {
-                    case "+":
-                    case "-":
-                        return Kind.PLUSMINUS;
-                    case "*":
-                    case "/":
-                        return Kind.MULDIV;
-                    case "%":
-                    case ">":
-                    case "<":
-                    case "&&":
-                    case ">=":
-                    case "<=":
-                    case "||":
-                        return Kind.BINARYLOGIC; //TODO: fix modulus
-                    case "++":
-                        return Kind.UNARYINCR;
-                    case "--":
-                        return Kind.UNARYDECR;
-                    default:
-                        return null;
-                }
+                return getMathTokenKind(tokenString);
             } else if (leadingChar == '=' && spellingStack.size() == 1) {
                 return Kind.ASSIGN;
             } else if (leadingChar == '=') {
@@ -389,7 +347,7 @@ public class Scanner {
                 currentTokenError = true;
                 errorHandler.register(Error.Kind.LEX_ERROR,
                             sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
-                            "Integer Constant too large."); //TODO : update error message?
+                            "Integer Constant too large.");
             } else if (leadingChar == '"') {
                 return Kind.STRCONST;
             }else if (Character.isAlphabetic(leadingChar)){
@@ -399,8 +357,59 @@ public class Scanner {
         return Kind.ERROR;
     }
 
+    private Kind getSoloTokenKind(Character leadingChar){
+        switch (leadingChar) {
+            case '(':
+                return Kind.LPAREN;
+            case ')':
+                return Kind.RPAREN;
+            case '{':
+                return Kind.LCURLY;
+            case '}':
+                return Kind.RCURLY;
+            case ';':
+                return Kind.SEMICOLON;
+            case '!':
+                return Kind.UNARYNOT;
+            case '.':
+                return Kind.DOT;
+            case ':':
+                return Kind.COLON;
+            case ',':
+                return Kind.COMMA;
+            default:
+                return null;
+        }
+    }
+
+    private Kind getMathTokenKind(String tokenString){
+        switch (tokenString) {
+            case "+":
+            case "-":
+                return Kind.PLUSMINUS;
+            case "*":
+            case "/":
+                return Kind.MULDIV;
+            case "%":
+            case ">":
+            case "<":
+            case "&&":
+            case ">=":
+            case "<=":
+            case "||":
+                return Kind.BINARYLOGIC;
+            case "++":
+                return Kind.UNARYINCR;
+            case "--":
+                return Kind.UNARYDECR;
+            default:
+                return null;
+        }
+    }
+
     private boolean isValidIntegerSize(Stack<Character> spellingStack){
-        return true;
+        Long currentNumber = Long.parseLong(makeStackString(spellingStack, true));
+        return currentNumber <= Integer.MAX_VALUE;
     }
 
     private String makeStackString(Stack<Character> spellingStack, boolean copyStack) {
