@@ -88,6 +88,7 @@ public class Scanner {
             try {
                 char letter = sourceFile.getNextChar();
                 if (!Character.isWhitespace(letter) || !spellingStack.empty()) {
+                    // todo: handle illegal characters
                     spellingStack.push(letter);
                 }
             } catch (IOException e) {
@@ -149,11 +150,12 @@ public class Scanner {
     }
 
     private boolean isCompleteComment(Stack<Character> spellingStack) {
+        // todo: if EOF is the last char then this is unterminated comment
         char secondChar = spellingStack.get(1);
         char lastChar = spellingStack.peek();
         if (secondChar == '/') {
             if (lastChar == '\n' || lastChar == '\r') {
-                skippedLastToken = '\0';
+                skippedLastToken = spellingStack.pop();
                 return true;
             }
         } else if (secondChar == '*') {
@@ -171,16 +173,12 @@ public class Scanner {
         if (Character.isWhitespace(lastChar)) {
             skippedLastToken = spellingStack.pop();
             return true;
-        } else if (lastChar == '=') {
-            skippedLastToken = '\0';
-            return true;
         } else if (Character.isAlphabetic(lastChar) || Character.isDigit(lastChar)) {
-            // set token type
             skippedLastToken = spellingStack.pop();
             return true;
         } else if (makeStackString(spellingStack, true).equals("++")
-                || makeStackString(spellingStack, true).equals("--")) {
-            // set token type
+                || makeStackString(spellingStack, true).equals("--")
+                || lastChar == '=') {
             skippedLastToken = '\0';
             return true;
         } else if (lastChar == ';') {
@@ -232,6 +230,8 @@ public class Scanner {
      * @return returns true if the stack contains a complete string
      */
     private boolean isCompleteString(Stack<Character> spellingStack) {
+        // todo: if EOF is the last char then this is an terminated string
+        // todo: check for illegal characters
         int stackSize = spellingStack.size();
         if (stackSize > 1 && stackSize <= 5000) {
             if (spellingStack.peek() == '"' && spellingStack.get(stackSize - 2) != '\\') {
@@ -241,6 +241,7 @@ public class Scanner {
                 return false;
             }
         } else if (stackSize > 5000) {
+            // todo: don't prematurely end. check string size once returning.
             //raise error;
             skippedLastToken = '\0';
             return true; // todo figure out if this should be true or false
@@ -330,7 +331,7 @@ public class Scanner {
             return Kind.ASSIGN;
         } else if (leadingChar == '=') {
             return Kind.COMPARE;
-        } else if (Character.isDigit(leadingChar)) {
+        } else if (Character.isDigit(leadingChar)) { // todo: check that int is small enough
             return Kind.INTCONST;
         } else if (leadingChar == '"') {
             return Kind.STRCONST;
