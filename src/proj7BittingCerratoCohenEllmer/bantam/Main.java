@@ -3,9 +3,9 @@ import proj7BittingCerratoCohenEllmer.bantam.lexer.Scanner;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
-
-public class Main {
-        /**
+//TODO : should this be renamed to "ScannerTest" ?
+public class Main { 
+    /**
      * Test function for scanner code
      * Called when scanner.java is run on command line
      *

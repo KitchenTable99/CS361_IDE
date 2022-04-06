@@ -23,9 +23,19 @@ public class Scanner {
      */
     private final ErrorHandler errorHandler;
 
+    /**
+     * flag to identify if error occured
+     */
     private boolean currentTokenError;
 
+    /**
+     * holds Tokens that delimit
+     */
     private char skippedLastToken;
+
+    /**
+     * Holds Tokens that can be one character
+     */
     private final HashSet<Character> validSolo = new HashSet<>() {{
         add('{');
         add('}');
@@ -39,6 +49,9 @@ public class Scanner {
         add('!');
     }};
 
+    /**
+     * Holds Characters that indicate Math Tokens
+     */
     private final HashSet<Character> leadingMathChars = new HashSet<>() {{
         add('+');
         add('-');
@@ -110,7 +123,12 @@ public class Scanner {
         return createToken(spellingStack);
     }
 
-    private Boolean isUnsupportedCharacter(Character symbol){
+    /**
+     * Checks if the character is legal in Bantam Java
+     * @param symbol the character being checked
+     * @return true if legal
+     */
+    private boolean isUnsupportedCharacter(Character symbol){
         return !(Character.isLetterOrDigit(symbol) 
                 || Character.isWhitespace(symbol)
                 || validSolo.contains(symbol)
@@ -123,6 +141,12 @@ public class Scanner {
                 || symbol == '=');
     }
 
+    /**
+     * Checks if token accepts all character symbols
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if the first symbol is / or "
+     */
     private boolean addAllCharacters(Stack<Character> spellingStack) {
         if(spellingStack.size() < 1){
             return false;
@@ -169,11 +193,20 @@ public class Scanner {
         }
     }
 
-    // TODO: add javadoc once the functionality is complete
+    /**
+     * Checks if the token is an End Of File (EOF) Token
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if EOF
+     */
     private boolean isEOF(Stack<Character> spellingStack) {
         return spellingStack.firstElement() == '\u0000';
     }
 
+    /**
+     * Checks if a token that starts with "/" is complete
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if a complete comment or math token
+     */
     private boolean isCompleteSlash(Stack<Character> spellingStack) {
         if (spellingStack.size() >= 2 && spellingStack.get(1) == '/') {
             return isCompleteComment(spellingStack);
@@ -184,6 +217,12 @@ public class Scanner {
         }
     }
 
+    /**
+     * Checks if the token spelling has a complete single line or multiline
+     * comment
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if comment is complete
+     */
     private boolean isCompleteComment(Stack<Character> spellingStack) {
         char secondChar = spellingStack.get(1);
         char lastChar = spellingStack.peek();
@@ -208,6 +247,12 @@ public class Scanner {
         return false;
     }
 
+    /**
+     * Checks if the token spelling contains a complete math statement
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if a complete math statement
+     */
     private boolean isCompleteMath(Stack<Character> spellingStack) {
         char lastChar = spellingStack.peek();
         if (Character.isWhitespace(lastChar)) {
@@ -230,6 +275,12 @@ public class Scanner {
         }
     }
 
+    /**
+     * Checks if tokens starting with = are complete
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if the equals statement is complete
+     */
     private boolean isCompleteEquals(Stack<Character> spellingStack) {
         if (spellingStack.size() < 2) {
             return false;
@@ -245,6 +296,12 @@ public class Scanner {
         }
     }
 
+    /**
+     * Checks if Int has finished
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if the int has finished
+     */
     private boolean isCompleteInt(Stack<Character> spellingStack) {
         if (Character.isDigit(spellingStack.peek())) {
             return false;
@@ -318,12 +375,23 @@ public class Scanner {
         }
     }
 
+    /**
+     * Creates a token of the right kind
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return The new token
+     */
     private Token createToken(Stack<Character> spellingStack) {
         Kind tokenKind = getTokenKind(spellingStack);
         return new Token(tokenKind, makeStackString(spellingStack, false), sourceFile.getCurrentLineNumber());
     }
 
-
+    /**
+     * Finds the token type based on the token spelling
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return the correct token kind
+     */
     private Kind getTokenKind(Stack<Character> spellingStack) {
         char leadingChar = spellingStack.firstElement();
         if(!currentTokenError){
@@ -357,8 +425,15 @@ public class Scanner {
         return Kind.ERROR;
     }
 
-    private Kind getSoloTokenKind(Character leadingChar){
-        switch (leadingChar) {
+    /**
+     * helper method for finding token kind for 
+     * "solo" tokens
+     * 
+     * @param spelling the token spelling
+     * @return the correct token kind
+     */
+    private Kind getSoloTokenKind(Character spelling){
+        switch (spelling) {
             case '(':
                 return Kind.LPAREN;
             case ')':
@@ -382,6 +457,12 @@ public class Scanner {
         }
     }
 
+    /**
+     * helper method to find the token kind of math tokens
+     * 
+     * @param tokenString the token spelling
+     * @return the correct token kind
+     */
     private Kind getMathTokenKind(String tokenString){
         switch (tokenString) {
             case "+":
@@ -407,11 +488,24 @@ public class Scanner {
         }
     }
 
+    /**
+     * Checks if int is too large
+     * 
+     * @param spellingStack the token spelling
+     * @return returns true if less than the max integer value
+     */
     private boolean isValidIntegerSize(Stack<Character> spellingStack){
         Long currentNumber = Long.parseLong(makeStackString(spellingStack, true));
         return currentNumber <= Integer.MAX_VALUE;
     }
 
+    /**
+     * Converts the spelling stack to a string
+     * 
+     * @param spellingStack the token spelling stack
+     * @param copyStack wether or not to empty the stack
+     * @return a string of the spelling stack
+     */
     private String makeStackString(Stack<Character> spellingStack, boolean copyStack) {
         if (copyStack) {
             Stack<Character> spellingStackCopy = (Stack<Character>) spellingStack.clone();
@@ -421,6 +515,12 @@ public class Scanner {
         }
     }
 
+    /**
+     * Converts a stack to a string and empties stack
+     * 
+     * @param spellingStack the spelling stack to be converted/ emptied
+     * @return The spelling stack as a string
+     */
     private String emptyStackToString(Stack<Character> spellingStack) {
         char[] charArray = new char[spellingStack.size()];
         for (int i = spellingStack.size() - 1; i >= 0; i--) {
