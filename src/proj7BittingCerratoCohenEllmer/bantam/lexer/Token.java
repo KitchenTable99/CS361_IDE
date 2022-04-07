@@ -47,7 +47,7 @@
       * @param spelling the characters making up the token
       * @param position the line number in the source file containing the token
       */
-     Token(Kind kind, String spelling, int position) {
+     public Token(Kind kind, String spelling, int position) {
          this.spelling = spelling;
          this.position = position;
 
