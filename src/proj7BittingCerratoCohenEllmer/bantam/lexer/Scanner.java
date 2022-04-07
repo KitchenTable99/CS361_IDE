@@ -34,6 +34,12 @@ public class Scanner {
     private char skippedLastToken;
 
     /**
+     * holds the line number for the start of strings
+     * -1 means "not in a string"
+     */
+    private int stringStart = -1;
+
+    /**
      * keeps track if next character escaped in string
      * default false
      */
@@ -113,22 +119,20 @@ public class Scanner {
      * @return the Token containing the characters read
      */
     public Token scan() {
+        stringStart = -1;
         Stack<Character> spellingStack = new Stack<>();
         currentTokenError = false;
-        if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
-            spellingStack.push(skippedLastToken);
-        }
-        skippedLastToken = '\0';
-
+        handleLeftOverCharacters(spellingStack);
         while (!isCompleteToken(spellingStack)) {
+            
             try {
                 char letter = sourceFile.getNextChar();
+                if(letter == '"' && stringStart < 0){
+                    stringStart = sourceFile.getCurrentLineNumber();
+                }
                 if (!Character.isWhitespace(letter) || !spellingStack.empty()) {
-                    if(isUnsupportedCharacter(letter)
-                        && !addAllCharacters(spellingStack)){
-                        errorHandler.register(Error.Kind.LEX_ERROR,
-                            sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
-                            "Unsupported Character " + letter);
+                    if(!addAllCharacters(spellingStack)){
+                        checkInvalidCharacters(letter);
                     }
                     spellingStack.push(letter);
                 }
@@ -138,6 +142,34 @@ public class Scanner {
             }
         }
         return createToken(spellingStack);
+    }
+
+    /**
+     * checks if the last Token contained parts of the next token
+     * 
+     * @param spellingStack spelling stack represents the spelling of token being created
+     */
+    private void handleLeftOverCharacters(Stack<Character> spellingStack){
+        if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
+            if(skippedLastToken == '"'){
+                stringStart = sourceFile.getCurrentLineNumber();
+            }
+            spellingStack.push(skippedLastToken);
+        }
+        skippedLastToken = '\0';
+    }
+
+    /**
+     * Checks each scanned character and registers errors
+     * 
+     * @param letter the character being checked
+     */
+    private void checkInvalidCharacters(Character letter){
+        if(isUnsupportedCharacter(letter)){
+            errorHandler.register(Error.Kind.LEX_ERROR,
+                    sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                    "Unsupported Character " + letter + "!");
+        }
     }
 
     /**
@@ -255,6 +287,7 @@ public class Scanner {
                 errorHandler.register(Error.Kind.LEX_ERROR,
                                 sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
                                 "Unterminated Block Comment!");
+                return true;
             }
             if (secondToLastChar == '*' && lastChar == '/') {
                 skippedLastToken = '\0';
@@ -332,25 +365,27 @@ public class Scanner {
      * checks if string contains valid characters
      * <p>
      * String constants start and end with double quotes.
-     * They may contain the following special symbols:
-     * \n (newline),
-     * \t (tab),
-     * \" (double quote),
-     * \\ (backslash), and
-     * \f (form feed).
-     * A string constant cannot exceed 5000 characters and cannot span multiple lines.
      *
      * @param spellingStack the stack containing the characters
      * @return returns true if the stack contains a complete string
      */
     private boolean isCompleteString(Stack<Character> spellingStack) {
-        // TODO: check for illegal characters
         int stackSize = spellingStack.size();
-        if (stackSize > 1 && stackSize <= 5000) {
+        if (stackSize > 1) {
+            // check if string is closed
             if (spellingStack.peek() == '"' && !charIsEscaped) {
+                if( sourceFile.getCurrentLineNumber() != stringStart) {
+                    currentTokenError = true;
+                    errorHandler.register(Error.Kind.LEX_ERROR,
+                                sourceFile.getFilename(), 
+                                sourceFile.getCurrentLineNumber(),
+                                "Multiline String found! Starting @ line: "
+                                 + stringStart);
+                }
                 skippedLastToken = '\0';
                 return true;
             }
+            //check if EOF triggers untermintated string
             if (spellingStack.peek() == '\u0000'){
                 currentTokenError = true;
                 errorHandler.register(Error.Kind.LEX_ERROR,
@@ -358,6 +393,7 @@ public class Scanner {
                                 "Unterminated String Constant!");
                 return true;
             }
+            // logic for handling escape sequences
             if (spellingStack.peek() == '\\'){
                 charIsEscaped = true;
                 return false;
@@ -365,25 +401,16 @@ public class Scanner {
             if (charIsEscaped && !validEscapedCharacter.contains(spellingStack.peek())){
                 errorHandler.register(Error.Kind.LEX_ERROR,
                                 sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
-                                "Invalid Escaped Character \\" + spellingStack.peek());
+                                "Invalid Escaped Character \\" 
+                                + spellingStack.peek() + "!");
                 charIsEscaped = false;
                 return false;
             } else{
                 charIsEscaped = false;
                 return false;
             }
-            
-            
-            
-            
-        } else if (stackSize > 5000) {
-            // TODO: don't prematurely end. check string size once returning.
-            //raise error;
-            skippedLastToken = '\0';
-            return true; // TODO: figure out if this should be true or false
-        } else {
-            return false;
-        }
+        }// else
+        return false;
     }
 
     /**
@@ -447,9 +474,16 @@ public class Scanner {
                 currentTokenError = true;
                 errorHandler.register(Error.Kind.LEX_ERROR,
                             sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
-                            "Integer Constant too large.");
+                            "Integer Constant too large!");
             } else if (leadingChar == '"') {
-                return Kind.STRCONST;
+                if (isValidStringLength(spellingStack)){
+                    return Kind.STRCONST;
+                }
+                currentTokenError = true;
+                errorHandler.register(Error.Kind.LEX_ERROR,
+                            sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                            "String Exceeds 5000 Characters!");
+                
             }else if (Character.isAlphabetic(leadingChar)){
                 return Kind.IDENTIFIER;
             }
@@ -531,6 +565,10 @@ public class Scanner {
         return currentNumber <= Integer.MAX_VALUE;
     }
 
+    private boolean isValidStringLength(Stack<Character> spellingStack){
+        return spellingStack.size() <= 5000;
+    }
+
     /**
      * Converts the spelling stack to a string
      * 
@@ -558,7 +596,6 @@ public class Scanner {
         for (int i = spellingStack.size() - 1; i >= 0; i--) {
             charArray[i] = spellingStack.pop();
         }
-
         return new String(charArray);
     }
 }
