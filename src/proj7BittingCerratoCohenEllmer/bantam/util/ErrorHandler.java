@@ -47,7 +47,7 @@ public class ErrorHandler {
      *
      * @param error the Error object to be registered
      */
-    private void register(Error error) {
+    public void register(Error error) {
         // insert a new error into the error list
         // but keep at most 100 errors.
         if (errorList.size() < 100) {
