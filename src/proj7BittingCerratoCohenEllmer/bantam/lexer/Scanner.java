@@ -1,6 +1,7 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
+import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 import java.io.IOException;
@@ -22,7 +23,37 @@ public class Scanner {
      */
     private final ErrorHandler errorHandler;
 
+    /**
+     * holds Tokens that delimit
+     */
     private char skippedLastToken;
+
+    /**
+     * holds the line number for the start of strings
+     * -1 means "not in a string"
+     */
+    private int stringStart = -1;
+
+    /**
+     * keeps track if next character escaped in string
+     * default false
+     */
+    private boolean charIsEscaped = false;
+
+    /**
+     * Holds legal escaped characters in strings
+     */
+    private final HashSet<Character> validEscapedCharacter = new HashSet<>(){{
+        add('n');
+        add('t');
+        add('"');
+        add('\\');
+        add('f');
+    }};
+
+    /**
+     * Holds Tokens that can be one character
+     */
     private final HashSet<Character> validSolo = new HashSet<>() {{
         add('{');
         add('}');
@@ -36,6 +67,9 @@ public class Scanner {
         add('!');
     }};
 
+    /**
+     * Holds Characters that indicate Math Tokens
+     */
     private final HashSet<Character> leadingMathChars = new HashSet<>() {{
         add('+');
         add('-');
@@ -45,6 +79,7 @@ public class Scanner {
         add('>');
         add('/');
     }};
+    
 
     /**
      * creates a new scanner for the given file
@@ -79,24 +114,94 @@ public class Scanner {
      * @return the Token containing the characters read
      */
     public Token scan() {
-        Stack<Character> spellingStack = new Stack<>();
-        if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
-            spellingStack.push(skippedLastToken);
-        }
+        stringStart = -1; // will be used to sniff out multi-line comments
+        int startNumErrors = errorHandler.getErrorList().size(); // will be used to check if a token caused an error
+        Stack<Character> spellingStack = createSpellingStack();
+        //todo check for EOF already sent
 
         while (!isCompleteToken(spellingStack)) {
             try {
                 char letter = sourceFile.getNextChar();
+                if (letter == '"' && stringStart < 0) {
+                    stringStart = sourceFile.getCurrentLineNumber();
+                }
                 if (!Character.isWhitespace(letter) || !spellingStack.empty()) {
-                    // todo: handle illegal characters
+                    if (!addAllCharacters(spellingStack)) {
+                        checkInvalidCharacters(letter);
+                    }
                     spellingStack.push(letter);
                 }
             } catch (IOException e) {
-                // if there are no more character then check to see if the final token is invalid
-                e.printStackTrace(); // todo: make this elegant
+                e.printStackTrace(); // TODO: make this elegant
             }
         }
-        return createToken(spellingStack);
+        return createToken(spellingStack, startNumErrors);
+    }
+
+    /**
+     * Creates a new stack to represent a scanned token. Has side effects:
+     * sets stringStart if a string starts and resets skippedLastToken.
+     *
+     * @return a stack of characters with the most recent skipped token added if it's not
+     * whitespace
+     */
+    private Stack<Character> createSpellingStack() {
+        Stack<Character> spellingStack = new Stack<>();
+        if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
+            if (skippedLastToken == '"') {
+                stringStart = sourceFile.getCurrentLineNumber();
+            }
+
+            spellingStack.push(skippedLastToken);
+            skippedLastToken = '\0';
+        }
+
+        return spellingStack;
+    }
+
+    /**
+     * Checks each scanned character and registers errors
+     * 
+     * @param letter the character being checked
+     */
+    private void checkInvalidCharacters(Character letter){
+        if(isUnsupportedCharacter(letter)){
+            errorHandler.register(Error.Kind.LEX_ERROR,
+                    sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                    "Unsupported Character " + letter + "!");
+        }
+    }
+
+    /**
+     * Checks if the character is legal in Bantam Java
+     * @param symbol the character being checked
+     * @return true if legal
+     */
+    private boolean isUnsupportedCharacter(Character symbol){
+        return !(Character.isLetterOrDigit(symbol) 
+                || Character.isWhitespace(symbol)
+                || validSolo.contains(symbol)
+                || leadingMathChars.contains(symbol)
+                || symbol == '\n'
+                || symbol == '\r'
+                || symbol == '\u0000'
+                || symbol == '\"'
+                || symbol == '_'
+                || symbol == '=');
+    }
+
+    /**
+     * Checks if token accepts all character symbols
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if the first symbol is / or "
+     */
+    private boolean addAllCharacters(Stack<Character> spellingStack) {
+        if(spellingStack.size() < 1){
+            return false;
+        }
+        char leadingChar = spellingStack.firstElement();
+        return leadingChar == '/' || leadingChar == '\"';
     }
 
     /**
@@ -130,15 +235,27 @@ public class Scanner {
         } else if (leadingChar == '"') {
             return isCompleteString(spellingStack);
         } else {
-            return isCompleteIdentifier(spellingStack); // todo: method assumes only alphabetic characters land here. verify this
+            if(Character.isAlphabetic(leadingChar)){
+                return isCompleteIdentifier(spellingStack);
+            }
+        return true;
         }
     }
 
-    // todo: add javadoc once the functionality is complete
+    /**
+     * Checks if the token is an End Of File (EOF) Token
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if EOF
+     */
     private boolean isEOF(Stack<Character> spellingStack) {
         return spellingStack.firstElement() == '\u0000';
     }
 
+    /**
+     * Checks if a token that starts with "/" is complete
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if a complete comment or math token
+     */
     private boolean isCompleteSlash(Stack<Character> spellingStack) {
         if (spellingStack.size() >= 2 && spellingStack.get(1) == '/') {
             return isCompleteComment(spellingStack);
@@ -149,25 +266,40 @@ public class Scanner {
         }
     }
 
+    /**
+     * Checks if the token spelling has a complete single line or multiline
+     * comment
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if comment is complete
+     */
     private boolean isCompleteComment(Stack<Character> spellingStack) {
-        // todo: if EOF is the last char then this is unterminated comment
         char secondChar = spellingStack.get(1);
+        char secondToLastChar = spellingStack.get(spellingStack.size() - 2);
         char lastChar = spellingStack.peek();
-        if (secondChar == '/') {
-            if (lastChar == '\n' || lastChar == '\r') {
-                skippedLastToken = spellingStack.pop();
+        if (secondChar == '/' && (lastChar == '\n' || lastChar == '\r')) {
+            skippedLastToken = spellingStack.pop();
+            return true;
+        } else {
+            if (lastChar == '\u0000') {
+                errorHandler.register(Error.Kind.LEX_ERROR,
+                        sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                        "Unterminated Block Comment!");
                 return true;
-            }
-        } else if (secondChar == '*') {
-            char secondToLastChar = spellingStack.get(spellingStack.size() - 2);
-            if (secondToLastChar == '*' && lastChar == '/') {
+            } else if (secondToLastChar == '*' && lastChar == '/') {
                 skippedLastToken = '\0';
                 return true;
+            } else {
+                return false;
             }
         }
-        return false;
     }
 
+    /**
+     * Checks if the token spelling contains a complete math statement
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if a complete math statement
+     */
     private boolean isCompleteMath(Stack<Character> spellingStack) {
         char lastChar = spellingStack.peek();
         if (Character.isWhitespace(lastChar)) {
@@ -190,6 +322,12 @@ public class Scanner {
         }
     }
 
+    /**
+     * Checks if tokens starting with = are complete
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if the equals statement is complete
+     */
     private boolean isCompleteEquals(Stack<Character> spellingStack) {
         if (spellingStack.size() < 2) {
             return false;
@@ -205,6 +343,12 @@ public class Scanner {
         }
     }
 
+    /**
+     * Checks if Int has finished
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return true if the int has finished
+     */
     private boolean isCompleteInt(Stack<Character> spellingStack) {
         if (Character.isDigit(spellingStack.peek())) {
             return false;
@@ -218,36 +362,50 @@ public class Scanner {
      * checks if string contains valid characters
      * <p>
      * String constants start and end with double quotes.
-     * They may contain the following special symbols:
-     * \n (newline),
-     * \t (tab),
-     * \" (double quote),
-     * \\ (backslash), and
-     * \f (form feed).
-     * A string constant cannot exceed 5000 characters and cannot span multiple lines.
      *
      * @param spellingStack the stack containing the characters
      * @return returns true if the stack contains a complete string
      */
     private boolean isCompleteString(Stack<Character> spellingStack) {
-        // todo: if EOF is the last char then this is an terminated string
-        // todo: check for illegal characters
         int stackSize = spellingStack.size();
-        if (stackSize > 1 && stackSize <= 5000) {
-            if (spellingStack.peek() == '"' && spellingStack.get(stackSize - 2) != '\\') {
+        if (stackSize > 1) {
+            // check if string is closed
+            if (spellingStack.peek() == '"' && !charIsEscaped) {
+                if (sourceFile.getCurrentLineNumber() != stringStart) {
+                    errorHandler.register(Error.Kind.LEX_ERROR,
+                            sourceFile.getFilename(),
+                            sourceFile.getCurrentLineNumber(),
+                            "Multiline String found! Starting @ line: "
+                                    + stringStart);
+                }
                 skippedLastToken = '\0';
                 return true;
-            } else {
+            }
+            //check if EOF triggers untermintated string
+            if (spellingStack.peek() == '\u0000'){
+                errorHandler.register(Error.Kind.LEX_ERROR,
+                                sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                                "Unterminated String Constant!");
+                return true;
+            }
+            // logic for handling escape sequences
+            if (spellingStack.peek() == '\\'){
+                charIsEscaped = true;
                 return false;
             }
-        } else if (stackSize > 5000) {
-            // todo: don't prematurely end. check string size once returning.
-            //raise error;
-            skippedLastToken = '\0';
-            return true; // todo figure out if this should be true or false
-        } else {
-            return false;
-        }
+            if (charIsEscaped && !validEscapedCharacter.contains(spellingStack.peek())){
+                errorHandler.register(Error.Kind.LEX_ERROR,
+                                sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                                "Invalid Escaped Character \\" 
+                                + spellingStack.peek() + "!");
+                charIsEscaped = false;
+                return false;
+            } else{
+                charIsEscaped = false;
+                return false;
+            }
+        }// else
+        return false;
     }
 
     /**
@@ -259,9 +417,11 @@ public class Scanner {
     private boolean isCompleteIdentifier(Stack<Character> spellingStack) {
         if (spellingStack.size() == 1) {
             return false;
-        } else if (Character.isAlphabetic(spellingStack.peek()) ||
-                Character.isDigit(spellingStack.peek()) ||
-                spellingStack.peek() == '_') {
+        }
+        Character lastChar = spellingStack.peek();
+        if (Character.isAlphabetic(lastChar) ||
+                Character.isDigit(lastChar) ||
+                lastChar == '_') {
             return false;
         } else {
             skippedLastToken = spellingStack.pop();
@@ -269,77 +429,161 @@ public class Scanner {
         }
     }
 
-    private Token createToken(Stack<Character> spellingStack) {
-        Kind tokenKind = getTokenKind(spellingStack);
-        return new Token(tokenKind, makeStackString(spellingStack, false), sourceFile.getCurrentLineNumber());
+    /**
+     * Creates a token of the right kind
+     *
+     * @param spellingStack a stack of characters for the token spelling
+     * @return The new token
+     */
+    private Token createToken(Stack<Character> spellingStack, int numStartErrors) {
+        Kind tokenKind;
+        if (errorHandler.getErrorList().size() > numStartErrors) {
+            tokenKind = Kind.ERROR;
+        } else {
+            tokenKind = getTokenKind(spellingStack);
+        }
+        return new Token(tokenKind, makeStackString(spellingStack, false),
+                sourceFile.getCurrentLineNumber());
     }
 
+    /**
+     * Finds the token type based on the token spelling
+     * 
+     * @param spellingStack a stack of characters for the token spelling
+     * @return the correct token kind
+     */
     private Kind getTokenKind(Stack<Character> spellingStack) {
         char leadingChar = spellingStack.firstElement();
         if (validSolo.contains(leadingChar)) {
-            switch (leadingChar) {
-                case '(':
-                    return Kind.LPAREN;
-                case ')':
-                    return Kind.RPAREN;
-                case '{':
-                    return Kind.LCURLY;
-                case '}':
-                    return Kind.RCURLY;
-                case ';':
-                    return Kind.SEMICOLON;
-                case '!': // todo: should this be here or do we need a new method?
-                    return Kind.UNARYNOT;
-                case '.':
-                    return Kind.DOT;
-                case ':':
-                    return Kind.COLON;
-                case ',':
-                    return Kind.COMMA;
-                default:
-                    return null;
-            }
+            return getSoloTokenKind(leadingChar);
         } else if (isEOF(spellingStack)) {
             return Kind.EOF;
         } else if (leadingChar == '/' && spellingStack.size() != 1) {
             return Kind.COMMENT;
         } else if (leadingMathChars.contains(leadingChar)) {
-            String tokenString = makeStackString(spellingStack, true);
-            switch (tokenString) {
-                case "+":
-                case "-":
-                    return Kind.PLUSMINUS;
-                case "*":
-                case "/":
-                    return Kind.MULDIV;
-                case "%":
-                case ">":
-                case "<":
-                case "&&":
-                case ">=":
-                case "<=":
-                case "||":
-                    return Kind.BINARYLOGIC; //todo fix modulus
-                case "++":
-                    return Kind.UNARYINCR;
-                case "--":
-                    return Kind.UNARYDECR;
-                default:
-                    return null;
-            }
+            return getMathTokenKind(spellingStack);
         } else if (leadingChar == '=' && spellingStack.size() == 1) {
             return Kind.ASSIGN;
         } else if (leadingChar == '=') {
             return Kind.COMPARE;
-        } else if (Character.isDigit(leadingChar)) { // todo: check that int is small enough
-            return Kind.INTCONST;
+        } else if (Character.isDigit(leadingChar)) {
+            return getIntTokenKind(spellingStack);
         } else if (leadingChar == '"') {
-            return Kind.STRCONST;
+            return getStringTokenKind(spellingStack);
         } else {
-            return Kind.IDENTIFIER; // todo: assumes same as check token with respect to else clause.
+            return Kind.IDENTIFIER;
         }
     }
 
+    /**
+     * Ensures that the string is less than 5000 characters. Returns STRCONST if under 5k
+     * and ERROR if over. Has the side effect of registering the error with the handler.
+     *
+     * @param spellingStack the stack of characters representing the token
+     * @return the kind of token this string is
+     */
+    private Kind getStringTokenKind(Stack<Character> spellingStack) {
+        if (spellingStack.size() <= 5000) {
+            return Kind.STRCONST;
+        } else {
+            errorHandler.register(Error.Kind.LEX_ERROR,
+                    sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                    "String Exceeds 5000 Characters!");
+            return Kind.ERROR;
+        }
+    }
+
+    /**
+     * Ensures that the int is less than or equal to Integer.MAX_VALUE. Returns INTCONST
+     * if so and ERROR if not. Has the side effect of registering the error with the
+     * handler
+     *
+     * @param spellingStack the stack of characters representing the token
+     * @return the kind of token this int is
+     */
+    private Kind getIntTokenKind(Stack<Character> spellingStack) {
+        long currentNumber = Long.parseLong(makeStackString(spellingStack, true));
+        if (currentNumber <= Integer.MAX_VALUE) {
+            return Kind.INTCONST;
+        } else {
+            errorHandler.register(Error.Kind.LEX_ERROR,
+                    sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                    "Integer Constant too large!");
+            return Kind.ERROR;
+        }
+    }
+
+    /**
+     * helper method for finding token kind for
+     * "solo" tokens
+     *
+     * @param spelling the token spelling
+     * @return the correct token kind
+     */
+    private Kind getSoloTokenKind(Character spelling) {
+        switch (spelling) {
+            case '(':
+                return Kind.LPAREN;
+            case ')':
+                return Kind.RPAREN;
+            case '{':
+                return Kind.LCURLY;
+            case '}':
+                return Kind.RCURLY;
+            case ';':
+                return Kind.SEMICOLON;
+            case '!':
+                return Kind.UNARYNOT;
+            case '.':
+                return Kind.DOT;
+            case ':':
+                return Kind.COLON;
+            case ',':
+                return Kind.COMMA;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * helper method to find the token kind of math tokens
+     *
+     * @param spellingStack the stack containing the characters in the token
+     * @return the correct token kind
+     */
+    private Kind getMathTokenKind(Stack<Character> spellingStack) {
+        String tokenString = makeStackString(spellingStack, true);
+        switch (tokenString) {
+            case "+":
+            case "-":
+                return Kind.PLUSMINUS;
+            case "*":
+            case "/":
+                return Kind.MULDIV;
+            case "%":
+            case ">":
+            case "<":
+            case "&&":
+            case ">=":
+            case "<=":
+            case "||":
+                return Kind.BINARYLOGIC;
+            case "++":
+                return Kind.UNARYINCR;
+            case "--":
+                return Kind.UNARYDECR;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Converts the spelling stack to a string
+     * 
+     * @param spellingStack the token spelling stack
+     * @param copyStack wether or not to empty the stack
+     * @return a string of the spelling stack
+     */
     private String makeStackString(Stack<Character> spellingStack, boolean copyStack) {
         if (copyStack) {
             Stack<Character> spellingStackCopy = (Stack<Character>) spellingStack.clone();
@@ -349,12 +593,17 @@ public class Scanner {
         }
     }
 
+    /**
+     * Converts a stack to a string and empties stack
+     * 
+     * @param spellingStack the spelling stack to be converted/ emptied
+     * @return The spelling stack as a string
+     */
     private String emptyStackToString(Stack<Character> spellingStack) {
         char[] charArray = new char[spellingStack.size()];
         for (int i = spellingStack.size() - 1; i >= 0; i--) {
             charArray[i] = spellingStack.pop();
         }
-
         return new String(charArray);
     }
 }

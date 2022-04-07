@@ -3,9 +3,10 @@ import proj7BittingCerratoCohenEllmer.bantam.lexer.Scanner;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
-
-public class Main {
-        /**
+import proj7BittingCerratoCohenEllmer.bantam.util.Error;
+//TODO : should this be renamed to "ScannerTest" ?
+public class Main { 
+    /**
      * Test function for scanner code
      * Called when scanner.java is run on command line
      *
@@ -39,6 +40,9 @@ public class Main {
                         System.out.println(
                             "*** " + filename + " had " 
                                 + errorCount + " errors! ***");
+                        for (Error error : bantamErrorHandler.getErrorList()) {
+                            System.out.println(error);
+                        }
                     }else{
                         System.out.println(
                             "*** Scanning file " + filename 
