@@ -1,8 +1,8 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
-import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 import proj7BittingCerratoCohenEllmer.bantam.util.Error;
+import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -22,11 +22,6 @@ public class Scanner {
      * collector of all errors that occur
      */
     private final ErrorHandler errorHandler;
-
-    /**
-     * flag to identify if error occured
-     */
-    private boolean currentTokenError;
 
     /**
      * holds Tokens that delimit
@@ -120,11 +115,10 @@ public class Scanner {
      */
     public Token scan() {
         stringStart = -1;
+        int startNumErrors = errorHandler.getErrorList().size();
         Stack<Character> spellingStack = new Stack<>();
-        currentTokenError = false;
         handleLeftOverCharacters(spellingStack);
         while (!isCompleteToken(spellingStack)) {
-            
             try {
                 char letter = sourceFile.getNextChar();
                 if(letter == '"' && stringStart < 0){
@@ -141,7 +135,7 @@ public class Scanner {
                 e.printStackTrace(); // TODO: make this elegant
             }
         }
-        return createToken(spellingStack);
+        return createToken(spellingStack, startNumErrors);
     }
 
     /**
@@ -274,27 +268,24 @@ public class Scanner {
      */
     private boolean isCompleteComment(Stack<Character> spellingStack) {
         char secondChar = spellingStack.get(1);
+        char secondToLastChar = spellingStack.get(spellingStack.size() - 2);
         char lastChar = spellingStack.peek();
-        if (secondChar == '/') {
-            if (lastChar == '\n' || lastChar == '\r') {
-                skippedLastToken = spellingStack.pop();
-                return true;
-            }
-        } else if (secondChar == '*') {
-            char secondToLastChar = spellingStack.get(spellingStack.size() - 2);
-            if (lastChar == '\u0000'){
-                currentTokenError = true;
+        if (secondChar == '/' && (lastChar == '\n' || lastChar == '\r')) {
+            skippedLastToken = spellingStack.pop();
+            return true;
+        } else {
+            if (lastChar == '\u0000') {
                 errorHandler.register(Error.Kind.LEX_ERROR,
-                                sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
-                                "Unterminated Block Comment!");
+                        sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                        "Unterminated Block Comment!");
                 return true;
-            }
-            if (secondToLastChar == '*' && lastChar == '/') {
+            } else if (secondToLastChar == '*' && lastChar == '/') {
                 skippedLastToken = '\0';
                 return true;
+            } else {
+                return false;
             }
         }
-        return false;
     }
 
     /**
@@ -374,20 +365,18 @@ public class Scanner {
         if (stackSize > 1) {
             // check if string is closed
             if (spellingStack.peek() == '"' && !charIsEscaped) {
-                if( sourceFile.getCurrentLineNumber() != stringStart) {
-                    currentTokenError = true;
+                if (sourceFile.getCurrentLineNumber() != stringStart) {
                     errorHandler.register(Error.Kind.LEX_ERROR,
-                                sourceFile.getFilename(), 
-                                sourceFile.getCurrentLineNumber(),
-                                "Multiline String found! Starting @ line: "
-                                 + stringStart);
+                            sourceFile.getFilename(),
+                            sourceFile.getCurrentLineNumber(),
+                            "Multiline String found! Starting @ line: "
+                                    + stringStart);
                 }
                 skippedLastToken = '\0';
                 return true;
             }
             //check if EOF triggers untermintated string
             if (spellingStack.peek() == '\u0000'){
-                currentTokenError = true;
                 errorHandler.register(Error.Kind.LEX_ERROR,
                                 sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
                                 "Unterminated String Constant!");
@@ -436,13 +425,19 @@ public class Scanner {
 
     /**
      * Creates a token of the right kind
-     * 
+     *
      * @param spellingStack a stack of characters for the token spelling
      * @return The new token
      */
-    private Token createToken(Stack<Character> spellingStack) {
-        Kind tokenKind = getTokenKind(spellingStack);
-        return new Token(tokenKind, makeStackString(spellingStack, false), sourceFile.getCurrentLineNumber());
+    private Token createToken(Stack<Character> spellingStack, int numStartErrors) {
+        Kind tokenKind;
+        if (errorHandler.getErrorList().size() > numStartErrors) {
+            tokenKind = Kind.ERROR;
+        } else {
+            tokenKind = getTokenKind(spellingStack);
+        }
+        return new Token(tokenKind, makeStackString(spellingStack, false),
+                sourceFile.getCurrentLineNumber());
     }
 
     /**
@@ -453,52 +448,58 @@ public class Scanner {
      */
     private Kind getTokenKind(Stack<Character> spellingStack) {
         char leadingChar = spellingStack.firstElement();
-        if(!currentTokenError){
-            if (validSolo.contains(leadingChar)) {
-                return getSoloTokenKind(leadingChar);
-            } else if (isEOF(spellingStack)) {
-                return Kind.EOF;
-            } else if (leadingChar == '/' && spellingStack.size() != 1) {
-                return Kind.COMMENT;
-            } else if (leadingMathChars.contains(leadingChar)) {
-                String tokenString = makeStackString(spellingStack, true);
-                return getMathTokenKind(tokenString);
-            } else if (leadingChar == '=' && spellingStack.size() == 1) {
-                return Kind.ASSIGN;
-            } else if (leadingChar == '=') {
-                return Kind.COMPARE;
-            } else if (Character.isDigit(leadingChar)) {
-                if (isValidIntegerSize(spellingStack)){
-                    return Kind.INTCONST;
-                }
-                currentTokenError = true;
-                errorHandler.register(Error.Kind.LEX_ERROR,
-                            sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
-                            "Integer Constant too large!");
-            } else if (leadingChar == '"') {
-                if (isValidStringLength(spellingStack)){
-                    return Kind.STRCONST;
-                }
-                currentTokenError = true;
-                errorHandler.register(Error.Kind.LEX_ERROR,
-                            sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
-                            "String Exceeds 5000 Characters!");
-                
-            }else if (Character.isAlphabetic(leadingChar)){
-                return Kind.IDENTIFIER;
-            }
+        if (validSolo.contains(leadingChar)) {
+            return getSoloTokenKind(leadingChar);
+        } else if (isEOF(spellingStack)) {
+            return Kind.EOF;
+        } else if (leadingChar == '/' && spellingStack.size() != 1) {
+            return Kind.COMMENT;
+        } else if (leadingMathChars.contains(leadingChar)) {
+            return getMathTokenKind(spellingStack);
+        } else if (leadingChar == '=' && spellingStack.size() == 1) {
+            return Kind.ASSIGN;
+        } else if (leadingChar == '=') {
+            return Kind.COMPARE;
+        } else if (Character.isDigit(leadingChar)) {
+            return getIntTokenKind(spellingStack);
+        } else if (leadingChar == '"') {
+            return getStringTokenKind(spellingStack);
+        } else {
+            return Kind.IDENTIFIER;
         }
-        return Kind.ERROR;
+    }
+
+    private Kind getStringTokenKind(Stack<Character> spellingStack) {
+        if (spellingStack.size() <= 5000) {
+            return Kind.STRCONST;
+        } else {
+            errorHandler.register(Error.Kind.LEX_ERROR,
+                    sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                    "String Exceeds 5000 Characters!");
+            return Kind.ERROR;
+        }
+    }
+
+    private Kind getIntTokenKind(Stack<Character> spellingStack) {
+        long currentNumber = Long.parseLong(makeStackString(spellingStack, true));
+        if (currentNumber <= Integer.MAX_VALUE) {
+            return Kind.INTCONST;
+        } else {
+            errorHandler.register(Error.Kind.LEX_ERROR,
+                    sourceFile.getFilename(), sourceFile.getCurrentLineNumber(),
+                    "Integer Constant too large!");
+            return Kind.ERROR;
+        }
     }
 
     /**
-     * helper method for finding token kind for 
+     * helper method for finding token kind for
      * "solo" tokens
-     * 
+     *
      * @param spelling the token spelling
      * @return the correct token kind
      */
-    private Kind getSoloTokenKind(Character spelling){
+    private Kind getSoloTokenKind(Character spelling) {
         switch (spelling) {
             case '(':
                 return Kind.LPAREN;
@@ -525,11 +526,12 @@ public class Scanner {
 
     /**
      * helper method to find the token kind of math tokens
-     * 
-     * @param tokenString the token spelling
+     *
+     * @param spellingStack the stack containing the characters in the token
      * @return the correct token kind
      */
-    private Kind getMathTokenKind(String tokenString){
+    private Kind getMathTokenKind(Stack<Character> spellingStack) {
+        String tokenString = makeStackString(spellingStack, true);
         switch (tokenString) {
             case "+":
             case "-":
@@ -552,21 +554,6 @@ public class Scanner {
             default:
                 return null;
         }
-    }
-
-    /**
-     * Checks if int is too large
-     * 
-     * @param spellingStack the token spelling
-     * @return returns true if less than the max integer value
-     */
-    private boolean isValidIntegerSize(Stack<Character> spellingStack){
-        Long currentNumber = Long.parseLong(makeStackString(spellingStack, true));
-        return currentNumber <= Integer.MAX_VALUE;
-    }
-
-    private boolean isValidStringLength(Stack<Character> spellingStack){
-        return spellingStack.size() <= 5000;
     }
 
     /**
