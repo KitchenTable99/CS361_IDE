@@ -114,24 +114,24 @@ public class Scanner {
      * @return the Token containing the characters read
      */
     public Token scan() {
-        stringStart = -1;
-        int startNumErrors = errorHandler.getErrorList().size();
-        Stack<Character> spellingStack = new Stack<>();
-        handleLeftOverCharacters(spellingStack);
+        stringStart = -1; // will be used to sniff out multi-line comments
+        int startNumErrors = errorHandler.getErrorList().size(); // will be used to check if a token caused an error
+        Stack<Character> spellingStack = createSpellingStack();
+        //todo check for EOF already sent
+
         while (!isCompleteToken(spellingStack)) {
             try {
                 char letter = sourceFile.getNextChar();
-                if(letter == '"' && stringStart < 0){
+                if (letter == '"' && stringStart < 0) {
                     stringStart = sourceFile.getCurrentLineNumber();
                 }
                 if (!Character.isWhitespace(letter) || !spellingStack.empty()) {
-                    if(!addAllCharacters(spellingStack)){
+                    if (!addAllCharacters(spellingStack)) {
                         checkInvalidCharacters(letter);
                     }
                     spellingStack.push(letter);
                 }
             } catch (IOException e) {
-                // if there are no more character then check to see if the final token is invalid
                 e.printStackTrace(); // TODO: make this elegant
             }
         }
@@ -139,18 +139,24 @@ public class Scanner {
     }
 
     /**
-     * checks if the last Token contained parts of the next token
-     * 
-     * @param spellingStack spelling stack represents the spelling of token being created
+     * Creates a new stack to represent a scanned token. Has side effects:
+     * sets stringStart if a string starts and resets skippedLastToken.
+     *
+     * @return a stack of characters with the most recent skipped token added if it's not
+     * whitespace
      */
-    private void handleLeftOverCharacters(Stack<Character> spellingStack){
+    private Stack<Character> createSpellingStack() {
+        Stack<Character> spellingStack = new Stack<>();
         if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
-            if(skippedLastToken == '"'){
+            if (skippedLastToken == '"') {
                 stringStart = sourceFile.getCurrentLineNumber();
             }
+
             spellingStack.push(skippedLastToken);
+            skippedLastToken = '\0';
         }
-        skippedLastToken = '\0';
+
+        return spellingStack;
     }
 
     /**
@@ -469,6 +475,13 @@ public class Scanner {
         }
     }
 
+    /**
+     * Ensures that the string is less than 5000 characters. Returns STRCONST if under 5k
+     * and ERROR if over. Has the side effect of registering the error with the handler.
+     *
+     * @param spellingStack the stack of characters representing the token
+     * @return the kind of token this string is
+     */
     private Kind getStringTokenKind(Stack<Character> spellingStack) {
         if (spellingStack.size() <= 5000) {
             return Kind.STRCONST;
@@ -480,6 +493,14 @@ public class Scanner {
         }
     }
 
+    /**
+     * Ensures that the int is less than or equal to Integer.MAX_VALUE. Returns INTCONST
+     * if so and ERROR if not. Has the side effect of registering the error with the
+     * handler
+     *
+     * @param spellingStack the stack of characters representing the token
+     * @return the kind of token this int is
+     */
     private Kind getIntTokenKind(Stack<Character> spellingStack) {
         long currentNumber = Long.parseLong(makeStackString(spellingStack, true));
         if (currentNumber <= Integer.MAX_VALUE) {
