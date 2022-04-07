@@ -1,4 +1,5 @@
 package proj7BittingCerratoCohenEllmer.bantam;
+//TODO: change to ScannerTestFile?
 class HelloWorld {
     public static void main(String[] args) {
         System.out.println("Hello, World!"); 
