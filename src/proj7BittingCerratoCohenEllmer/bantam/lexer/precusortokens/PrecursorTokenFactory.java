@@ -33,6 +33,16 @@ public class PrecursorTokenFactory {
                 return new PrecursorIntegerToken(spellingStack, lineNum, filename);
             case '"':
                 return new PrecursorStringToken(spellingStack, lineNum, filename);
+            case '(':
+            case ')':
+            case '{':
+            case '}':
+            case ';':
+            case '!':
+            case '.':
+            case ':':
+            case ',':
+                return new PrecursorSingleCharToken(spellingStack, lineNum, filename);
             default:
                 return null;
         }
