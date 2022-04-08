@@ -110,22 +110,27 @@ public class Scanner {
         return finalToken;
     }
 
-    private char getNextNonWhitespaceChar() {
-        if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
+    private char getNextChar() {
+        if (skippedLastToken != '\0') {
             char nextChar = skippedLastToken;
             skippedLastToken = '\0';
             return nextChar;
         } else {
-            while (true) {
-                try {
-                    char fileChar = sourceFile.getNextChar();
-                    if (!Character.isWhitespace(fileChar)) {
-                        return fileChar;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                return sourceFile.getNextChar();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return '\0';
             }
+        }
+    }
+
+    private char getNextNonWhitespaceChar() {
+        char nextChar = getNextChar();
+        if (Character.isWhitespace(nextChar)) {
+            return getNextNonWhitespaceChar();
+        } else {
+            return nextChar;
         }
     }
 }
