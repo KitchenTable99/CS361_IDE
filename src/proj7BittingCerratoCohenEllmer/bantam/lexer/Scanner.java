@@ -1,6 +1,7 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
+import proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens.PrecursorTokenFactory;
 import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
@@ -114,6 +115,7 @@ public class Scanner {
      * @return the Token containing the characters read
      */
     public Token scan() {
+        PrecursorTokenFactory precursorFactory = new PrecursorTokenFactory();
         stringStart = -1; // will be used to sniff out multi-line comments
         int startNumErrors = errorHandler.getErrorList().size(); // will be used to check if a token caused an error
         Stack<Character> spellingStack = createSpellingStack();

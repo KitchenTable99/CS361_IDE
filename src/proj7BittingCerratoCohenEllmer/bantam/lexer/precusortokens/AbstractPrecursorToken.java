@@ -17,7 +17,7 @@ public abstract class AbstractPrecursorToken {
 
     public AbstractPrecursorToken(Stack<Character> sc, int n, String s) {
         spellingStack = sc;
-        lineNumber = n;
+        lineNumber = n; // todo: have starting line number and ending line number
         filename = s;
     }
 
