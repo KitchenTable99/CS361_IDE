@@ -8,12 +8,11 @@ public class PrecursorSingleCharToken extends AbstractPrecursorToken {
 
     public PrecursorSingleCharToken(Stack<Character> sc, int n, String s) {
         super(sc, n, s);
+        containsCompleteToken = true;
     }
 
     @Override
     public void pushChar(char c) {
-        spellingStack.push(c);
-        containsCompleteToken = true;
     }
 
     @Override

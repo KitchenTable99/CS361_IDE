@@ -33,7 +33,7 @@ public class PrecursorIntegerToken extends AbstractPrecursorToken {
         if (currentNumber <= Integer.MAX_VALUE) {
             tokenKind = Token.Kind.INTCONST;
         } else {
-            tokenError = new Error(Error.Kind.LEX_ERROR, filename, currentLineNumber, "Integer Constant too large!");
+            tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, currentLineNumber, "Integer Constant too large!"));
             tokenKind = Token.Kind.ERROR;
         }
 

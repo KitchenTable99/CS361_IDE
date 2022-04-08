@@ -3,6 +3,8 @@ package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
@@ -11,7 +13,7 @@ public abstract class AbstractPrecursorToken {
     protected final Stack<Character> spellingStack;
     protected boolean popLastBeforeCreation = false;
     protected boolean containsCompleteToken = false;
-    protected Error tokenError = null;
+    protected List<Error> tokenError = new ArrayList<>();
     protected int startingLineNumber;
     protected String filename;
 
@@ -39,14 +41,15 @@ public abstract class AbstractPrecursorToken {
      */
     public Optional<Character> getExtraChar() {
         if (popLastBeforeCreation) {
+            popLastBeforeCreation = false;
             return Optional.of(spellingStack.pop());
         } else {
             return Optional.empty();
         }
     }
 
-    public Optional<Error> getError() {
-        if (tokenError != null) {
+    public Optional<List<Error>> getErrors() {
+        if (tokenError.size() != 0) {
             return Optional.of(tokenError);
         } else {
             return Optional.empty();

@@ -35,11 +35,11 @@ public class PrecursorStringToken extends AbstractPrecursorToken {
             }
             //check if EOF triggers untermintated string
             if (spellingStack.peek() == '\u0000') {
-                tokenError = new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "Unterminated String Constant!");
+                tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "Unterminated String Constant!"));
                 containsCompleteToken = true;
             }
             if (charIsEscaped() && !validEscapedCharacter.contains(spellingStack.peek())) {
-                tokenError = new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "Invalid Escaped Character \\" + spellingStack.peek() + "!");
+                tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "Invalid Escaped Character \\" + spellingStack.peek() + "!"));
             }
         }
     }
@@ -51,14 +51,14 @@ public class PrecursorStringToken extends AbstractPrecursorToken {
     @Override
     public Token getFinalToken(int currentLineNumber) {
         if (startingLineNumber != currentLineNumber) {
-            tokenError = new Error(Error.Kind.LEX_ERROR, filename, currentLineNumber, "Multiline String found! Starting @ line: " + startingLineNumber);
+            tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, currentLineNumber, "Multiline String found! Starting @ line: " + startingLineNumber));
         }
         if (spellingStack.size() > 5000) {
-            tokenError = new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "String Exceeds 5000 Characters!");
+            tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "String Exceeds 5000 Characters!"));
         }
 
         Token.Kind tokenKind;
-        if (tokenError != null) {
+        if (tokenError.size() != 0) {
             tokenKind = Token.Kind.ERROR;
         } else {
             tokenKind = Token.Kind.STRCONST;
