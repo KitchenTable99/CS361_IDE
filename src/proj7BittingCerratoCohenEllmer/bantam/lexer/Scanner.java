@@ -89,6 +89,16 @@ public class Scanner {
         Optional<Character> extraChar = precursorToken.getExtraChar();
         extraChar.ifPresent(c -> skippedLastToken = c);
 
+        Token finalToken;
+        // create the token from the precursor token
+        try {
+            finalToken = precursorToken.getFinalToken(sourceFile.getCurrentLineNumber());
+        } catch (MalformedSpellingStackException e) {
+            // this will never happen because we call getExtraChar above
+            e.printStackTrace();
+            finalToken = null;
+        }
+
         // register any errors that occurred with the error handler
         Optional<List<Error>> errorList = precursorToken.getErrors();
         errorList.ifPresent(el -> {
@@ -97,17 +107,10 @@ public class Scanner {
             }
         });
 
-        // create the token from the precursor token
-        try {
-            return precursorToken.getFinalToken(sourceFile.getCurrentLineNumber());
-        } catch (MalformedSpellingStackException e) {
-            // this will never happen because we call getExtraChar above
-            e.printStackTrace();
-            return null;
-        }
+        return finalToken;
     }
 
-    private char getNextNonWhitespaceChar() { // todo change name
+    private char getNextNonWhitespaceChar() {
         if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
             char nextChar = skippedLastToken;
             skippedLastToken = '\0';
