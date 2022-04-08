@@ -45,7 +45,7 @@ public class PrecursorTokenFactory {
             case '\u0000':
                 return new PrecursorSingleCharToken(spellingStack, lineNum, filename);
             default:
-                return null;
+                return new PrecursorIdentifierToken(spellingStack, lineNum, filename);
         }
     }
 }
