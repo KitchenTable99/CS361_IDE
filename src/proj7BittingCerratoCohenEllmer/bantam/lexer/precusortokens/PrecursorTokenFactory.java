@@ -31,6 +31,8 @@ public class PrecursorTokenFactory {
             case '8':
             case '9':
                 return new PrecursorIntegerToken(spellingStack, lineNum, filename);
+            case '"':
+                return new PrecursorStringToken(spellingStack, lineNum, filename);
             default:
                 return null;
         }

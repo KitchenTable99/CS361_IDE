@@ -6,7 +6,7 @@ import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 import java.util.HashSet;
 import java.util.Stack;
 
-public class PrecursorStringFactory extends AbstractPrecursorToken {
+public class PrecursorStringToken extends AbstractPrecursorToken {
 
     /**
      * Holds legal escaped characters in strings
@@ -19,7 +19,7 @@ public class PrecursorStringFactory extends AbstractPrecursorToken {
         add('f');
     }};
 
-    public PrecursorStringFactory(Stack<Character> sc, int n, String s) {
+    public PrecursorStringToken(Stack<Character> sc, int n, String s) {
         super(sc, n, s);
     }
 
