@@ -71,13 +71,17 @@ public class Scanner {
 
         AbstractPrecursorToken precursorToken = null;
         do {
-            char nextChar = getNextNonWhitespaceChar();
 
             // create a new precursor token or push the char to the existing one
             if (precursorToken == null) {
+                char nextChar = getNextNonWhitespaceChar();
                 precursorToken = precursorTokenFactory.createPrecursorToken(nextChar, sourceFile.getCurrentLineNumber(), sourceFile.getFilename());
             } else {
-                precursorToken.pushChar(nextChar);
+                try {
+                    precursorToken.pushChar(sourceFile.getNextChar());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         } while (!precursorToken.isComplete());
 
@@ -103,8 +107,8 @@ public class Scanner {
         }
     }
 
-    private char getNextNonWhitespaceChar() {
-        if (skippedLastToken != '\0') {
+    private char getNextNonWhitespaceChar() { // todo change name
+        if (skippedLastToken != '\0' && !Character.isWhitespace(skippedLastToken)) {
             char nextChar = skippedLastToken;
             skippedLastToken = '\0';
             return nextChar;

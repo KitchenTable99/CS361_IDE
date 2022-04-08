@@ -45,7 +45,7 @@ public class PrecursorStringToken extends AbstractPrecursorToken {
     }
 
     private boolean charIsEscaped() {
-        return spellingStack.get(spellingStack.size() - 1) == '\\';
+        return spellingStack.get(spellingStack.size() - 2) == '\\';
     }
 
     @Override
