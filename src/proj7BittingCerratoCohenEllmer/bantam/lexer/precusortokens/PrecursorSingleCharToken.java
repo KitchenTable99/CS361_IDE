@@ -42,6 +42,8 @@ public class PrecursorSingleCharToken extends AbstractPrecursorToken {
                 return Token.Kind.COLON;
             case ',':
                 return Token.Kind.COMMA;
+            case '\u0000':
+                return Token.Kind.EOF;
             default:
                 return null;
         }

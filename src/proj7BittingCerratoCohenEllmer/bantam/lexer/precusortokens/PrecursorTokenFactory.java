@@ -42,6 +42,7 @@ public class PrecursorTokenFactory {
             case '.':
             case ':':
             case ',':
+            case '\u0000':
                 return new PrecursorSingleCharToken(spellingStack, lineNum, filename);
             default:
                 return null;
