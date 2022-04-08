@@ -47,7 +47,7 @@ public class PrecursorSlashToken extends AbstractPrecursorToken {
             containsCompleteToken = true;
         } else {
             if (lastChar == '\u0000') {
-                tokenError = new Error(Error.Kind.LEX_ERROR, filename, lineNumber, "Unterminated Block Comment!");
+                tokenError = new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "Unterminated Block Comment!");
                 containsCompleteToken = true;
             } else if (secondToLastChar == '*' && lastChar == '/') {
                 containsCompleteToken = true;
@@ -56,7 +56,7 @@ public class PrecursorSlashToken extends AbstractPrecursorToken {
     }
 
     @Override
-    public Token getFinalToken() throws MalformedSpellingStackException {
+    public Token getFinalToken(int currentLineNumber) throws MalformedSpellingStackException {
         if (popLastBeforeCreation) {
             throw new MalformedSpellingStackException("You need to pop the stack first");
         }
@@ -70,7 +70,7 @@ public class PrecursorSlashToken extends AbstractPrecursorToken {
             tokenKind = Token.Kind.ERROR;
         }
 
-        return new Token(tokenKind, makeStackString(false), lineNumber);
+        return new Token(tokenKind, makeStackString(false), currentLineNumber);
 
     }
 }

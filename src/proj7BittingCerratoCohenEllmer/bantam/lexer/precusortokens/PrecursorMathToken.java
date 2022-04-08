@@ -28,12 +28,12 @@ public class PrecursorMathToken extends AbstractPrecursorToken {
     }
 
     @Override
-    public Token getFinalToken() throws MalformedSpellingStackException {
+    public Token getFinalToken(int currentLineNumber) throws MalformedSpellingStackException {
         if (popLastBeforeCreation) {
             throw new MalformedSpellingStackException("You need to pop the stack first");
         }
 
-        return new Token(getTokenKind(), makeStackString(false), lineNumber);
+        return new Token(getTokenKind(), makeStackString(false), currentLineNumber);
     }
 
     private Token.Kind getTokenKind() {

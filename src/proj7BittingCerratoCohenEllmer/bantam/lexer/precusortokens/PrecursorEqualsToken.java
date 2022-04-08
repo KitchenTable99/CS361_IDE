@@ -25,7 +25,7 @@ public class PrecursorEqualsToken extends AbstractPrecursorToken {
     }
 
     @Override
-    public Token getFinalToken() throws MalformedSpellingStackException {
+    public Token getFinalToken(int currentLineNumber) throws MalformedSpellingStackException {
         if (popLastBeforeCreation) {
             throw new MalformedSpellingStackException("You need to pop the stack first");
         }
@@ -36,6 +36,6 @@ public class PrecursorEqualsToken extends AbstractPrecursorToken {
             tokenKind = Token.Kind.COMPARE;
         }
 
-        return new Token(tokenKind, makeStackString(false), lineNumber);
+        return new Token(tokenKind, makeStackString(false), currentLineNumber);
     }
 }

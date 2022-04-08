@@ -12,12 +12,12 @@ public abstract class AbstractPrecursorToken {
     protected boolean popLastBeforeCreation = false;
     protected boolean containsCompleteToken = false;
     protected Error tokenError = null;
-    protected int lineNumber;
+    protected int startingLineNumber;
     protected String filename;
 
     public AbstractPrecursorToken(Stack<Character> sc, int n, String s) {
         spellingStack = sc;
-        lineNumber = n; // todo: have starting line number and ending line number
+        startingLineNumber = n; // todo: have starting line number and ending line number
         filename = s;
     }
 
@@ -97,8 +97,9 @@ public abstract class AbstractPrecursorToken {
      * if the flag for popLastBeforeCreation has been handled and raise a
      * MalformedSpellingStackException if it has not.
      *
+     * @param currentLineNumber the current line number. Used to identify multiline strings.
      * @return Token with all the relevant information
      */
-    public abstract Token getFinalToken() throws MalformedSpellingStackException;
+    public abstract Token getFinalToken(int currentLineNumber) throws MalformedSpellingStackException;
 
 }

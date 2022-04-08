@@ -22,7 +22,7 @@ public class PrecursorIntegerToken extends AbstractPrecursorToken {
     }
 
     @Override
-    public Token getFinalToken() throws MalformedSpellingStackException {
+    public Token getFinalToken(int currentLineNumber) throws MalformedSpellingStackException {
         if (popLastBeforeCreation) {
             throw new MalformedSpellingStackException("You need to pop the stack first");
         }
@@ -33,10 +33,10 @@ public class PrecursorIntegerToken extends AbstractPrecursorToken {
         if (currentNumber <= Integer.MAX_VALUE) {
             tokenKind = Token.Kind.INTCONST;
         } else {
-            tokenError = new Error(Error.Kind.LEX_ERROR, filename, lineNumber, "Integer Constant too large!");
+            tokenError = new Error(Error.Kind.LEX_ERROR, filename, currentLineNumber, "Integer Constant too large!");
             tokenKind = Token.Kind.ERROR;
         }
 
-        return new Token(tokenKind, makeStackString(false), lineNumber);
+        return new Token(tokenKind, makeStackString(false), currentLineNumber);
     }
 }
