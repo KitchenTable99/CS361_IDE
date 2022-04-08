@@ -74,14 +74,9 @@ public class Scanner {
 
             // create a new precursor token or push the char to the existing one
             if (precursorToken == null) {
-                char nextChar = getNextNonWhitespaceChar();
-                precursorToken = precursorTokenFactory.createPrecursorToken(nextChar, sourceFile.getCurrentLineNumber(), sourceFile.getFilename());
+                precursorToken = precursorTokenFactory.createPrecursorToken(getNextNonWhitespaceChar(), sourceFile.getCurrentLineNumber(), sourceFile.getFilename());
             } else {
-                try {
-                    precursorToken.pushChar(sourceFile.getNextChar());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                precursorToken.pushChar(getNextChar());
             }
         } while (!precursorToken.isComplete());
 
