@@ -12,7 +12,8 @@ import java.util.Stack;
  */
 public class PrecursorTokenFactory {
 
-    public AbstractPrecursorToken createPrecursorToken(char initialChar, int lineNum, String filename) {
+    public AbstractPrecursorToken createPrecursorToken(char initialChar,
+                                                       int lineNum, String filename) {
         Stack<Character> spellingStack = new Stack<>();
         spellingStack.push(initialChar);
 

@@ -44,12 +44,18 @@ public class PrecursorStringToken extends AbstractPrecursorToken {
             }
             // check if EOF to find unterminated string
             if (c == '\u0000') {
-                tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "Unterminated String Constant!"));
+                tokenError.add(new Error(Error.Kind.LEX_ERROR,
+                        filename,
+                        startingLineNumber,
+                        "Unterminated String Constant!"));
                 containsCompleteToken = true;
             }
             // make sure the escaped character is valid
             if (charIsEscaped() && !validEscapedCharacter.contains(c)) {
-                tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "Invalid Escaped Character \\" + spellingStack.peek() + "!"));
+                tokenError.add(new Error(Error.Kind.LEX_ERROR,
+                        filename,
+                        startingLineNumber,
+                        "Invalid Escaped Character \\" + spellingStack.peek() + "!"));
             }
         }
     }
@@ -67,10 +73,16 @@ public class PrecursorStringToken extends AbstractPrecursorToken {
     @Override
     public Token getFinalToken(int currentLineNumber) {
         if (startingLineNumber != currentLineNumber) {
-            tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, currentLineNumber, "Multiline String found! Starting @ line: " + startingLineNumber));
+            tokenError.add(new Error(Error.Kind.LEX_ERROR,
+                    filename,
+                    currentLineNumber,
+                    "Multiline String found! Starting @ line: " + startingLineNumber));
         }
         if (spellingStack.size() > 5000) {
-            tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "String Exceeds 5000 Characters!"));
+            tokenError.add(new Error(Error.Kind.LEX_ERROR,
+                    filename,
+                    startingLineNumber,
+                    "String Exceeds 5000 Characters!"));
         }
 
         Token.Kind tokenKind;

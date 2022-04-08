@@ -32,7 +32,8 @@ public class PrecursorIdentifierToken extends AbstractPrecursorToken {
     }
 
     @Override
-    public Token getFinalToken(int currentLineNumber) throws MalformedSpellingStackException {
+    public Token getFinalToken(int currentLineNumber)
+            throws MalformedSpellingStackException {
         if (popLastBeforeCreation) {
             throw new MalformedSpellingStackException("You need to pop the stack first");
         }

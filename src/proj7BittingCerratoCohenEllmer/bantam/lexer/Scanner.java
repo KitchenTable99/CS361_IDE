@@ -33,7 +33,7 @@ public class Scanner {
     /**
      * factory to generate all the precursor tokens based on the first token
      */
-    private final PrecursorTokenFactory precursorTokenFactory = new PrecursorTokenFactory();
+    private final PrecursorTokenFactory preTokenFactory = new PrecursorTokenFactory();
 
     /**
      * creates a new scanner for the given file
@@ -73,18 +73,21 @@ public class Scanner {
         do {
             // create a new precursor token or push the char to the existing one
             if (precursorToken == null) {
-                precursorToken = precursorTokenFactory.createPrecursorToken(getNextChar(true), sourceFile.getCurrentLineNumber(), sourceFile.getFilename());
+                precursorToken = preTokenFactory.createPrecursorToken(
+                        getNextChar(true),
+                        sourceFile.getCurrentLineNumber(),
+                        sourceFile.getFilename());
             } else {
                 precursorToken.pushChar(getNextChar(false));
             }
         } while (!precursorToken.isComplete());
 
-        // if the precursor token needs to get rid of the last char, store it in skippedLastToken
+        // store last char in skippedLastToken if needed
         Optional<Character> extraChar = precursorToken.getExtraChar();
         extraChar.ifPresent(c -> skippedLastToken = c);
 
         // create the token from the precursor token
-        // we must do this before extracting the errors because some errors occur when the token is created
+        // create token before extracting errors as some errors occur during creation
         Token finalToken;
         try {
             finalToken = precursorToken.getFinalToken(sourceFile.getCurrentLineNumber());

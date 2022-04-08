@@ -139,6 +139,7 @@ public abstract class AbstractPrecursorToken {
      * @param currentLineNumber the current line number. Used to identify multiline strings.
      * @return Token with all the relevant information
      */
-    public abstract Token getFinalToken(int currentLineNumber) throws MalformedSpellingStackException;
+    public abstract Token getFinalToken(int currentLineNumber)
+            throws MalformedSpellingStackException;
 
 }
