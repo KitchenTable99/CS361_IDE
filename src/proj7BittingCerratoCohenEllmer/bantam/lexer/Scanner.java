@@ -74,9 +74,9 @@ public class Scanner {
 
             // create a new precursor token or push the char to the existing one
             if (precursorToken == null) {
-                precursorToken = precursorTokenFactory.createPrecursorToken(getNextNonWhitespaceChar(), sourceFile.getCurrentLineNumber(), sourceFile.getFilename());
+                precursorToken = precursorTokenFactory.createPrecursorToken(getNextChar(true), sourceFile.getCurrentLineNumber(), sourceFile.getFilename());
             } else {
-                precursorToken.pushChar(getNextChar());
+                precursorToken.pushChar(getNextChar(false));
             }
         } while (!precursorToken.isComplete());
 
@@ -105,27 +105,27 @@ public class Scanner {
         return finalToken;
     }
 
-    private char getNextChar() {
+    private char getNextChar(boolean ignoreWhitespace) {
+        // get the next character no matter what it is
+        char nextChar;
         if (skippedLastToken != '\0') {
-            char nextChar = skippedLastToken;
-            skippedLastToken = '\0';
-            return nextChar;
+            nextChar = skippedLastToken;
+            skippedLastToken = '\0';  // reset skippedLastToken
         } else {
             try {
-                return sourceFile.getNextChar();
+                nextChar = sourceFile.getNextChar();
             } catch (IOException e) {
                 e.printStackTrace();
-                return '\0';
+                nextChar = '\0';
             }
+        }
+
+        // get the next character if we didn't want this whitespace character
+        if (ignoreWhitespace && Character.isWhitespace(nextChar)) {
+            return getNextChar(true);
+        } else {
+            return nextChar;
         }
     }
 
-    private char getNextNonWhitespaceChar() {
-        char nextChar = getNextChar();
-        if (Character.isWhitespace(nextChar)) {
-            return getNextNonWhitespaceChar();
-        } else {
-            return nextChar;
-        }
-    }
 }
