@@ -49,11 +49,7 @@ public class PrecursorStringToken extends AbstractPrecursorToken {
     }
 
     @Override
-    public Token getFinalToken(int currentLineNumber) throws MalformedSpellingStackException {
-        if (popLastBeforeCreation) {
-            throw new MalformedSpellingStackException("You need to pop the stack first");
-        }
-
+    public Token getFinalToken(int currentLineNumber) {
         if (startingLineNumber != currentLineNumber) {
             tokenError = new Error(Error.Kind.LEX_ERROR, filename, currentLineNumber, "Multiline String found! Starting @ line: " + startingLineNumber);
         }
