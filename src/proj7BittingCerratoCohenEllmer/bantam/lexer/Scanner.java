@@ -3,6 +3,7 @@ package proj7BittingCerratoCohenEllmer.bantam.lexer;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens.AbstractPrecursorToken;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens.MalformedSpellingStackException;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens.PrecursorTokenFactory;
+import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
@@ -139,6 +140,54 @@ public class Scanner {
         } else {
             return nextChar;
         }
+    }
+
+    public static void main(String[] args) {
+        // files specified on cmd line
+        if (args.length > 0) {
+            Scanner bantamScanner;
+            ErrorHandler bantamErrorHandler;
+            Token currentToken;
+            // scan each file
+            for (String filename : args) {
+                System.out.println(filename);
+
+                //file may not be opened -> CompilationException
+                try {
+                    // initialize scanner for each file
+                    bantamErrorHandler = new ErrorHandler();
+                    bantamScanner = new Scanner(filename, bantamErrorHandler);
+
+                    // move through file tokens until "End Of File" reached
+                    do {
+                        currentToken = bantamScanner.scan();
+                        System.out.println(currentToken.toString());
+                    } while (currentToken.kind != Token.Kind.EOF);
+
+                    // Check Scanner's Error Handler
+                    if (bantamErrorHandler.errorsFound()) {
+                        int errorCount = bantamErrorHandler.getErrorList().size();
+                        System.out.println(
+                                "*** " + filename + " had "
+                                        + errorCount + " errors! ***");
+                        for (Error error : bantamErrorHandler.getErrorList()) {
+                            System.out.println(error);
+                        }
+                    } else {
+                        System.out.println(
+                                "*** Scanning file " + filename
+                                        + " was Successfull! ***");
+
+                    }
+                } catch (CompilationException e) {
+                    System.out.println(e);
+                }
+            }
+        } else {
+            System.out.println("Please provide a file in the Command Line arguments!");
+        }
+
+
     }
 
 }
