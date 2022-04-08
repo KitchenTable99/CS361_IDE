@@ -1,9 +1,18 @@
+/*
+ * File: PrecursorSingleCharToken.java
+ * Author: cbitting
+ * Date: 4/8/2021
+ */
 package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
 
 import java.util.Stack;
 
+/**
+ * If some token is complete as a single symbol, this PrecursorToken contains all the
+ * logic needed to tokenize that string.
+ */
 public class PrecursorSingleCharToken extends AbstractPrecursorToken {
 
     public PrecursorSingleCharToken(Stack<Character> sc, int n, String s) {
@@ -20,6 +29,11 @@ public class PrecursorSingleCharToken extends AbstractPrecursorToken {
         return new Token(getTokenType(), makeStackString(false), currentLineNumber);
     }
 
+    /**
+     * Gets the exact token type of the singular character
+     *
+     * @return the Kind of the token
+     */
     private Token.Kind getTokenType() {
         char firstChar = spellingStack.peek();
         switch (firstChar) {

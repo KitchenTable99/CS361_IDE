@@ -1,3 +1,8 @@
+/*
+ * File: PrecursorIntegerToken.java
+ * Author: cbitting
+ * Date: 4/8/2021
+ */
 package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
@@ -5,6 +10,10 @@ import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 
 import java.util.Stack;
 
+/**
+ * If some token starts with a digit, this PrecursorToken contains all the logic needed
+ * to tokenize the string
+ */
 public class PrecursorIntegerToken extends AbstractPrecursorToken {
 
     public PrecursorIntegerToken(Stack<Character> sc, int n, String s) {

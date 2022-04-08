@@ -71,7 +71,6 @@ public class Scanner {
 
         AbstractPrecursorToken precursorToken = null;
         do {
-
             // create a new precursor token or push the char to the existing one
             if (precursorToken == null) {
                 precursorToken = precursorTokenFactory.createPrecursorToken(getNextChar(true), sourceFile.getCurrentLineNumber(), sourceFile.getFilename());
@@ -84,8 +83,9 @@ public class Scanner {
         Optional<Character> extraChar = precursorToken.getExtraChar();
         extraChar.ifPresent(c -> skippedLastToken = c);
 
-        Token finalToken;
         // create the token from the precursor token
+        // we must do this before extracting the errors because some errors occur when the token is created
+        Token finalToken;
         try {
             finalToken = precursorToken.getFinalToken(sourceFile.getCurrentLineNumber());
         } catch (MalformedSpellingStackException e) {
@@ -105,6 +105,16 @@ public class Scanner {
         return finalToken;
     }
 
+    /**
+     * Helper method to get the next character in the file. Different from
+     * SourceFile.getNextChar() in two significant ways. <p> First, if there is a char
+     * stored in the skippedLastToken field, this method will attempt to return that
+     * char and reset the field. <p> Second, the caller can request a non-whitespace char
+     *
+     * @param ignoreWhitespace whether to ignore whitespace characters
+     * @return the next possibly-non-whitespace char in the file including the
+     * skippedLastToken field
+     */
     private char getNextChar(boolean ignoreWhitespace) {
         // get the next character no matter what it is
         char nextChar;

@@ -1,3 +1,8 @@
+/*
+ * File: AbstractPrecursorToken.java
+ * Author: cbitting
+ * Date: 4/8/2021
+ */
 package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
@@ -10,16 +15,41 @@ import java.util.Stack;
 
 public abstract class AbstractPrecursorToken {
 
+    /**
+     * The internal stack used to hold characters in this precursor token.
+     */
     protected final Stack<Character> spellingStack;
+
+    /**
+     * A flag representing whether the internal stack needs to be "popped" before
+     * creating a token. If this flag is true, the getFinalToken method will raise an
+     * error.
+     */
     protected boolean popLastBeforeCreation = false;
+
+    /**
+     * A flag indicating whether the internal stack contains a complete token.
+     */
     protected boolean containsCompleteToken = false;
+
+    /**
+     * A list of error objects that occurred during the lexing of this token.
+     */
     protected List<Error> tokenError = new ArrayList<>();
+
+    /**
+     * The line number that this token started on. Used to detect multiline strings.
+     */
     protected int startingLineNumber;
+
+    /**
+     * The filename that this token comes from. Used in the final creation of tokens.
+     */
     protected String filename;
 
     public AbstractPrecursorToken(Stack<Character> sc, int n, String s) {
         spellingStack = sc;
-        startingLineNumber = n; // todo: have starting line number and ending line number
+        startingLineNumber = n;
         filename = s;
     }
 
@@ -48,6 +78,12 @@ public abstract class AbstractPrecursorToken {
         }
     }
 
+    /**
+     * Gets the internal list of errors if any have occurred during the lexing of this
+     * token.
+     *
+     * @return Optional wrapped list of Error objects.
+     */
     public Optional<List<Error>> getErrors() {
         if (tokenError.size() != 0) {
             return Optional.of(tokenError);

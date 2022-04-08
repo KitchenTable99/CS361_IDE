@@ -1,9 +1,18 @@
+/*
+ * File: PrecursorMathToken.java
+ * Author: cbitting
+ * Date: 4/8/2021
+ */
 package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
 
 import java.util.Stack;
 
+/**
+ * If some token starts with a mathematical symbol, this PrecursorToken contains all the
+ * logic needed to tokenize the string
+ */
 public class PrecursorMathToken extends AbstractPrecursorToken {
 
     public PrecursorMathToken(Stack<Character> sc, int n, String s) {
@@ -36,6 +45,11 @@ public class PrecursorMathToken extends AbstractPrecursorToken {
         return new Token(getTokenKind(), makeStackString(false), currentLineNumber);
     }
 
+    /**
+     * Gets the exact token type of the mathematical expression
+     *
+     * @return the Kind of the token
+     */
     private Token.Kind getTokenKind() {
         String tokenString = makeStackString(true);
         switch (tokenString) {

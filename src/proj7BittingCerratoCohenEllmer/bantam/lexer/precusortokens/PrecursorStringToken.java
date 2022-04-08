@@ -1,3 +1,8 @@
+/*
+ * File: PrecursorStringToken.java
+ * Author: cbitting
+ * Date: 4/8/2021
+ */
 package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
@@ -6,6 +11,10 @@ import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 import java.util.HashSet;
 import java.util.Stack;
 
+/**
+ * If some token starts with a ", this PrecursorToken contains all the logic needed
+ * to tokenize that string.
+ */
 public class PrecursorStringToken extends AbstractPrecursorToken {
 
     /**
@@ -30,20 +39,27 @@ public class PrecursorStringToken extends AbstractPrecursorToken {
         int stackSize = spellingStack.size();
         if (stackSize > 1) {
             // check if string is closed
-            if (spellingStack.peek() == '"' && !charIsEscaped()) {
+            if (c == '"' && !charIsEscaped()) {
                 containsCompleteToken = true;
             }
-            //check if EOF triggers untermintated string
-            if (spellingStack.peek() == '\u0000') {
+            // check if EOF to find unterminated string
+            if (c == '\u0000') {
                 tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "Unterminated String Constant!"));
                 containsCompleteToken = true;
             }
-            if (charIsEscaped() && !validEscapedCharacter.contains(spellingStack.peek())) {
+            // make sure the escaped character is valid
+            if (charIsEscaped() && !validEscapedCharacter.contains(c)) {
                 tokenError.add(new Error(Error.Kind.LEX_ERROR, filename, startingLineNumber, "Invalid Escaped Character \\" + spellingStack.peek() + "!"));
             }
         }
     }
 
+    /**
+     * Simple helper method that checks the second to last character to determine if the
+     * last character is escaped.
+     *
+     * @return whether the last character is escaped
+     */
     private boolean charIsEscaped() {
         return spellingStack.get(spellingStack.size() - 2) == '\\';
     }

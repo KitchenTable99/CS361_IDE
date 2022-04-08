@@ -1,7 +1,15 @@
+/*
+ * File: PrecursorTokenFactory.java
+ * Author: cbitting
+ * Date: 4/8/2021
+ */
 package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
 import java.util.Stack;
 
+/**
+ * This class generates precursor tokens based on a passed character.
+ */
 public class PrecursorTokenFactory {
 
     public AbstractPrecursorToken createPrecursorToken(char initialChar, int lineNum, String filename) {

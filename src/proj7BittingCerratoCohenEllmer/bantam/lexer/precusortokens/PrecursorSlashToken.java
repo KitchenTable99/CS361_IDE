@@ -1,3 +1,8 @@
+/*
+ * File: PrecursorSlashToken.java
+ * Author: cbitting
+ * Date: 4/8/2021
+ */
 package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
@@ -5,6 +10,10 @@ import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 
 import java.util.Stack;
 
+/**
+ * If some token starts with a slash, this PrecursorToken contains all the logic needed
+ * to tokenize that string.
+ */
 public class PrecursorSlashToken extends AbstractPrecursorToken {
 
     private boolean typeKnown = false;

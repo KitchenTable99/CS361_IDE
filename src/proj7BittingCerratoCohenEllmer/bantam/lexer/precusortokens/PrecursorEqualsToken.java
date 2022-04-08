@@ -1,9 +1,18 @@
+/*
+ * File: PrecursorEqualsToken.java
+ * Author: cbitting
+ * Date: 4/8/2021
+ */
 package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
 
 import java.util.Stack;
 
+/**
+ * If some token starts with '=', this PrecursorToken contains all the logic required
+ * to tokenize the string
+ */
 public class PrecursorEqualsToken extends AbstractPrecursorToken {
 
     public PrecursorEqualsToken(Stack<Character> sc, int n, String s) {
