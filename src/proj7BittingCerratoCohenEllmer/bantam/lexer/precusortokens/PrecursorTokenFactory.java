@@ -42,12 +42,13 @@ public class PrecursorTokenFactory {
                 return new PrecursorIntegerToken(spellingStack, lineNum, filename);
             case '"':
                 return new PrecursorStringToken(spellingStack, lineNum, filename);
+            case '!':
+                return new PrecursorExclamationToken(spellingStack, lineNum, filename);
             case '(':
             case ')':
             case '{':
             case '}':
             case ';':
-            case '!':
             case '.':
             case ':':
             case ',':

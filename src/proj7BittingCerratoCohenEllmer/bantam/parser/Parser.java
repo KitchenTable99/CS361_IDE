@@ -293,5 +293,9 @@ public class Parser {
     private ConstBooleanExpr parseBoolean() {
     }
 
+    private void advanceToken(){
+        currentToken = scanner.scan();
+    }
+
 }
 

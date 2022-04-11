@@ -47,8 +47,6 @@ public class PrecursorSingleCharToken extends AbstractPrecursorToken {
                 return Token.Kind.RCURLY;
             case ';':
                 return Token.Kind.SEMICOLON;
-            case '!':
-                return Token.Kind.UNARYNOT;
             case '.':
                 return Token.Kind.DOT;
             case ':':
