@@ -54,17 +54,18 @@ public class PrecursorMathToken extends AbstractPrecursorToken {
     private Token.Kind getTokenKind() {
         String tokenString = makeStackString(true);
         switch (tokenString) {
+            case ">":
+            case "<":
+            case ">=":
+            case "<=":
+                return Token.Kind.COMPARE;
             case "+":
             case "-":
                 return Token.Kind.PLUSMINUS;
             case "*":
                 return Token.Kind.MULDIV;
             case "%":
-            case ">":
-            case "<":
             case "&&":
-            case ">=":
-            case "<=":
             case "||":
                 return Token.Kind.BINARYLOGIC;
             case "++":
