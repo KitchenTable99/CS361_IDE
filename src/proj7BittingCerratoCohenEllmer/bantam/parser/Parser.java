@@ -111,6 +111,13 @@ public class Parser {
 
     // <ReturnStmt> ::= RETURN <Expression> ; | RETURN ;
     private Stmt parseReturn() {
+        int position = currentToken.position;
+        Expr returnExpression = null;
+        advanceToken();
+        if(currentToken.kind != Token.Kind.SEMICOLON){
+            returnExpression = parseExpression();
+        }
+        return new ReturnStmt(position, returnExpression);
     }
 
 
