@@ -60,6 +60,10 @@ public class Scanner {
         skippedLastToken = '\0';
     }
 
+    public String getFilename(){
+        return sourceFile.getFilename();
+    }
+
     /**
      * read characters and collect them into a Token.
      * It ignores white space unless it is inside a string or a comment.
