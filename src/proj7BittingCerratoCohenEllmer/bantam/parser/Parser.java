@@ -311,11 +311,16 @@ public class Parser {
 
     // <Formal> ::= <Type> <Identifier>
     private Formal parseFormal() {
+        int lineNum = currentToken.position;
+        String type = parseType();
+        String name = parseIdentifier();
+        return new Formal(lineNum, type, name);
     }
 
 
     // <Type> ::= <Identifier>
     private String parseType() {
+        return parseIdentifier();
     }
 
 
@@ -323,10 +328,16 @@ public class Parser {
     //Terminals
 
     private String parseOperator() {
+        String operator = currentToken.getSpelling();
+        advanceToken();
+        return operator;
     }
 
 
     private String parseIdentifier() {
+        String identifier = currentToken.getSpelling();
+        advanceToken();
+        return identifier;
     }
 
 
@@ -334,14 +345,26 @@ public class Parser {
         //...save the currentToken's string to a local variable...
         //...advance to the next token...
         //...return a new ConstStringExpr containing the string...
+        int position = currentToken.position;
+        String constant = currentToken.getSpelling();
+        advanceToken();
+        return new ConstStringExpr(position, constant);
     }
 
 
     private ConstIntExpr parseIntConst() {
+        int position = currentToken.position;
+        String constant = currentToken.getSpelling();
+        advanceToken();
+        return new ConstIntExpr(position, constant);
     }
 
 
     private ConstBooleanExpr parseBoolean() {
+        int position = currentToken.position;
+        String constant = currentToken.getSpelling();
+        advanceToken();
+        return new ConstBooleanExpr(position, constant);
     }
 
     private void advanceToken(){
@@ -351,6 +374,5 @@ public class Parser {
     private boolean IncompleteStatement(){
         return currentToken.kind != Token.Kind.SEMICOLON;
     }
-
 }
 
