@@ -250,6 +250,44 @@ public class Parser {
     // <Terminate> ::= EMPTY | <Expression>
     // <Increment> ::= EMPTY | <Expression>
     private Stmt parseFor() {
+        int position = currentToken.position;
+        if (scanner.scan(true).kind != Token.Kind.LPAREN) {
+            // todo raise error
+        }
+
+        currentToken = scanner.scan(true);
+        Expr initExpr;
+        if (currentToken.kind != Token.Kind.SEMICOLON) {
+            initExpr = parseExpression();    // todo: if this doesn't consume the ending semicolon update logic
+        } else {
+            initExpr = null;
+            currentToken = scanner.scan(true);
+        }
+
+        Expr termExpr;
+        if (currentToken.kind != Token.Kind.SEMICOLON) {
+            termExpr = parseExpression();    // todo: if this doesn't consume the ending semicolon update logic
+        } else {
+            termExpr = null;
+            currentToken = scanner.scan(true);
+        }
+
+        Expr updateExpr;
+        if (currentToken.kind != Token.Kind.SEMICOLON) {
+            updateExpr = parseExpression();    // todo: if this doesn't consume the ending semicolon update logic
+        } else {
+            updateExpr = null;
+            currentToken = scanner.scan(true);
+        }
+
+        if (scanner.scan(true).kind != Token.Kind.RPAREN) {
+            // todo raise error
+        }
+
+        currentToken = scanner.scan(true);
+        Stmt bodyStmt = parseStatement();
+
+        return new ForStmt(position, initExpr, termExpr, updateExpr, bodyStmt);
     }
 
 
