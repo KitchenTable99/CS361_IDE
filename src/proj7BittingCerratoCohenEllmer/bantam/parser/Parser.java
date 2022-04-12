@@ -187,10 +187,14 @@ public class Parser {
     // <BreakStmt> ::= BREAK ;
     private Stmt parseBreak() {
         int position = currentToken.position;
-        advanceToken();
-        if(IncompleteStatement()){
-            // create parser exception
+
+        if (scanner.scan(true).kind != Token.Kind.SEMICOLON) {
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Break Statement");
+            throw new CompilationException(
+                    "Invalid Statement: Break statement must end with ';'",
+                    new Throwable());
         }
+
         return new BreakStmt(position);
     }
 
