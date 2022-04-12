@@ -137,6 +137,30 @@ public class Parser {
 
     // <WhileStmt> ::= WHILE ( <Expression> ) <Stmt>
     private Stmt parseWhile() {
+        int position = currentToken.position;
+
+        if (scanner.scan(true).kind != Token.Kind.LPAREN) {
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid While Statement");
+            throw new CompilationException(
+                    "Incomplete Statement: Return statement missing an opening '('",
+                    new Throwable());
+        }
+
+        currentToken = scanner.scan(true);
+        Expr predStmt = parseExpression();
+
+        if (currentToken.kind != Token.Kind.RPAREN) {
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid While Statement");
+            throw new CompilationException(
+                    "Incomplete Statement: Return statement missing a closing ')'",
+                    new Throwable());
+        }
+
+        currentToken = scanner.scan(true);
+        Stmt bodyStmt = parseStatement();
+
+        return new WhileStmt(position, predStmt, bodyStmt);
+
     }
 
 
@@ -189,8 +213,8 @@ public class Parser {
         int position = currentToken.position;
         String varType = currentToken.spelling;
 
-        String varID = scanner.scan().spelling;
-        Token equalsToken = scanner.scan();
+        String varID = scanner.scan(true).spelling;
+        Token equalsToken = scanner.scan(true);
         if (equalsToken.kind != Token.Kind.ASSIGN) {
             errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Declaration Statement");
             throw new CompilationException(
@@ -199,7 +223,7 @@ public class Parser {
         }
 
         // parse the expression
-        currentToken = scanner.scan();
+        currentToken = scanner.scan(true);
         Expr expr = parseExpression(); // will move through all tokens and currentToken should be semicolon
 
         // todo: figure out if this is helpful or if already handled
@@ -209,7 +233,7 @@ public class Parser {
                     "Incomplete Statement: Declaration statement missing an ending ';'",
                     new Throwable());
         }
-        currentToken = scanner.scan(); // ensure invariant
+        currentToken = scanner.scan(true); // ensure invariant
 
         DeclStmt declStmt = new DeclStmt(position, varID, expr);
         declStmt.setType(varType);
@@ -404,8 +428,9 @@ public class Parser {
     }
 
     private void advanceToken(){
+        // todo: this method should not be used
         do{
-        currentToken = scanner.scan();
+            currentToken = scanner.scan(true);
         // "If a comment, throw it away!"
         }while(currentToken.kind == Token.Kind.COMMENT);
     }
