@@ -17,6 +17,8 @@ import proj7BittingCerratoCohenEllmer.bantam.ast.*;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Scanner;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
+import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
+import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 
 public class Parser {
     // instance variables
@@ -145,8 +147,16 @@ public class Parser {
         int position = currentToken.position;
         Expr returnExpression = null;
         advanceToken();
-        if(currentToken.kind != Token.Kind.SEMICOLON){
+        if(IncompleteStatement()){
             returnExpression = parseExpression();
+        }
+        if(IncompleteStatement()){
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Return Statement");
+            throw new CompilationException(
+                "Incomplete Statement: Return statement missing an ending ';'",
+                new Throwable());
+        }else{ // if at semicolon move to next token for next parsing
+            advanceToken();
         }
         return new ReturnStmt(position, returnExpression);
     }
@@ -368,7 +378,10 @@ public class Parser {
     }
 
     private void advanceToken(){
+        do{
         currentToken = scanner.scan();
+        // "If a comment, throw it away!"
+        }while(currentToken.kind == Token.Kind.COMMENT);
     }
 
     private boolean IncompleteStatement(){
