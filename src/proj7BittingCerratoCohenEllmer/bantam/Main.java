@@ -1,7 +1,8 @@
 package proj7BittingCerratoCohenEllmer.bantam;
 
-import proj7BittingCerratoCohenEllmer.bantam.lexer.Scanner;
-import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
+import proj7BittingCerratoCohenEllmer.bantam.ast.Program;
+import proj7BittingCerratoCohenEllmer.bantam.parser.Parser;
+import proj7BittingCerratoCohenEllmer.bantam.treedrawer.Drawer;
 import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
@@ -15,24 +16,20 @@ public class Main {
     public static void main(String[] args) {
         // files specified on cmd line
         if(args.length > 0){
-            Scanner bantamScanner;
+            Parser bantamParser;
             ErrorHandler bantamErrorHandler;
-            Token currentToken;
+            Program currentProgram;
             // scan each file
             for(String filename : args){
-                System.out.println(filename);
+                //System.out.println(filename);
 
                 //file may not be opened -> CompilationException
                 try {
                     // initialize scanner for each file
                     bantamErrorHandler = new ErrorHandler();
-                    bantamScanner = new Scanner(filename, bantamErrorHandler);
+                    bantamParser = new Parser(bantamErrorHandler);
+                    currentProgram = bantamParser.parse(filename);
 
-                    // move through file tokens until "End Of File" reached
-                    do {
-                        currentToken = bantamScanner.scan();
-                        System.out.println(currentToken.toString());
-                    } while (currentToken.kind != Token.Kind.EOF);
 
                     // Check Scanner's Error Handler
                     if (bantamErrorHandler.errorsFound()){
@@ -48,7 +45,7 @@ public class Main {
                         System.out.println(
                             "*** Scanning file " + filename 
                                 + " was Successfull! ***");
-                        
+                        new Drawer().draw(filename, currentProgram);
                     }
                 } catch (CompilationException e) {
                     System.out.println(e);
