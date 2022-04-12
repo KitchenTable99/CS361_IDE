@@ -20,6 +20,8 @@ public class PrecursorTokenFactory {
         switch (initialChar) {
             case '/':
                 return new PrecursorSlashToken(spellingStack, lineNum, filename);
+            case '&':
+            case '|':
             case '+':
             case '-':
             case '*':

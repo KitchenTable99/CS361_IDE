@@ -22,8 +22,16 @@ public class PrecursorMathToken extends AbstractPrecursorToken {
     @Override
     public void pushChar(char c) {
         spellingStack.push(c);
-
+        
+        char firstChar = spellingStack.firstElement();
         if (c == '+' || c == '-' || c == '&' || c == '|'|| c == '=') {
+            if(firstChar != spellingStack.peek()){
+                popLastBeforeCreation = true;
+            }else if(firstChar == '<' || firstChar == '>' ){
+                if(spellingStack.peek() != '='){
+                    popLastBeforeCreation = true;
+                }
+            }
             containsCompleteToken = true;
         } else{
             popLastBeforeCreation = true;
