@@ -60,8 +60,25 @@ public class Scanner {
         skippedLastToken = '\0';
     }
 
-    public String getFilename(){
+    public String getFilename() {
         return sourceFile.getFilename();
+    }
+
+    /**
+     * Returns the next token provided it isn't a comment. Comments are thrown away.
+     *
+     * @param ignoreComments whether to ignore comments. Passing false functions as a
+     *                       call to scan.
+     * @return the Token containing the characters read
+     * @see #scan()
+     */
+    public Token scan(boolean ignoreComments) {
+        Token returnToken = scan();
+        if (ignoreComments && returnToken.kind == Token.Kind.COMMENT) {
+            return scan(true);
+        } else {
+            return returnToken;
+        }
     }
 
     /**
