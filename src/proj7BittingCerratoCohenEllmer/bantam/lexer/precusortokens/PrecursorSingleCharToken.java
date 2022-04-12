@@ -56,7 +56,7 @@ public class PrecursorSingleCharToken extends AbstractPrecursorToken {
             case '\u0000':
                 return Token.Kind.EOF;
             default:
-                return null;
+                return Token.Kind.ERROR;
         }
     }
 }

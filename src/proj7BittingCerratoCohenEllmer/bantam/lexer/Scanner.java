@@ -1,3 +1,8 @@
+/*
+ * File: PrecursorStringToken.java
+ * Author: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
+ * Date: 4/11/2021
+ */
 package proj7BittingCerratoCohenEllmer.bantam.lexer;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens.AbstractPrecursorToken;
@@ -29,7 +34,7 @@ public class Scanner {
     /**
      * holds Tokens that were read but not included in the previous token
      */
-    private char skippedLastToken;
+    private char currentChar;
 
     /**
      * factory to generate all the precursor tokens based on the first token
@@ -45,7 +50,7 @@ public class Scanner {
     public Scanner(String filename, ErrorHandler handler) {
         errorHandler = handler;
         sourceFile = new SourceFile(filename);
-        skippedLastToken = '\0';
+        currentChar = '\0';
     }
 
     /**
@@ -57,7 +62,7 @@ public class Scanner {
     public Scanner(Reader reader, ErrorHandler handler) {
         errorHandler = handler;
         sourceFile = new SourceFile(reader);
-        skippedLastToken = '\0';
+        currentChar = '\0';
     }
 
     public String getFilename(){
@@ -87,9 +92,9 @@ public class Scanner {
             }
         } while (!precursorToken.isComplete());
 
-        // store last char in skippedLastToken if needed
+        // store last char in currentChar if needed
         Optional<Character> extraChar = precursorToken.getExtraChar();
-        extraChar.ifPresent(c -> skippedLastToken = c);
+        extraChar.ifPresent(c -> currentChar = c);
 
         // create the token from the precursor token
         // create token before extracting errors as some errors occur during creation
@@ -116,25 +121,25 @@ public class Scanner {
     /**
      * Helper method to get the next character in the file. Different from
      * SourceFile.getNextChar() in two significant ways. <p> First, if there is a char
-     * stored in the skippedLastToken field, this method will attempt to return that
+     * stored in the currentChar field, this method will attempt to return that
      * char and reset the field. <p> Second, the caller can request a non-whitespace char
      *
      * @param ignoreWhitespace whether to ignore whitespace characters
      * @return the next possibly-non-whitespace char in the file including the
-     * skippedLastToken field
+     * currentChar field
      */
     private char getNextChar(boolean ignoreWhitespace) {
         // get the next character no matter what it is
         char nextChar;
-        if (skippedLastToken != '\0') {
-            nextChar = skippedLastToken;
-            skippedLastToken = '\0';  // reset skippedLastToken
+        if (currentChar != '\0') {
+            nextChar = currentChar;
+            currentChar = '\0';  // reset currentChar
         } else {
             try {
                 nextChar = sourceFile.getNextChar();
             } catch (IOException e) {
-                e.printStackTrace();
                 nextChar = '\0';
+                throw new CompilationException("no more chars to get", e);
             }
         }
 

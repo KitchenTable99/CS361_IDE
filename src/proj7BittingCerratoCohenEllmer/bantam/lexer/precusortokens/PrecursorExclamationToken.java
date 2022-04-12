@@ -25,15 +25,12 @@ public class PrecursorExclamationToken extends AbstractPrecursorToken {
     public void pushChar(char c) {
         spellingStack.push(c);
 
-        if (Character.isWhitespace(c) ||
-                Character.isAlphabetic(c) ||
-                Character.isDigit(c) ||
-                c == ';') {
+        if ( c == '=') {
+            containsCompleteToken = true;
+        } else {
             popLastBeforeCreation = true;
             containsCompleteToken = true;
-        } else if ( c == '=') {
-            containsCompleteToken = true;
-        }
+        } 
     }
 
 

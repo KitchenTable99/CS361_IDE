@@ -23,15 +23,10 @@ public class PrecursorMathToken extends AbstractPrecursorToken {
     public void pushChar(char c) {
         spellingStack.push(c);
 
-        if (Character.isWhitespace(c) ||
-                Character.isAlphabetic(c) ||
-                Character.isDigit(c) ||
-                c == ';') {
-            popLastBeforeCreation = true;
+        if (c == '+' || c == '-' || c == '&' || c == '|'|| c == '=') {
             containsCompleteToken = true;
-        } else if (makeStackString(true).equals("++")
-                || makeStackString(true).equals("--")
-                || c == '=') {
+        } else{
+            popLastBeforeCreation = true;
             containsCompleteToken = true;
         }
     }
