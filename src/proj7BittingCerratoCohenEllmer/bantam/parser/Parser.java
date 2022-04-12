@@ -11,14 +11,12 @@
  */
 package proj7BittingCerratoCohenEllmer.bantam.parser;
 
-import javax.swing.text.DefaultStyledDocument.ElementSpec;
-
 import proj7BittingCerratoCohenEllmer.bantam.ast.*;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Scanner;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
-import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj7BittingCerratoCohenEllmer.bantam.util.Error;
+import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
 public class Parser {
     // instance variables
@@ -188,6 +186,34 @@ public class Parser {
     // <VarDeclaration> ::= VAR <Id> = <Expression> ;
     // Every local variable must be initialized
     private Stmt parseVarDeclaration() {
+        int position = currentToken.position;
+        String varType = currentToken.spelling;
+
+        String varID = scanner.scan().spelling;
+        Token equalsToken = scanner.scan();
+        if (equalsToken.kind != Token.Kind.ASSIGN) {
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Declaration Statement");
+            throw new CompilationException(
+                    "Incomplete Statement: Declaration statement missing a '='",
+                    new Throwable());
+        }
+
+        // parse the expression
+        currentToken = scanner.scan();
+        Expr expr = parseExpression(); // will move through all tokens and currentToken should be semicolon
+
+        // todo: figure out if this is helpful or if already handled
+        if (currentToken.kind != Token.Kind.SEMICOLON) {
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Declaration Statement");
+            throw new CompilationException(
+                    "Incomplete Statement: Declaration statement missing an ending ';'",
+                    new Throwable());
+        }
+        currentToken = scanner.scan(); // ensure invariant
+
+        DeclStmt declStmt = new DeclStmt(position, varID, expr);
+        declStmt.setType(varType);
+        return declStmt;
     }
 
 
