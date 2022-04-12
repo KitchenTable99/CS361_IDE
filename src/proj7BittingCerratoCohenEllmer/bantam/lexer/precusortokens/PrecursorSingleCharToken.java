@@ -6,6 +6,7 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
+import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 
 import java.util.Stack;
 
@@ -26,7 +27,13 @@ public class PrecursorSingleCharToken extends AbstractPrecursorToken {
 
     @Override
     public Token getFinalToken(int currentLineNumber) {
-        return new Token(getTokenType(), makeStackString(false), currentLineNumber);
+        Token.Kind tokenType = getTokenType();
+        if(tokenType == Token.Kind.ERROR){
+            tokenError.add(new Error(Error.Kind.LEX_ERROR, filename,
+            currentLineNumber,
+            "Unsupported Character : " + spellingStack.peek()));
+        }
+        return new Token(tokenType, makeStackString(false), currentLineNumber);
     }
 
     /**
