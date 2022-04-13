@@ -381,12 +381,54 @@ public class Parser {
     // <UnaryPrefix> ::= <PrefixOp> <UnaryPreFix> | <UnaryPostfix>
     // <PrefixOp> ::= - | ! | ++ | --
     private Expr parseUnaryPrefix() {
+        int lineNum = currentToken.position; // stores line number
+
+        Expr prefix;
+        switch(currentToken.kind){
+            case PLUSMINUS: // -
+                currentToken = scanner.scan(true);
+                prefix = new UnaryNegExpr(lineNum, parseUnaryPrefix());
+                break;
+            case UNARYNOT: // !
+                currentToken = scanner.scan(true);
+                prefix = new UnaryNotExpr(lineNum, parseUnaryPrefix());
+                break;
+            case UNARYINCR: // ++
+                currentToken = scanner.scan(true);
+                prefix = new UnaryIncrExpr(lineNum, parseUnaryPrefix(), false);
+                break;
+            case UNARYDECR: // --
+                currentToken = scanner.scan(true);
+                prefix = new UnaryDecrExpr(lineNum, parseUnaryPrefix(), false);
+                break;
+            default:
+                prefix = parseUnaryPostfix();
+        }
+
+        return prefix;
     }
 
 
     // <UnaryPostfix> ::= <Primary> <PostfixOp>
     // <PostfixOp> ::= ++ | -- | EMPTY
     private Expr parseUnaryPostfix() {
+        int lineNum = currentToken.position; // stores line number
+        Expr primary = parsePrimary(); // gets the primary
+        currentToken = scanner.scan(true); // gets the postfix operator
+
+        Expr postfix; // gets our expression to return
+        switch(currentToken.kind){
+            case UNARYINCR:
+                postfix = new UnaryIncrExpr(lineNum, primary, true); // ++
+                break;
+            case UNARYDECR:
+                postfix = new UnaryDecrExpr(lineNum, primary, true); // --
+                break;
+            default:
+                postfix = primary; // empty, so just the primary
+        }
+
+        return postfix;
     }
 
 
