@@ -408,6 +408,25 @@ public class Parser {
     // <Parameters> ::=  EMPTY | <Formal> <MoreFormals>
     // <MoreFormals> ::= EMPTY | , <Formal> <MoreFormals
     private FormalList parseParameters() {
+        FormalList parameters = new FormalList(currentToken.position); // makes empty FormalList
+
+        while (currentToken.kind != Token.Kind.RPAREN){
+            parameters.addElement(parseFormal()); // Add Formal to FormalList
+            
+            currentToken = scanner.scan(true); // either a ',' or a ')' or we have an error
+            if (currentToken.kind != Token.Kind.COMMA && currentToken.kind != Token.Kind.RPAREN){
+                errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Parameter Statement");
+                throw new CompilationException(
+                        "Incomplete Statement: Parameter statement missing a ')' or ','",
+                        new Throwable());
+            }
+
+            if (currentToken.kind == Token.Kind.COMMA){ // if it's a ',' we ignore it and go to the next
+                currentToken = scanner.scan(true);      // formal parameter to parse
+            }
+        }
+
+        return parameters;
     }
 
 
