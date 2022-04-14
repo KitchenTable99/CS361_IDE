@@ -6,6 +6,7 @@
 package proj7BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
+import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 
 import java.util.Stack;
 
@@ -26,7 +27,8 @@ public class PrecursorSingleCharToken extends AbstractPrecursorToken {
 
     @Override
     public Token getFinalToken(int currentLineNumber) {
-        return new Token(getTokenType(), makeStackString(false), currentLineNumber);
+        return new Token(getTokenType(),
+            makeStackString(false), currentLineNumber);
     }
 
     /**

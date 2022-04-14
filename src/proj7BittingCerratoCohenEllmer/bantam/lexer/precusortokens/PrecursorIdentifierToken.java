@@ -23,9 +23,7 @@ public class PrecursorIdentifierToken extends AbstractPrecursorToken {
     public void pushChar(char c) {
         spellingStack.push(c);
 
-        if (!Character.isAlphabetic(c) &&
-                !Character.isDigit(c) &&
-                c != '_') {
+        if (! (Character.isLetterOrDigit(c) || c == '_') ) {
             popLastBeforeCreation = true;
             containsCompleteToken = true;
         }
@@ -38,6 +36,7 @@ public class PrecursorIdentifierToken extends AbstractPrecursorToken {
             throw new MalformedSpellingStackException("You need to pop the stack first");
         }
 
-        return new Token(Token.Kind.IDENTIFIER, makeStackString(false), currentLineNumber);
+        return new Token(Token.Kind.IDENTIFIER,
+            makeStackString(false), currentLineNumber);
     }
 }

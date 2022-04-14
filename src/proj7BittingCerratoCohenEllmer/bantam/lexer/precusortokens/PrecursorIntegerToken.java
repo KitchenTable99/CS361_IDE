@@ -39,13 +39,13 @@ public class PrecursorIntegerToken extends AbstractPrecursorToken {
 
         // make sure the int is small enough
         Token.Kind tokenKind;
-        long currentNumber = Long.parseLong(makeStackString(true));
-        if (currentNumber <= Integer.MAX_VALUE) {
+        try{
+            Integer.parseInt(makeStackString(true));
             tokenKind = Token.Kind.INTCONST;
-        } else {
+        }catch(NumberFormatException e){
             tokenError.add(new Error(Error.Kind.LEX_ERROR, filename,
-                    currentLineNumber,
-                    "Integer Constant too large!"));
+                currentLineNumber,
+                "Integer Constant too large!"));
             tokenKind = Token.Kind.ERROR;
         }
 

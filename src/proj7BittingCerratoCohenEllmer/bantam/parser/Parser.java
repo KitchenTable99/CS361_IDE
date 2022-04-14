@@ -41,7 +41,7 @@ public class Parser {
         scanner = new Scanner(filename, errorHandler);
         advanceToken();
         return parseProgram();
-         
+
     }
 
 
@@ -697,5 +697,6 @@ public class Parser {
     private boolean IncompleteStatement(){
         return currentToken.kind != Token.Kind.SEMICOLON;
     }
+
 }
 
