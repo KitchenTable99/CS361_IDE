@@ -715,15 +715,14 @@ public class Parser {
     // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
     // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
     private Expr parsePrimary() {
-        int lParenposition = currentToken.position;
+        int startPosition = currentToken.position;
         Expr expr;
+        ExprList args;
         // handle ( <Expression> )
         if(currentToken.kind == Token.Kind.LPAREN){
             currentToken = scanner.scan(true); // @<Expression>
             expr = parseExpression(); // @ )
-            if(currentToken.kind != Token.Kind.RPAREN){
-                // Todo: "Incomplete Expression: Unclosed Parenthesis" use lParenposition
-            }
+            ensureTokenType("Incomplete Expression: Unclosed Parenthesis", Token.Kind.RPAREN);
             currentToken = scanner.scan(true); // prep next token
         //handle integerConst
         }else if(currentToken.kind == Token.Kind.INTCONST){
@@ -734,11 +733,30 @@ public class Parser {
         // handle StringConst
         }else if(currentToken.kind == Token.Kind.STRCONST){
             expr = parseStringConst(); // @ next token -- throws error
-        } // handle VarExpr
-        // <VarExpr> ::= <VarExprPrefix> <Identifier> <VarExprSuffix>
-        // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
-        // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
+        // handle VarExpr
+        } else{// @<VarExprPrefix>::= SUPER . | THIS . | EMPTY
+            Expr refExpr = null;
+            String methodName;
+            if("super".equals(currentToken.spelling)
+                || "this".equals(currentToken.spelling)){
 
+                refExpr = parseExpression(); //currentToken -> '.'
+                ensureTokenType("reference call missing seperator '.'", Token.Kind.DOT);
+
+                currentToken = scanner.scan(true); // '.' -> <identifier>
+            }
+
+            methodName = parseIdentifier();
+
+            // handle ( <Arguments> )
+            ensureTokenType("Method Call Incomplete : Missing  '('", Token.Kind.LPAREN);
+            currentToken = scanner.scan(true); // @<Expression>
+            args = parseArguments(); // @ )
+            ensureTokenType("Method Call Incomplete : Unclosed Parenthesis, Missing')",
+                Token.Kind.RPAREN);
+            currentToken = scanner.scan(true); // prep next token
+            expr = new DispatchExpr(startPosition, refExpr, methodName, args);
+        }
         return expr;
     }
 
