@@ -605,6 +605,20 @@ public class Parser {
     //Terminals
 
     private String parseOperator() {
+        if( currentToken.kind != Token.Kind.BINARYLOGIC ||
+                currentToken.kind != Token.Kind.PLUSMINUS ||
+                currentToken.kind != Token.Kind.MULDIV ||
+                currentToken.kind != Token.Kind.COMPARE ||
+                currentToken.kind != Token.Kind.UNARYINCR ||
+                currentToken.kind != Token.Kind.UNARYDECR ||
+                currentToken.kind != Token.Kind.ASSIGN ||
+                currentToken.kind != Token.Kind.UNARYNOT){
+            errorHandler.register(Error.Kind.PARSE_ERROR, 
+            "Invalid Operator");
+            throw new CompilationException(
+                    "Expected a valid Operator",
+                    new Throwable());
+        }
         String operator = currentToken.getSpelling();
         advanceToken();
         return operator;
@@ -612,6 +626,13 @@ public class Parser {
 
 
     private String parseIdentifier() {
+        if(currentToken.kind != Token.Kind.IDENTIFIER){
+            errorHandler.register(Error.Kind.PARSE_ERROR, 
+            "Invalid valid identifier");
+            throw new CompilationException(
+                    "Expected a valid identifier name",
+                    new Throwable());
+        }
         String identifier = currentToken.getSpelling();
         advanceToken();
         return identifier;
@@ -622,6 +643,13 @@ public class Parser {
         //...save the currentToken's string to a local variable...
         //...advance to the next token...
         //...return a new ConstStringExpr containing the string...
+        if(currentToken.kind != Token.Kind.STRCONST){
+            errorHandler.register(Error.Kind.PARSE_ERROR, 
+            "Invalid String Value");
+            throw new CompilationException(
+                    "Expected a valid string value",
+                    new Throwable());
+        }
         int position = currentToken.position;
         String constant = currentToken.getSpelling();
         advanceToken();
@@ -630,6 +658,13 @@ public class Parser {
 
 
     private ConstIntExpr parseIntConst() {
+        if(currentToken.kind != Token.Kind.INTCONST){
+            errorHandler.register(Error.Kind.PARSE_ERROR, 
+            "Invalid Integer Value");
+            throw new CompilationException(
+                    "Expected Integer value in range 0-2147483647",
+                    new Throwable());
+        }
         int position = currentToken.position;
         String constant = currentToken.getSpelling();
         advanceToken();
@@ -638,6 +673,13 @@ public class Parser {
 
 
     private ConstBooleanExpr parseBoolean() {
+        if(currentToken.kind != Token.Kind.BOOLEAN){
+            errorHandler.register(Error.Kind.PARSE_ERROR, 
+            "Invalid Boolean Value");
+            throw new CompilationException(
+                    "Expected 'true' or 'false as a boolean value",
+                    new Throwable());
+        }
         int position = currentToken.position;
         String constant = currentToken.getSpelling();
         advanceToken();
