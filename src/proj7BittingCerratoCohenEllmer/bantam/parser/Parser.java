@@ -117,7 +117,7 @@ public class Parser {
             if(currentToken.getSpelling().equals("=")){
                 currentToken = scanner.scan();
                 Expr expr = parseExpression();
-                return new Field(lineNum, type, identifier, expr)
+                return new Field(lineNum, type, identifier, expr);
             }else{
 
 //                TODO: error handler
