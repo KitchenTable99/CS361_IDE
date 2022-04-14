@@ -27,13 +27,8 @@ public class PrecursorSingleCharToken extends AbstractPrecursorToken {
 
     @Override
     public Token getFinalToken(int currentLineNumber) {
-        Token.Kind tokenType = getTokenType();
-        if(tokenType == Token.Kind.ERROR){
-            tokenError.add(new Error(Error.Kind.LEX_ERROR, filename,
-            currentLineNumber,
-            "Unsupported Character : " + spellingStack.peek()));
-        }
-        return new Token(tokenType, makeStackString(false), currentLineNumber);
+        return new Token(getTokenType(),
+            makeStackString(false), currentLineNumber);
     }
 
     /**
@@ -63,7 +58,7 @@ public class PrecursorSingleCharToken extends AbstractPrecursorToken {
             case '\u0000':
                 return Token.Kind.EOF;
             default:
-                return Token.Kind.ERROR;
+                return null;
         }
     }
 }
