@@ -375,6 +375,39 @@ public class Parser {
 
     // <CastExpression> ::= CAST ( <Type> , <Expression> )
     private Expr parseCast() {
+        int lineNum = currentToken.position;
+
+        currentToken = scanner.scan(true); // gets '(' or this is an error
+        if (currentToken.kind != Token.Kind.LPAREN){
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Case Statement");
+                throw new CompilationException(
+                        "Incomplete Statement: Cast statement missing a '('",
+                        new Throwable());
+        }
+        
+        currentToken = scanner.scan(true); // gets type
+        String type = parseType();
+
+        currentToken = scanner.scan(true); // gets ',' or this is an error
+        if (currentToken.kind != Token.Kind.COMMA){
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Cast Statement");
+                throw new CompilationException(
+                        "Incomplete Statement: Cast statement missing a ','",
+                        new Throwable());
+        }
+
+        currentToken = scanner.scan(true); // gets expression
+        Expr expr = parseExpression();
+
+        currentToken = scanner.scan(true); // gets ')' or this is an error
+        if (currentToken.kind != Token.Kind.RPAREN){
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Cast Statement");
+                throw new CompilationException(
+                        "Incomplete Statement: Cast statement missing a ')'",
+                        new Throwable());
+        }
+
+        return new CastExpr(lineNum, type, expr);
     }
 
 
