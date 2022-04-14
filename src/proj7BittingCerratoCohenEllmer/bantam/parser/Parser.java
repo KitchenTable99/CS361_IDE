@@ -72,14 +72,13 @@ public class Parser {
         // get class name
         currentToken = scanner.scan(true);
         ensureTokenType("Class name is not valid", Token.Kind.IDENTIFIER);
-        String name = currentToken.spelling;
+        String name = parseIdentifier();
 
-        // handle extends
-        currentToken = scanner.scan(true);
+        // check if 'extends'
         String parent;
         if (currentToken.kind == Token.Kind.EXTENDS) {
             currentToken = scanner.scan(true); // todo check identifier
-            parent = currentToken.spelling;
+            parent = parseIdentifier();
         } else {
             parent = null;
         }
