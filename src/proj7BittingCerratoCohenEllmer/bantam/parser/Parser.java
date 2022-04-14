@@ -294,6 +294,30 @@ public class Parser {
     // <BlockStmt> ::= { <Body> }
     // <Body> ::= EMPTY | <Stmt> <Body>
     private Stmt parseBlock() {
+        int lineNum = currentToken.position;
+
+        if (currentToken.kind != Token.Kind.LCURLY){
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Block Statement");
+                throw new CompilationException(
+                        "Incomplete Statement: Block statement missing a '{'",
+                        new Throwable());
+        }
+
+        StmtList stmtList = new StmtList(lineNum);
+        currentToken = scanner.scan(true); // either a Body or a '}'
+        while (currentToken.kind != Token.Kind.RCURLY){ // add statements until we are at our next '}'
+            if (currentToken.kind == Token.Kind.EOF){ // if we reach end of file, we have an error
+                errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Block Statement");
+                throw new CompilationException(
+                        "Incomplete Statement: Block statement missing a '}'",
+                        new Throwable());
+            }
+            stmtList.addElement(parseStatement()); // add the statement
+            currentToken = scanner.scan(true);
+        }
+
+        return new BlockStmt(lineNum, stmtList);
+
     }
 
 
