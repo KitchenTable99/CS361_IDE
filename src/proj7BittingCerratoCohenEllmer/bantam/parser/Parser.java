@@ -11,8 +11,6 @@
  */
 package proj7BittingCerratoCohenEllmer.bantam.parser;
 
-import java.beans.Expression;
-
 import proj7BittingCerratoCohenEllmer.bantam.ast.*;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Scanner;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
@@ -325,6 +323,44 @@ public class Parser {
 
     // <IfStmt> ::= IF ( <Expr> ) <Stmt> | IF ( <Expr> ) <Stmt> ELSE <Stmt>
     private Stmt parseIf() {
+        int lineNum = currentToken.position;
+        if(currentToken.kind != Token.Kind.IF){
+            errorHandler.register(Error.Kind.PARSE_ERROR,"Invalid If Statement");
+            throw new CompilationException(
+                    "Incomplete Statement: If statement missing IF", new Throwable()
+            );
+        }
+        currentToken = scanner.scan(true); // (
+        if (currentToken.kind != Token.Kind.LPAREN){
+            errorHandler.register(Error.Kind.PARSE_ERROR,"Invalid If Statement");
+            throw new CompilationException(
+                    "Incomplete Statement: If statement missing (", new Throwable()
+            );
+        }
+
+        currentToken = scanner.scan(true); // expr
+        Expr predExpr = parseExpression();
+        currentToken = scanner.scan(); // )
+        if (currentToken.kind != Token.Kind.RPAREN){
+            errorHandler.register(Error.Kind.PARSE_ERROR,"Invalid If Statement");
+            throw new CompilationException(
+                    "Incomplete Statement: If statement missing )", new Throwable()
+            );
+        }
+
+        currentToken = scanner.scan();
+        Stmt thenStmt = parseStatement();
+        currentToken = scanner.scan();
+        if(currentToken.kind == Token.Kind.ELSE){
+            currentToken = scanner.scan();
+            Stmt elseStmt = parseStatement();
+            return new IfStmt(lineNum,predExpr,thenStmt,elseStmt);
+        }
+        // TODO: Check if messed up Else and if we should throw an error
+        return new IfStmt(lineNum, predExpr, thenStmt, null);
+
+
+
     }
 
 
@@ -336,6 +372,20 @@ public class Parser {
     // <Expression> ::= <LogicalORExpr> <OptionalAssignment>
     // <OptionalAssignment> ::= EMPTY | = <Expression>
     private Expr parseExpression() {
+        int lineNum = currentToken.position;
+       Expr left = parseOrExpr();
+       String refName = currentToken.getSpelling();
+       currentToken = scanner.scan();
+       if(currentToken.kind == Token.Kind.ASSIGN ) {
+           Expr right = parseExpression();
+           String name = currentToken.getSpelling();
+           return new AssignExpr(lineNum, refName, name, right);
+       }
+       currentToken = scanner.scan();
+       return left;
+
+
+
     }
 
 
@@ -359,6 +409,8 @@ public class Parser {
     // <LogicalAND> ::= <ComparisonExpr> <LogicalANDRest>
     // <LogicalANDRest> ::= EMPTY |  && <ComparisonExpr> <LogicalANDRest>
     private Expr parseAndExpr() {
+        int lineNum = currentToken.position;
+
     }
 
 
