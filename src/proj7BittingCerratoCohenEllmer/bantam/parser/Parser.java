@@ -379,7 +379,7 @@ public class Parser {
        if(currentToken.kind == Token.Kind.ASSIGN ) {
            Expr right = parseExpression();
            String name = currentToken.getSpelling();
-           return new AssignExpr(lineNum, refName, name, right);
+           left = new AssignExpr(lineNum, refName, name, right);
        }
        currentToken = scanner.scan();
        return left;
@@ -410,6 +410,12 @@ public class Parser {
     // <LogicalANDRest> ::= EMPTY |  && <ComparisonExpr> <LogicalANDRest>
     private Expr parseAndExpr() {
         int lineNum = currentToken.position;
+        Expr left = parseEqualityExpr();
+        while (currentToken.spelling.equals("&&")){
+            Expr right = parseEqualityExpr();
+            left = new BinaryLogicAndExpr(lineNum, left, right);
+        }
+        return left;
 
     }
 
@@ -418,18 +424,80 @@ public class Parser {
     //                      <RelationalExpr>
     // <equalOrNotEqual> ::=  = | !=
     private Expr parseEqualityExpr() {
+        int lineNum = currentToken.position;
+        Expr left = parseRelationalExpr();
+        currentToken = scanner.scan();
+        if(currentToken.kind.equals(Token.Kind.BINARYLOGIC)){
+            String typeOfEq = currentToken.spelling;
+            currentToken = scanner.scan();
+            Expr right = parseRelationalExpr();
+            if(typeOfEq.equals("==")){
+
+                left = new BinaryCompEqExpr(lineNum, left,right);
+            }else{
+                left = new BinaryCompNeExpr(lineNum, left, right);
+            }
+
+        }
+        //TODO: check if there is an error
+
+        return left;
     }
 
 
     // <RelationalExpr> ::= <AddExpr> | <AddExpr> <ComparisonOp> <AddExpr>
     // <ComparisonOp> ::= < | > | <= | >=
     private Expr parseRelationalExpr() {
+        int lineNum = currentToken.position;
+        Expr left = parseAddExpr();
+        currentToken = scanner.scan();
+
+//        TODO: Check if this is the end of expr somehow
+
+        String op = parseOperator();
+
+        currentToken = scanner.scan();
+        Expr right = parseAddExpr();
+        switch (op){
+            case "<":
+                left = new BinaryCompLtExpr(lineNum,left,right);
+                break;
+            case ">":
+                left = new BinaryCompGtExpr(lineNum,left,right);
+                break;
+            case "<=":
+                left = new BinaryCompLeqExpr(lineNum,left,right);
+                break;
+            case ">=":
+                left = new BinaryCompGeqExpr(lineNum, left, right);
+                break;
+        }
+        return left;
+
+
+
     }
 
 
     // <AddExpr>::＝ <MultExpr> <MoreMultExpr>
     // <MoreMultExpr> ::= EMPTY | + <MultExpr> <MoreMultExpr> | - <MultExpr> <MoreMultExpr>
     private Expr parseAddExpr() {
+        int lineNum = currentToken.position;
+        Expr left = parseMultExpr();
+        currentToken = scanner.scan();
+
+//        TODO: check if end of expr
+
+        String op = currentToken.spelling;
+        while(op.equals("+")||op.equals("-")){
+            Expr right = parseMultExpr();
+            if(op.equals("+")){
+                left = new BinaryArithPlusExpr(lineNum, left, right);
+            }else{
+                left = new BinaryArithMinusExpr(lineNum,left,right);
+            }
+        }
+        return left;
     }
 
 
@@ -439,6 +507,28 @@ public class Parser {
     //               % <NewCastOrUnary> <MoreNCU> |
     //               EMPTY
     private Expr parseMultExpr() {
+        int lineNum = currentToken.position;
+        Expr left = parseNewCastOrUnary();
+        currentToken = scanner.scan();
+//        TODO: check if end of expr
+
+        String op = currentToken.getSpelling();
+        while(op.equals("*")||op.equals("/")||op.equals("%")){
+            Expr right = parseNewCastOrUnary();
+            switch (op){
+                case "*":
+                    left = new BinaryArithTimesExpr(lineNum,left,right);
+                    break;
+                case "/":
+                    left = new BinaryArithDivideExpr(lineNum,left,right);
+                    break;
+                case "%":
+                    left = new BinaryArithModulusExpr(lineNum,left,right);
+                    break;
+            }
+        }
+        return left;
+
     }
 
     // <NewCastOrUnary> ::= <NewExpression> | <CastExpression> | <UnaryPrefix>
