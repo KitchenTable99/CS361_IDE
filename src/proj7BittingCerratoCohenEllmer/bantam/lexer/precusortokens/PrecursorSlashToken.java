@@ -61,7 +61,8 @@ public class PrecursorSlashToken extends AbstractPrecursorToken {
                         startingLineNumber,
                         "Unterminated Block Comment!"));
                 containsCompleteToken = true;
-            } else if (secondToLastChar == '*' && lastChar == '/') {
+            } else if (spellingStack.size() > 3 // /*/ is not valid
+                    && secondToLastChar == '*' && lastChar == '/') {
                 containsCompleteToken = true;
             }
         }

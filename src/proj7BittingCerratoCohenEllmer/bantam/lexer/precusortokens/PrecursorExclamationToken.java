@@ -25,13 +25,10 @@ public class PrecursorExclamationToken extends AbstractPrecursorToken {
     public void pushChar(char c) {
         spellingStack.push(c);
 
-        if (Character.isWhitespace(c) ||
-                Character.isAlphabetic(c) ||
-                Character.isDigit(c) ||
-                c == ';') {
-            popLastBeforeCreation = true;
+        if ( c == '=') {
             containsCompleteToken = true;
-        } else if ( c == '=') {
+        } else {
+            popLastBeforeCreation = true;
             containsCompleteToken = true;
         }
     }
@@ -43,24 +40,11 @@ public class PrecursorExclamationToken extends AbstractPrecursorToken {
         if (popLastBeforeCreation) {
             throw new MalformedSpellingStackException("You need to pop the stack first");
         }
-
-        return new Token(getTokenKind(), makeStackString(false), currentLineNumber);
-    }
-
-    /**
-     * Gets the exact token type of the singular character
-     *
-     * @return the Kind of the token
-     */
-    private Token.Kind getTokenKind() {
-        String tokenString = makeStackString(true);
-        switch (tokenString) {
-            case "!":
-                return Token.Kind.UNARYNOT;
-            case "!=":
-                return Token.Kind.COMPARE;
-            default:
-                return null;
+        if(spellingStack.size() == 1){
+            return new Token(Token.Kind.UNARYNOT,
+                makeStackString(false), currentLineNumber);
         }
+        return new Token(Token.Kind.COMPARE,
+            makeStackString(false), currentLineNumber);
     }
 }

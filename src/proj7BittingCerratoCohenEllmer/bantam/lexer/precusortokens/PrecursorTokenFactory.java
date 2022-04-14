@@ -20,6 +20,8 @@ public class PrecursorTokenFactory {
         switch (initialChar) {
             case '/':
                 return new PrecursorSlashToken(spellingStack, lineNum, filename);
+            case '&':
+            case '|':
             case '+':
             case '-':
             case '*':
@@ -55,7 +57,12 @@ public class PrecursorTokenFactory {
             case '\u0000':
                 return new PrecursorSingleCharToken(spellingStack, lineNum, filename);
             default:
-                return new PrecursorIdentifierToken(spellingStack, lineNum, filename);
+                if(Character.isLetter(spellingStack.lastElement())){
+                    return new PrecursorIdentifierToken(spellingStack, lineNum, filename);
+                }
+                return new UnsupportedCharToken(spellingStack, lineNum, filename);
+                
+
         }
     }
 }
