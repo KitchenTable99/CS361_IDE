@@ -365,6 +365,21 @@ public class Parser {
 
     // <NewCastOrUnary> ::= <NewExpression> | <CastExpression> | <UnaryPrefix>
     private Expr parseNewCastOrUnary() {
+        Expr expr;
+        switch(currentToken.kind){
+            case NEW: // NewExpression
+                currentToken = scanner.scan(true);
+                expr = parseNew();
+                break;
+            case CAST: // CastExpression
+                currentToken = scanner.scan(true);
+                expr = parseCast();
+                break;
+            default: // UnaryPrefix
+                expr = parseUnaryPrefix();
+                break;
+        }
+        return expr;
     }
 
 
