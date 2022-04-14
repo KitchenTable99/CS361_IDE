@@ -24,22 +24,19 @@ public class PrecursorMathToken extends AbstractPrecursorToken {
         spellingStack.push(c);
         char firstChar = spellingStack.firstElement();
 
-        // ++, --, &&, ||
-        if (c == '+' || c == '-' || c == '&' || c == '|') {
-            if(firstChar == c){
-                containsCompleteToken = true;
-                return;
-            }
+        // deal with ++, --, &&, ||
+        if ((c == '+' || c == '-' || c == '&' || c == '|') && firstChar == c) {
+            containsCompleteToken = true;
+
+            // deal with <=, >=
+        } else if (c == '=' && (firstChar == '<' || firstChar == '>')) {
+            containsCompleteToken = true;
+
+            // all else
+        } else {
+            popLastBeforeCreation = true;
+            containsCompleteToken = true;
         }
-        // <=, >=
-        if(c == '='){
-            if(firstChar == '<' || firstChar == '>' ){
-                containsCompleteToken = true;
-                return;
-            }
-        }
-        popLastBeforeCreation = true;
-        containsCompleteToken = true;
     }
 
     @Override
