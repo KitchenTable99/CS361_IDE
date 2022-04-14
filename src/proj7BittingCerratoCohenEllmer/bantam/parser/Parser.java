@@ -95,6 +95,37 @@ public class Parser {
     // <Field> ::= <Type> <Identifier> <InitialValue> ;
     // <InitialValue> ::= EMPTY | = <Expression>
     private Member parseMember() {
+        int lineNum = currentToken.position;
+        String type = parseType();
+        currentToken = scanner.scan();
+        String identifier = parseIdentifier();
+        currentToken =scanner.scan();
+
+        if(currentToken.kind.equals(Token.Kind.LPAREN)){ //Is a method
+            currentToken = scanner.scan();
+            FormalList params = parseParameters();
+            currentToken = scanner.scan();
+            if(currentToken.kind.equals(Token.Kind.RPAREN)){
+                currentToken = scanner.scan();
+                Stmt blockStmt = parseBlock();
+                StmtList stmtList = ((BlockStmt)blockStmt).getStmtList();
+                return new Method(lineNum, type, identifier, params, stmtList);
+            }else{
+//                TODO:errorhandler stuff, not sure what you wanted for errors
+            }
+        }else{  // Is a field
+            if(currentToken.getSpelling().equals("=")){
+                currentToken = scanner.scan();
+                Expr expr = parseExpression();
+                return new Field(lineNum, type, identifier, expr)
+            }else{
+
+//                TODO: error handler
+            }
+        }
+
+        return null;
+
     }
 
 
