@@ -60,7 +60,7 @@ public class PrecursorTokenFactory {
                 if(Character.isLetter(spellingStack.lastElement())){
                     return new PrecursorIdentifierToken(spellingStack, lineNum, filename);
                 }
-                return new PrecursorSingleCharToken(spellingStack, lineNum, filename);
+                return new UnsupportedCharToken(spellingStack, lineNum, filename);
                 
 
         }
