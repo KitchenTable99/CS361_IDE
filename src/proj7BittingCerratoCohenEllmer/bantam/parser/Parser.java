@@ -11,6 +11,8 @@
  */
 package proj7BittingCerratoCohenEllmer.bantam.parser;
 
+import java.beans.Expression;
+
 import proj7BittingCerratoCohenEllmer.bantam.ast.*;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Scanner;
 import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
@@ -533,6 +535,25 @@ public class Parser {
     // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
     // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
     private Expr parsePrimary() {
+        int position = currentToken.position;
+        // handle ( <Expression )
+        if(currentToken.kind == Token.Kind.LPAREN){
+
+        //handle integerConst
+        }else if(currentToken.kind == Token.Kind.INTCONST){
+        
+        //handle booleanConst
+        }else if(currentToken.kind == Token.Kind.LPAREN){
+
+        // handle StringConst
+        }else if(currentToken.kind == Token.Kind.LPAREN){
+
+        } // handle VarExpr
+        // <VarExpr> ::= <VarExprPrefix> <Identifier> <VarExprSuffix>
+        // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
+        // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
+
+        
     }
 
 
