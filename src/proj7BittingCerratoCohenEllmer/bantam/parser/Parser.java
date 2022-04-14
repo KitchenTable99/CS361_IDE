@@ -18,7 +18,6 @@ import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -716,25 +715,31 @@ public class Parser {
     // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
     // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
     private Expr parsePrimary() {
-        int position = currentToken.position;
-        // handle ( <Expression )
+        int lParenposition = currentToken.position;
+        Expr expr;
+        // handle ( <Expression> )
         if(currentToken.kind == Token.Kind.LPAREN){
-
+            currentToken = scanner.scan(true); // @<Expression>
+            expr = parseExpression(); // @ )
+            if(currentToken.kind != Token.Kind.RPAREN){
+                // Todo: "Incomplete Expression: Unclosed Parenthesis" use lParenposition
+            }
+            currentToken = scanner.scan(true); // prep next token
         //handle integerConst
         }else if(currentToken.kind == Token.Kind.INTCONST){
-        
+            expr = parseIntConst(); // @ next token -- throws error
         //handle booleanConst
-        }else if(currentToken.kind == Token.Kind.LPAREN){
-
+        }else if(currentToken.kind == Token.Kind.BOOLEAN){
+            expr = parseBoolean(); // @ next token -- throws error
         // handle StringConst
-        }else if(currentToken.kind == Token.Kind.LPAREN){
-
+        }else if(currentToken.kind == Token.Kind.STRCONST){
+            expr = parseStringConst(); // @ next token -- throws error
         } // handle VarExpr
         // <VarExpr> ::= <VarExprPrefix> <Identifier> <VarExprSuffix>
         // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
         // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
 
-        
+        return expr;
     }
 
 

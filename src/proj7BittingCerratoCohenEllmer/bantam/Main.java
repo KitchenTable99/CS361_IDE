@@ -29,8 +29,7 @@ public class Main {
                     bantamErrorHandler = new ErrorHandler();
                     bantamParser = new Parser(bantamErrorHandler);
                     currentProgram = bantamParser.parse(filename);
-
-
+                    
                     // Check Scanner's Error Handler
                     if (bantamErrorHandler.errorsFound()){
                         int errorCount = bantamErrorHandler.getErrorList().size();
