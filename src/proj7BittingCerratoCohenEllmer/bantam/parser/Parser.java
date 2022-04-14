@@ -370,6 +370,29 @@ public class Parser {
 
     // <NewExpression> ::= NEW <Identifier> ( )
     private Expr parseNew() {
+        int lineNum = currentToken.position;
+
+        currentToken = scanner.scan(true); // gets Identifier
+        String type = parseIdentifier();
+
+        currentToken = scanner.scan(true); // gets '(' or this is an error
+        if (currentToken.kind != Token.Kind.LPAREN){
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid New Statement");
+                throw new CompilationException(
+                        "Incomplete Statement: New statement missing a '('",
+                        new Throwable());
+        }
+
+        currentToken = scanner.scan(true); // gets ')' or this is an error
+        if (currentToken.kind != Token.Kind.RPAREN){
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid New Statement");
+                throw new CompilationException(
+                        "Incomplete Statement: New statement missing a ')'",
+                        new Throwable());
+        }
+
+        return new NewExpr(lineNum, type);
+
     }
 
 
@@ -379,7 +402,7 @@ public class Parser {
 
         currentToken = scanner.scan(true); // gets '(' or this is an error
         if (currentToken.kind != Token.Kind.LPAREN){
-            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Case Statement");
+            errorHandler.register(Error.Kind.PARSE_ERROR, "Invalid Cast Statement");
                 throw new CompilationException(
                         "Incomplete Statement: Cast statement missing a '('",
                         new Throwable());
