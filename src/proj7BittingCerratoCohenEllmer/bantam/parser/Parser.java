@@ -18,6 +18,10 @@ import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class Parser {
     // instance variables
     private Scanner scanner; // provides the tokens
@@ -411,8 +415,8 @@ public class Parser {
            Expr right = parseExpression();
            String name = currentToken.getSpelling();
            left = new AssignExpr(lineNum, refName, name, right);
+           currentToken = scanner.scan();
        }
-       currentToken = scanner.scan();
        return left;
 
 
@@ -484,10 +488,14 @@ public class Parser {
         currentToken = scanner.scan();
 
 //        TODO: Check if this is the end of expr somehow
+        List<String> opList = Arrays.asList("<",">","<=",">=");
 
         String op = parseOperator();
+        if(!opList.contains(op)){
+            return left;
+        }
 
-        currentToken = scanner.scan();
+            currentToken = scanner.scan();
         Expr right = parseAddExpr();
         switch (op){
             case "<":
