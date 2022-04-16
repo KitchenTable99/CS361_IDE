@@ -130,6 +130,7 @@ public class Parser {
             if(currentToken.getSpelling().equals("=")){
                 currentToken = scanner.scan(true);
                 Expr expr = parseExpression();
+
                 if(currentToken.kind.equals(Token.Kind.SEMICOLON)){
                     currentToken = scanner.scan(true);
                 }
@@ -169,6 +170,7 @@ public class Parser {
                 return parseBreak();
             default:
                 return parseExpressionStmt();
+
         }
     }
 
@@ -184,6 +186,7 @@ public class Parser {
         // parse predicate body
         currentToken = scanner.scan(true);
         Expr predStmt = parseExpression();
+
 
         // ensure predicate finished
         ensureTokenType("Incomplete Statement: While statement missing a closing ')'", Token.Kind.RPAREN);
@@ -205,7 +208,9 @@ public class Parser {
         Expr returnExpression;
         currentToken = scanner.scan(true);
         if (currentToken.kind != Token.Kind.SEMICOLON) {
+
             returnExpression = parseExpression();
+
         } else {
             returnExpression = null;
         }
@@ -235,7 +240,9 @@ public class Parser {
         int position = currentToken.position;
 
         // parse the expression
+
         Expr expression = parseExpression();
+
 
         // ensure semicolon ending
         ensureTokenType("Invalid Expression: Expression statement must end with ';'", Token.Kind.SEMICOLON);
@@ -259,6 +266,7 @@ public class Parser {
 
         // get assignment expression
         currentToken = scanner.scan(true);
+
         Expr expr = parseExpression();
 
         // ensure semicolon ending
@@ -359,22 +367,9 @@ public class Parser {
         ensureTokenType("Incomplete Statement: If statement missing IF", Token.Kind.IF);
 
         currentToken = scanner.scan(true); // (
-        if (currentToken.kind != Token.Kind.LPAREN){
-            errorHandler.register(Error.Kind.PARSE_ERROR,"Invalid If Statement");
-            throw new CompilationException(
-                    "Incomplete Statement: If statement missing (", new Throwable()
-            );
-        }
+        ensureTokenType("Incomplete Statement: If statement missing (", Token.Kind.LPAREN);
 
         Expr predExpr = parseExpression();
-
-        if (currentToken.kind != Token.Kind.RPAREN){
-            errorHandler.register(Error.Kind.PARSE_ERROR,"Invalid If Statement");
-            throw new CompilationException(
-                    "Incomplete Statement: If statement missing )", new Throwable()
-            );
-        }
-
 
         Stmt thenStmt = parseStatement();
         if(currentToken.kind == Token.Kind.ELSE){
@@ -400,12 +395,15 @@ public class Parser {
         int lineNum = currentToken.position;
         Expr left = parseOrExpr();
         String refName = currentToken.getSpelling();
+
         if(currentToken.kind == Token.Kind.ASSIGN && (left instanceof VarExpr)) {
             Expr right = parseExpression();
             String name = currentToken.getSpelling();
             left = new AssignExpr(lineNum, refName, name, right);
             currentToken = scanner.scan(true);
         }
+        System.out.println(currentToken.getSpelling());
+
         return left;
     }
 
@@ -578,10 +576,11 @@ public class Parser {
     private Expr parseNew() {
         int lineNum = currentToken.position;
 
-        //currentToken = scanner.scan(true); // gets Identifier
+        currentToken = scanner.scan(true); // gets Identifier
         ensureTokenType("Invalid New Statement: invalid identifier", Token.Kind.IDENTIFIER);
         String type = parseIdentifier();
 
+        currentToken = scanner.scan(true); // gets '(' or this is an error
         ensureTokenType("Incomplete Statement: New statement missing a '('", Token.Kind.LPAREN);
 
         currentToken = scanner.scan(true); // gets ')' or this is an error
@@ -672,12 +671,14 @@ public class Parser {
         Expr expr;
         ExprList args;
         // handle ( <Expression> )
+
         if(currentToken.kind == Token.Kind.LPAREN){
             currentToken = scanner.scan(true); // @<Expression>
-
             expr = parseExpression(); // @ )
             ensureTokenType("Incomplete Expression: Unclosed Parenthesis", Token.Kind.RPAREN);
             currentToken = scanner.scan(true); // prep next token
+            System.out.println("happened");
+
             //handle integerConst
         }else if(currentToken.kind == Token.Kind.INTCONST){
             expr = parseIntConst(); // @ next token -- throws error
@@ -688,7 +689,7 @@ public class Parser {
         }else if(currentToken.kind == Token.Kind.STRCONST){
             expr = parseStringConst(); // @ next token -- throws error
             // handle VarExpr
-        } else{// @<VarExprPrefix>::= SUPER . | THIS . | EMPTY
+        }else{// @<VarExprPrefix>::= SUPER . | THIS . | EMPTY
             Expr refExpr = null;
             String refName = currentToken.spelling;
             String methodName = null;
@@ -889,8 +890,6 @@ public class Parser {
     }
 
     private void registerAndThrow(String errorMessage) {
-
-        System.out.println(currentToken.position +", "+ currentToken.spelling);
         errorHandler.register(Error.Kind.PARSE_ERROR, errorMessage);
         throw new CompilationException(errorMessage, new Throwable());
     }
