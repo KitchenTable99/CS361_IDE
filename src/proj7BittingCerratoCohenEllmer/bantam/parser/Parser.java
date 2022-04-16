@@ -146,6 +146,8 @@ public class Parser {
     // <Stmt> ::= <WhileStmt> | <ReturnStmt> | <BreakStmt> | <VarDeclaration>
     //             | <ExpressionStmt> | <ForStmt> | <BlockStmt> | <IfStmt>
     private Stmt parseStatement() {
+        System.out.println("A Statment is Called");
+
         switch (currentToken.kind) {
             case IF:
                 return parseIf();
@@ -154,7 +156,6 @@ public class Parser {
             case VAR:
                 return parseVarDeclaration();
             case RETURN:
-
                 return parseReturn();
             case FOR:
                 return parseFor();
@@ -163,8 +164,9 @@ public class Parser {
             case BREAK:
                 return parseBreak();
             default:
-                return parseExpressionStmt();
+                System.out.println("ExprStmt claled");
 
+                return parseExpressionStmt();
         }
     }
 
@@ -231,11 +233,13 @@ public class Parser {
 
     // <ExpressionStmt> ::= <Expression> ;
     private ExprStmt parseExpressionStmt() {
+
         int position = currentToken.position;
+        System.out.println(position);
 
         // parse the expression
-        System.out.println(currentToken.getSpelling());
         Expr expression = parseExpression();
+
 
 
         // ensure semicolon ending
@@ -320,7 +324,10 @@ public class Parser {
 
         // get body statement
         currentToken = scanner.scan(true);
+        System.out.println("Start Statement");
+
         Stmt bodyStmt = parseStatement();
+
 
         return new ForStmt(position, initExpr, termExpr, updateExpr, bodyStmt);
     }
@@ -373,8 +380,6 @@ public class Parser {
             Stmt elseStmt = parseStatement();
             return new IfStmt(lineNum,predExpr,thenStmt,elseStmt);
         }
-        // TODO: Check if messed up Else and if we should throw an error
-
         return new IfStmt(lineNum, predExpr, thenStmt, null);
 
     }
@@ -392,15 +397,14 @@ public class Parser {
 
         Expr left = parseOrExpr();
         String refName = currentToken.getSpelling();
-
         if(currentToken.kind == Token.Kind.ASSIGN && (left instanceof VarExpr)) {
             currentToken = scanner.scan();
+
             Expr right = parseExpression();
             String name = currentToken.getSpelling();
+            System.out.println("END " + name);
             left = new AssignExpr(lineNum, refName, name, right);
-
         }
-
         return left;
     }
 
@@ -463,9 +467,6 @@ public class Parser {
             }
 
         }
-
-
-        //TODO: check if there is an error
 
         return left;
     }
@@ -625,7 +626,6 @@ public class Parser {
                 currentToken = scanner.scan(true);
                 return new UnaryNotExpr(position, parseUnaryPrefix());
             case UNARYINCR: // ++
-
                 currentToken = scanner.scan(true);
                 return new UnaryIncrExpr(position, parseUnaryPrefix(), false);
             case UNARYDECR: // --
@@ -643,6 +643,7 @@ public class Parser {
         int lineNum = currentToken.position;
 
         Expr primary = parsePrimary(); // gets the primary
+
 
 
 //        currentToken = scanner.scan(true); // gets the postfix operator
