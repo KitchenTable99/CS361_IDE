@@ -479,11 +479,12 @@ public class Parser {
 //        TODO: Check if this is the end of expr somehow
         List<String> opList = Arrays.asList("<",">","<=",">=");
 
-        String op = parseOperator();
+        String op = currentToken.spelling;
         if(!opList.contains(op)){
             return left;
         }
 
+        op = parseOperator();
             currentToken = scanner.scan();
         Expr right = parseAddExpr();
         switch (op){
@@ -578,11 +579,10 @@ public class Parser {
     private Expr parseNew() {
         int lineNum = currentToken.position;
 
-        currentToken = scanner.scan(true); // gets Identifier
+        //currentToken = scanner.scan(true); // gets Identifier
         ensureTokenType("Invalid New Statement: invalid identifier", Token.Kind.IDENTIFIER);
         String type = parseIdentifier();
 
-        currentToken = scanner.scan(true); // gets '(' or this is an error
         ensureTokenType("Incomplete Statement: New statement missing a '('", Token.Kind.LPAREN);
 
         currentToken = scanner.scan(true); // gets ')' or this is an error
@@ -874,6 +874,8 @@ public class Parser {
     }
 
     private void registerAndThrow(String errorMessage) {
+
+        System.out.println(currentToken.position +", "+ currentToken.spelling);
         errorHandler.register(Error.Kind.PARSE_ERROR, errorMessage);
         throw new CompilationException(errorMessage, new Throwable());
     }
