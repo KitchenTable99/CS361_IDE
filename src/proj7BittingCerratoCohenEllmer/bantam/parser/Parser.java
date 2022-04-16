@@ -355,12 +355,9 @@ public class Parser {
     // <IfStmt> ::= IF ( <Expr> ) <Stmt> | IF ( <Expr> ) <Stmt> ELSE <Stmt>
     private Stmt parseIf() {
         int lineNum = currentToken.position;
-        if(currentToken.kind != Token.Kind.IF){
-            errorHandler.register(Error.Kind.PARSE_ERROR,"Invalid If Statement");
-            throw new CompilationException(
-                    "Incomplete Statement: If statement missing IF", new Throwable()
-            );
-        }
+
+        ensureTokenType("Incomplete Statement: If statement missing IF", Token.Kind.IF);
+
         currentToken = scanner.scan(true); // (
         if (currentToken.kind != Token.Kind.LPAREN){
             errorHandler.register(Error.Kind.PARSE_ERROR,"Invalid If Statement");
@@ -409,7 +406,6 @@ public class Parser {
             left = new AssignExpr(lineNum, refName, name, right);
             currentToken = scanner.scan(true);
         }
-
         return left;
     }
 
@@ -486,7 +482,6 @@ public class Parser {
         int lineNum = currentToken.position;
         Expr left = parseAddExpr();
 
-//        TODO: Check if this is the end of expr somehow
         List<String> opList = Arrays.asList("<",">","<=",">=");
         if(!opList.contains(currentToken.getSpelling())){
             return left;
@@ -521,10 +516,6 @@ public class Parser {
     private Expr parseAddExpr() {
         int lineNum = currentToken.position;
         Expr left = parseMultExpr();
-
-
-//        TODO: check if end of expr
-
         String op = currentToken.spelling;
         while(op.equals("+")||op.equals("-")){
             Expr right = parseMultExpr();
@@ -547,9 +538,6 @@ public class Parser {
     private Expr parseMultExpr() {
         int lineNum = currentToken.position;
         Expr left = parseNewCastOrUnary();
-
-
-//        TODO: check if end of expr
 
         String op = currentToken.getSpelling();
         while(op.equals("*")||op.equals("/")||op.equals("%")){
