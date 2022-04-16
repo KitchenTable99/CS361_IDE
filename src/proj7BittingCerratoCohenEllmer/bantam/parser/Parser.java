@@ -110,9 +110,7 @@ public class Parser {
     private Member parseMember() {
         int lineNum = currentToken.position;
         String type = parseType();
-        currentToken = scanner.scan();
         String identifier = parseIdentifier();
-        currentToken =scanner.scan();
 
         if(currentToken.kind.equals(Token.Kind.LPAREN)){ //Is a method
             currentToken = scanner.scan();
@@ -127,7 +125,7 @@ public class Parser {
 //                TODO:errorhandler stuff, not sure what you wanted for errors
             }
         }else{  // Is a field
-            if(currentToken.getSpelling().equals("=")){
+            if(currentToken.kind.equals(Token.Kind.ASSIGN)){
                 currentToken = scanner.scan();
                 Expr expr = parseExpression();
                 return new Field(lineNum, type, identifier, expr);
@@ -864,7 +862,7 @@ public class Parser {
         // see if current token is one of the passed types
         boolean currentTokenTypeFound = false;
         for (Token.Kind kind : kinds) {
-            if (currentToken.kind == kind) {
+            if (currentToken.kind.equals(kind)) {
                 currentTokenTypeFound = true;
                 break;
             }

@@ -2,11 +2,11 @@ class BantamExample{
     int number = 234;
     boolean correct = false;
     TextIO io = new TextIO();
-    String output = “”;
+    String output = "";
     
     void error() {
         io.writeStderr();
-        io.putString(“Bad input; exiting\n”);
+        io.putString("Bad input; exiting\n");
         (new Sys()).exit(1);
     }
 
@@ -18,23 +18,23 @@ class BantamExample{
     }
 
     void main() {
-        String s = “”;
+        String s = "";
         io.readStdin();
         int n = io.getInt();
         if (n < 1)
             error();
 
-        io.readFile(“input.txt”);
+        io.readFile("input.txt");
 
         int i = 0;
-        for (i = 0; i < n && !s.equals(“quit”); i++) {
+        for (i = 0; i < n && !s.equals("quit"); i++) {
             s = getNextLine();
-            output = output.concat(s).concat(“\n”);
+            output = output.concat(s).concat("\n");
         }
 
         io.writeStdout();
         io.putString(output.toString());
-        io.writeFile(“output.txt”);
+        io.writeFile("output.txt");
         io.putString(output);
     }
 }
