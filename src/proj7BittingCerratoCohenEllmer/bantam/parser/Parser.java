@@ -118,32 +118,26 @@ public class Parser {
         if(currentToken.kind.equals(Token.Kind.LPAREN)){ //Is a method
             currentToken = scanner.scan(true);
             FormalList params = parseParameters();
-            if(currentToken.kind.equals(Token.Kind.RPAREN)){
-                currentToken = scanner.scan(true);
-                Stmt blockStmt = parseBlock();
-                StmtList stmtList = ((BlockStmt)blockStmt).getStmtList();
-                return new Method(lineNum, type, identifier, params, stmtList);
-            }else{
-//                TODO:errorhandler stuff, not sure what you wanted for errors
-            }
+            ensureTokenType("Method must start with (", Token.Kind.RPAREN);
+
+            currentToken = scanner.scan(true);
+            Stmt blockStmt = parseBlock();
+            StmtList stmtList = ((BlockStmt)blockStmt).getStmtList();
+            return new Method(lineNum, type, identifier, params, stmtList);
+
         }else{  // Is a field
-            if(currentToken.getSpelling().equals("=")){
+            ensureTokenType("field must have =", Token.Kind.ASSIGN);
+
+            currentToken = scanner.scan(true);
+            Expr expr = parseExpression();
+
+            if(currentToken.kind.equals(Token.Kind.SEMICOLON)){
                 currentToken = scanner.scan(true);
-                Expr expr = parseExpression();
-
-                if(currentToken.kind.equals(Token.Kind.SEMICOLON)){
-                    currentToken = scanner.scan(true);
-                }
-
-                return new Field(lineNum, type, identifier, expr);
-            }else{
-
-//                TODO: error handler
             }
+
+            return new Field(lineNum, type, identifier, expr);
+
         }
-
-        return null;
-
     }
 
 
@@ -240,7 +234,7 @@ public class Parser {
         int position = currentToken.position;
 
         // parse the expression
-
+        System.out.println(currentToken.getSpelling());
         Expr expression = parseExpression();
 
 
@@ -298,6 +292,7 @@ public class Parser {
         } else {
             initExpr = null;
         }
+
         ensureTokenType("Invalid For Loop: You must delimit predicates with a ';'", Token.Kind.SEMICOLON);
 
         // terminating expr
@@ -318,6 +313,7 @@ public class Parser {
         } else {
             updateExpr = null;
         }
+
 
         // ensure predicate closed
         ensureTokenType("Invalid For Loop: You must close the predicates with a ')'", Token.Kind.RPAREN);
@@ -393,16 +389,17 @@ public class Parser {
     // <OptionalAssignment> ::= EMPTY | = <Expression>
     private Expr parseExpression() {
         int lineNum = currentToken.position;
+
         Expr left = parseOrExpr();
         String refName = currentToken.getSpelling();
 
         if(currentToken.kind == Token.Kind.ASSIGN && (left instanceof VarExpr)) {
+            currentToken = scanner.scan();
             Expr right = parseExpression();
             String name = currentToken.getSpelling();
             left = new AssignExpr(lineNum, refName, name, right);
-            currentToken = scanner.scan(true);
+
         }
-        System.out.println(currentToken.getSpelling());
 
         return left;
     }
@@ -619,6 +616,7 @@ public class Parser {
     private Expr parseUnaryPrefix() {
         int position = currentToken.position;
 
+
         switch(currentToken.kind){
             case PLUSMINUS: // - or +
                 currentToken = scanner.scan(true);
@@ -627,6 +625,7 @@ public class Parser {
                 currentToken = scanner.scan(true);
                 return new UnaryNotExpr(position, parseUnaryPrefix());
             case UNARYINCR: // ++
+
                 currentToken = scanner.scan(true);
                 return new UnaryIncrExpr(position, parseUnaryPrefix(), false);
             case UNARYDECR: // --
@@ -647,11 +646,14 @@ public class Parser {
 
 
 //        currentToken = scanner.scan(true); // gets the postfix operator
+
         // returns expression
         switch (currentToken.kind) {
             case UNARYINCR:
+                currentToken = scanner.scan();
                 return new UnaryIncrExpr(lineNum, primary, true); // ++
             case UNARYDECR:
+                currentToken = scanner.scan();
                 return new UnaryDecrExpr(lineNum, primary, true); // --
             default:
 
@@ -677,7 +679,6 @@ public class Parser {
             expr = parseExpression(); // @ )
             ensureTokenType("Incomplete Expression: Unclosed Parenthesis", Token.Kind.RPAREN);
             currentToken = scanner.scan(true); // prep next token
-            System.out.println("happened");
 
             //handle integerConst
         }else if(currentToken.kind == Token.Kind.INTCONST){
@@ -791,13 +792,13 @@ public class Parser {
 
     // todo: refactor this method once everything is fully implemented
     private String parseOperator() {
-        if( currentToken.kind != Token.Kind.BINARYLOGIC ||
-                currentToken.kind != Token.Kind.PLUSMINUS ||
-                currentToken.kind != Token.Kind.MULDIV ||
-                currentToken.kind != Token.Kind.COMPARE ||
-                currentToken.kind != Token.Kind.UNARYINCR ||
-                currentToken.kind != Token.Kind.UNARYDECR ||
-                currentToken.kind != Token.Kind.ASSIGN ||
+        if( currentToken.kind != Token.Kind.BINARYLOGIC &&
+                currentToken.kind != Token.Kind.PLUSMINUS &&
+                currentToken.kind != Token.Kind.MULDIV &&
+                currentToken.kind != Token.Kind.COMPARE &&
+                currentToken.kind != Token.Kind.UNARYINCR &&
+                currentToken.kind != Token.Kind.UNARYDECR &&
+                currentToken.kind != Token.Kind.ASSIGN &&
                 currentToken.kind != Token.Kind.UNARYNOT){
             errorHandler.register(Error.Kind.PARSE_ERROR,
                     "Invalid Operator");
