@@ -371,8 +371,6 @@ public class Parser {
 
         Expr predExpr = parseExpression();
 
-        ensureTokenType("Incomplete Statement: If statement missing )", Token.Kind.RPAREN);
-
         Stmt thenStmt = parseStatement();
         if(currentToken.kind == Token.Kind.ELSE){
             currentToken = scanner.scan(true);
