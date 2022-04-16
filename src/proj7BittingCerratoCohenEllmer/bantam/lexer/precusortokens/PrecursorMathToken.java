@@ -66,8 +66,8 @@ public class PrecursorMathToken extends AbstractPrecursorToken {
             case "-":
                 return Token.Kind.PLUSMINUS;
             case "*":
-                return Token.Kind.MULDIV;
             case "%":
+                return Token.Kind.MULDIV;
             case "&&":
             case "||":
                 return Token.Kind.BINARYLOGIC;

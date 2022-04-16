@@ -6,7 +6,7 @@
  * "::=" is used instead of "-->" to separate a variable from its rules.
  * The special character "|" is used to separate the rules for each variable
  * (but note that "||" is an operator).
- * EMPTY indicates a rule with an empty right hand side.
+ * EMPTY indicates a rule with an empty right-hand side.
  * All other symbols in the rules are terminals.
  */
 package proj7BittingCerratoCohenEllmer.bantam.parser;
@@ -17,9 +17,6 @@ import proj7BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj7BittingCerratoCohenEllmer.bantam.util.Error;
 import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class Parser {
     // instance variables
@@ -44,7 +41,6 @@ public class Parser {
         scanner = new Scanner(filename, errorHandler);
         currentToken = scanner.scan(true);
         return parseProgram();
-
     }
 
 
@@ -78,8 +74,8 @@ public class Parser {
         currentToken = scanner.scan(true);
         String parent;
         if (currentToken.kind == Token.Kind.EXTENDS) {
-            currentToken = scanner.scan(true); // todo check identifier
-            parent = currentToken.spelling;
+            currentToken = scanner.scan(true);
+            parent = parseIdentifier();
         } else {
             parent = null;
         }
@@ -92,7 +88,8 @@ public class Parser {
         while (currentToken.kind != Token.Kind.RCURLY) {
             // if we reach end of file, we have an error
             if (currentToken.kind == Token.Kind.EOF) {
-                registerAndThrow("Incomplete Class Declaration: EOF occured before closing '}'");
+                registerAndThrow("Incomplete Class Declaration:" +
+                        " EOF occurred before closing '}'");
             }
             memberList.addElement(parseMember());
         }
@@ -109,37 +106,42 @@ public class Parser {
     // <Field> ::= <Type> <Identifier> <InitialValue> ;
     // <InitialValue> ::= EMPTY | = <Expression>
     private Member parseMember() {
-        int lineNum = currentToken.position;
+        // both fields and methods share position, type, and identifier
+        int position = currentToken.position;
         String type = parseType();
-        currentToken = scanner.scan();
         String identifier = parseIdentifier();
-        currentToken =scanner.scan();
 
-        if(currentToken.kind.equals(Token.Kind.LPAREN)){ //Is a method
+        // method
+        if (currentToken.kind == Token.Kind.LPAREN) {
+            // get parameters
             currentToken = scanner.scan();
             FormalList params = parseParameters();
+            ensureTokenType("Invalid Method Declaration:" +
+                    " Must close parameter list with ')'");
+
+            // get method mody
             currentToken = scanner.scan();
-            if(currentToken.kind.equals(Token.Kind.RPAREN)){
-                currentToken = scanner.scan();
-                Stmt blockStmt = parseBlock();
-                StmtList stmtList = ((BlockStmt)blockStmt).getStmtList();
-                return new Method(lineNum, type, identifier, params, stmtList);
-            }else{
-//                TODO:errorhandler stuff, not sure what you wanted for errors
-            }
-        }else{  // Is a field
-            if(currentToken.getSpelling().equals("=")){
-                currentToken = scanner.scan();
-                Expr expr = parseExpression();
-                return new Field(lineNum, type, identifier, expr);
-            }else{
+            Stmt blockStmt = parseBlock();
+            StmtList stmtList = ((BlockStmt) blockStmt).getStmtList();
+            return new Method(position, type, identifier, params, stmtList);
 
-//                TODO: error handler
+            // field
+        } else {
+            // get the <InitialValue>
+            Expr expr;
+            if (currentToken.kind == Token.Kind.ASSIGN) {
+                currentToken = scanner.scan(true);
+                expr = parseExpression();
+            } else {
+                expr = null;
             }
+
+            // ensure semicolon and set the invariant
+            ensureTokenType("Invalid Field Declaration:" +
+                    " Must end a field with a semicolon", Token.Kind.SEMICOLON);
+            currentToken = scanner.scan(true);
+            return new Field(position, type, identifier, expr);
         }
-
-        return null;
-
     }
 
 
@@ -175,21 +177,22 @@ public class Parser {
 
         // enter while body
         currentToken = scanner.scan(true);
-        ensureTokenType("Incomplete Statement: While statement missing an opening '('", Token.Kind.LPAREN);
+        ensureTokenType("Incomplete Statement: While statement missing an opening '('",
+                Token.Kind.LPAREN);
 
         // parse predicate body
         currentToken = scanner.scan(true);
         Expr predStmt = parseExpression();
 
         // ensure predicate finished
-        ensureTokenType("Incomplete Statement: While statement missing a closing ')'", Token.Kind.RPAREN);
+        ensureTokenType("Incomplete Statement: While statement missing a closing ')'",
+                Token.Kind.RPAREN);
 
         // parse loop body
         currentToken = scanner.scan(true);
         Stmt bodyStmt = parseStatement();
 
         return new WhileStmt(position, predStmt, bodyStmt);
-
     }
 
 
@@ -207,7 +210,8 @@ public class Parser {
         }
 
         // ensure semicolon ending
-        ensureTokenType("Invalid Return Statement: Missing an ending ';'", Token.Kind.SEMICOLON);
+        ensureTokenType("Invalid Return Statement: Missing an ending ';'",
+                Token.Kind.SEMICOLON);
 
         currentToken = scanner.scan(true);
         return new ReturnStmt(position, returnExpression);
@@ -219,7 +223,8 @@ public class Parser {
         int position = currentToken.position;
 
         // ensure semicolon ending
-        ensureTokenType("Invalid Break Statement: Break statement must end with ';'", Token.Kind.SEMICOLON);
+        ensureTokenType("Invalid Break Statement: Break statement must end with ';'",
+                Token.Kind.SEMICOLON);
 
         currentToken = scanner.scan(true);
         return new BreakStmt(position);
@@ -234,7 +239,8 @@ public class Parser {
         Expr expression = parseExpression();
 
         // ensure semicolon ending
-        ensureTokenType("Invalid Expression: Expression statement must end with ';'", Token.Kind.SEMICOLON);
+        ensureTokenType("Invalid Expression: Expression statement must end with ';'",
+                Token.Kind.SEMICOLON);
         return new ExprStmt(position, expression);
     }
 
@@ -251,19 +257,21 @@ public class Parser {
 
         // ensure assignment
         currentToken = scanner.scan(true);
-        ensureTokenType("Invalid Declaration Statement: All variables must be initialized", Token.Kind.ASSIGN);
+        ensureTokenType("Invalid Declaration Statement:" +
+                " All variables must be initialized", Token.Kind.ASSIGN);
 
         // get assignment expression
         currentToken = scanner.scan(true);
         Expr expr = parseExpression();
 
         // ensure semicolon ending
-        ensureTokenType("Invalid Declaration Statement: Missing ending ';'", Token.Kind.SEMICOLON);
+        ensureTokenType("Invalid Declaration Statement: Missing ending ';'",
+                Token.Kind.SEMICOLON);
 
         // ensure invariant
         currentToken = scanner.scan(true);
 
-        return new DeclStmt(position, varID, expr); // todo: is this the right return?
+        return new DeclStmt(position, varID, expr);
     }
 
 
@@ -276,7 +284,8 @@ public class Parser {
 
         // ensure predicate stuff contained in parentheses
         currentToken = scanner.scan(true);
-        ensureTokenType("Invalid For Loop: Predicates must begin with '('", Token.Kind.LPAREN);
+        ensureTokenType("Invalid For Loop: Predicates must begin with '('",
+                Token.Kind.LPAREN);
 
         // start expr
         currentToken = scanner.scan(true);
@@ -286,7 +295,8 @@ public class Parser {
         } else {
             initExpr = null;
         }
-        ensureTokenType("Invalid For Loop: You must delimit predicates with a ';'", Token.Kind.SEMICOLON);
+        ensureTokenType("Invalid For Loop: You must delimit predicates with a ';'",
+                Token.Kind.SEMICOLON);
 
         // terminating expr
         currentToken = scanner.scan(true);
@@ -296,7 +306,8 @@ public class Parser {
         } else {
             termExpr = null;
         }
-        ensureTokenType("Invalid For Loop: You must delimit predicates with a ';'", Token.Kind.SEMICOLON);
+        ensureTokenType("Invalid For Loop: You must delimit predicates with a ';'",
+                Token.Kind.SEMICOLON);
 
         // increment expression
         currentToken = scanner.scan(true);
@@ -308,7 +319,8 @@ public class Parser {
         }
 
         // ensure predicate closed
-        ensureTokenType("Invalid For Loop: You must close the predicates with a ')'", Token.Kind.RPAREN);
+        ensureTokenType("Invalid For Loop: You must close the predicates with a ')'",
+                Token.Kind.RPAREN);
 
         // get body statement
         currentToken = scanner.scan(true);
@@ -350,44 +362,34 @@ public class Parser {
 
     // <IfStmt> ::= IF ( <Expr> ) <Stmt> | IF ( <Expr> ) <Stmt> ELSE <Stmt>
     private Stmt parseIf() {
-        int lineNum = currentToken.position;
-        if(currentToken.kind != Token.Kind.IF){
-            errorHandler.register(Error.Kind.PARSE_ERROR,"Invalid If Statement");
-            throw new CompilationException(
-                    "Incomplete Statement: If statement missing IF", new Throwable()
-            );
-        }
-        currentToken = scanner.scan(true); // (
-        if (currentToken.kind != Token.Kind.LPAREN){
-            errorHandler.register(Error.Kind.PARSE_ERROR,"Invalid If Statement");
-            throw new CompilationException(
-                    "Incomplete Statement: If statement missing (", new Throwable()
-            );
-        }
+        int position = currentToken.position;
 
+        // ensure predicate opens with '('
+        currentToken = scanner.scan(true); // (
+        ensureTokenType("Invalid If Statement: missing opening '('", Token.Kind.LPAREN);
+
+        // get predicate
         currentToken = scanner.scan(true); // expr
         Expr predExpr = parseExpression();
-        currentToken = scanner.scan(); // )
-        if (currentToken.kind != Token.Kind.RPAREN){
-            errorHandler.register(Error.Kind.PARSE_ERROR,"Invalid If Statement");
-            throw new CompilationException(
-                    "Incomplete Statement: If statement missing )", new Throwable()
-            );
-        }
 
+        // ensure closed with '('
+        ensureTokenType("Invalid If Statement: missing closing ')'", Token.Kind.RPAREN);
+
+        // get the body of if statement
         currentToken = scanner.scan();
         Stmt thenStmt = parseStatement();
-        currentToken = scanner.scan();
-        if(currentToken.kind == Token.Kind.ELSE){
+
+        // get the body of the else statement if one is present
+        Stmt elseStmt;
+        if (currentToken.kind == Token.Kind.ELSE) {
             currentToken = scanner.scan();
-            Stmt elseStmt = parseStatement();
-            return new IfStmt(lineNum,predExpr,thenStmt,elseStmt);
+            elseStmt = parseStatement();
+        } else {
+            elseStmt = null;
         }
-        // TODO: Check if messed up Else and if we should throw an error
-        return new IfStmt(lineNum, predExpr, thenStmt, null);
 
-
-
+        // invariant already satisfied
+        return new IfStmt(position, predExpr, thenStmt, elseStmt);
     }
 
 
@@ -399,20 +401,20 @@ public class Parser {
     // <Expression> ::= <LogicalORExpr> <OptionalAssignment>
     // <OptionalAssignment> ::= EMPTY | = <Expression>
     private Expr parseExpression() {
-        int lineNum = currentToken.position;
-       Expr left = parseOrExpr();
-       String refName = currentToken.getSpelling();
-       currentToken = scanner.scan();
-       if(currentToken.kind == Token.Kind.ASSIGN ) {
-           Expr right = parseExpression();
-           String name = currentToken.getSpelling();
-           left = new AssignExpr(lineNum, refName, name, right);
-           currentToken = scanner.scan();
-       }
-       return left;
+        int position = currentToken.position;
 
+        // get the leftside stuff
+        String leftName = currentToken.getSpelling();
+        Expr left = parseOrExpr();
 
-
+        // check to see if there's an assignment
+        String refName = currentToken.getSpelling(); // literally no idea what this is or if it's useful
+        if (currentToken.kind == Token.Kind.ASSIGN) {
+            currentToken = scanner.scan(true);
+            Expr right = parseExpression();
+            left = new AssignExpr(position, refName, leftName, right);
+        }
+        return left;
     }
 
 
@@ -436,38 +438,38 @@ public class Parser {
     // <LogicalAND> ::= <ComparisonExpr> <LogicalANDRest>
     // <LogicalANDRest> ::= EMPTY |  && <ComparisonExpr> <LogicalANDRest>
     private Expr parseAndExpr() {
-        int lineNum = currentToken.position;
-        Expr left = parseEqualityExpr();
-        while (currentToken.spelling.equals("&&")){
-            Expr right = parseEqualityExpr();
-            left = new BinaryLogicAndExpr(lineNum, left, right);
+        int position = currentToken.position;
+
+        Expr left = parseComparisonExpr();
+        while (currentToken.spelling.equals("&&")) {
+            Expr right = parseComparisonExpr();
+            left = new BinaryLogicAndExpr(position, left, right);
         }
         return left;
-
     }
 
 
     // <ComparisonExpr> ::= <RelationalExpr> <equalOrNotEqual> <RelationalExpr> |
     //                      <RelationalExpr>
-    // <equalOrNotEqual> ::=  = | !=
-    private Expr parseEqualityExpr() {
-        int lineNum = currentToken.position;
-        Expr left = parseRelationalExpr();
-        currentToken = scanner.scan();
-        if(currentToken.kind.equals(Token.Kind.BINARYLOGIC)){
-            String typeOfEq = currentToken.spelling;
-            currentToken = scanner.scan();
-            Expr right = parseRelationalExpr();
-            if(typeOfEq.equals("==")){
+    // <equalOrNotEqual> ::=  == | !=
+    private Expr parseComparisonExpr() {
+        int position = currentToken.position;
 
-                left = new BinaryCompEqExpr(lineNum, left,right);
-            }else{
-                left = new BinaryCompNeExpr(lineNum, left, right);
+        // get the left piece
+        Expr left = parseRelationalExpr();
+
+        // if the current token is == or != parse the right half
+        if (currentToken.kind == Token.Kind.BINARYLOGIC) {
+            String typeOfEq = currentToken.spelling;
+            currentToken = scanner.scan(); // currentToken: <RelationalExpr>
+            Expr right = parseRelationalExpr();
+            if (typeOfEq.equals("==")) {
+                left = new BinaryCompEqExpr(position, left, right);
+            } else {
+                left = new BinaryCompNeExpr(position, left, right);
             }
 
         }
-        //TODO: check if there is an error
-
         return left;
     }
 
@@ -475,62 +477,62 @@ public class Parser {
     // <RelationalExpr> ::= <AddExpr> | <AddExpr> <ComparisonOp> <AddExpr>
     // <ComparisonOp> ::= < | > | <= | >=
     private Expr parseRelationalExpr() {
-        int lineNum = currentToken.position;
+        int position = currentToken.position;
+
+        // get the first <AddExpr>
         Expr left = parseAddExpr();
-        currentToken = scanner.scan();
 
-//        TODO: Check if this is the end of expr somehow
-        List<String> opList = Arrays.asList("<",">","<=",">=");
+        // check if there is a <ComparisonOp>
+        if (currentToken.kind == Token.Kind.COMPARE) {
+            String compOp = currentToken.spelling;
 
-        String op = parseOperator();
-        if(!opList.contains(op)){
-            return left;
+            // get right side of equation
+            currentToken = scanner.scan(true);
+            Expr right = parseAddExpr();
+
+            // return correct expression
+            switch (compOp) {
+                case "<":
+                    return new BinaryCompLtExpr(position, left, right);
+                case ">":
+                    return new BinaryCompGtExpr(position, left, right);
+                case "<=":
+                    return new BinaryCompLeqExpr(position, left, right);
+                case ">=":
+                    return new BinaryCompGeqExpr(position, left, right);
+                default:
+                    throw new RuntimeException("Somehow a token other than '>', '<'," +
+                            " '>=', or '<=' was scanned as a comparison token");
+            }
+        } else {
+            return left;  // this is just the original <AddExpr>
         }
-
-            currentToken = scanner.scan();
-        Expr right = parseAddExpr();
-        switch (op){
-            case "<":
-                left = new BinaryCompLtExpr(lineNum,left,right);
-                break;
-            case ">":
-                left = new BinaryCompGtExpr(lineNum,left,right);
-                break;
-            case "<=":
-                left = new BinaryCompLeqExpr(lineNum,left,right);
-                break;
-            case ">=":
-                left = new BinaryCompGeqExpr(lineNum, left, right);
-                break;
-        }
-        return left;
-
-
-
     }
-
 
     // <AddExpr>::＝ <MultExpr> <MoreMultExpr>
     // <MoreMultExpr> ::= EMPTY | + <MultExpr> <MoreMultExpr> | - <MultExpr> <MoreMultExpr>
     private Expr parseAddExpr() {
-        int lineNum = currentToken.position;
+        int position = currentToken.position;
+
+        // get initial <MultExpr>
         Expr left = parseMultExpr();
-        currentToken = scanner.scan();
 
-//        TODO: check if end of expr
+        if (currentToken.kind == Token.Kind.PLUSMINUS) {
+            String operation = currentToken.spelling;
 
-        String op = currentToken.spelling;
-        while(op.equals("+")||op.equals("-")){
+            // get the rest of the <MoreMultExpr>
+            currentToken = scanner.scan(true);
             Expr right = parseMultExpr();
-            if(op.equals("+")){
-                left = new BinaryArithPlusExpr(lineNum, left, right);
-            }else{
-                left = new BinaryArithMinusExpr(lineNum,left,right);
-            }
-        }
-        return left;
-    }
 
+            if (operation.equals("+")) {
+                return new BinaryArithPlusExpr(position, left, right);
+            } else {
+                return new BinaryArithMinusExpr(position, left, right);
+            }
+        } else {
+            return left;
+        }
+    }
 
     // <MultiExpr> ::= <NewCastOrUnary> <MoreNCU>
     // <MoreNCU> ::= * <NewCastOrUnary> <MoreNCU> |
@@ -538,28 +540,28 @@ public class Parser {
     //               % <NewCastOrUnary> <MoreNCU> |
     //               EMPTY
     private Expr parseMultExpr() {
-        int lineNum = currentToken.position;
+        int position = currentToken.position;
+
+        // get initial <NewCastOrUnary>
         Expr left = parseNewCastOrUnary();
-        currentToken = scanner.scan();
-//        TODO: check if end of expr
 
-        String op = currentToken.getSpelling();
-        while(op.equals("*")||op.equals("/")||op.equals("%")){
+        if (currentToken.kind == Token.Kind.MULDIV) { // this assumes "%" is divmul
+            String relationalOp = currentToken.spelling;
+
+            // get rest of <MoreNCU>
+            currentToken = scanner.scan(true);
             Expr right = parseNewCastOrUnary();
-            switch (op){
-                case "*":
-                    left = new BinaryArithTimesExpr(lineNum,left,right);
-                    break;
-                case "/":
-                    left = new BinaryArithDivideExpr(lineNum,left,right);
-                    break;
-                case "%":
-                    left = new BinaryArithModulusExpr(lineNum,left,right);
-                    break;
-            }
-        }
-        return left;
 
+            if (relationalOp.equals("*")) {
+                return new BinaryArithTimesExpr(position, left, right);
+            } else if (relationalOp.equals("/")) {
+                return new BinaryArithDivideExpr(position, left, right);
+            } else {
+                return new BinaryArithModulusExpr(position, left, right);
+            }
+        } else {
+            return left;
+        }
     }
 
     // <NewCastOrUnary> ::= <NewExpression> | <CastExpression> | <UnaryPrefix>
@@ -572,27 +574,27 @@ public class Parser {
                 currentToken = scanner.scan(true);
                 return parseCast();
             default: // UnaryPrefix
-                return parseUnaryPrefix(); // todo: why does this not scan forward?
+                return parseUnaryPrefix();
         }
     }
 
 
     // <NewExpression> ::= NEW <Identifier> ( )
     private Expr parseNew() {
-        int lineNum = currentToken.position;
+        int position = currentToken.position;
 
-        currentToken = scanner.scan(true); // gets Identifier
-        ensureTokenType("Invalid New Statement: invalid identifier", Token.Kind.IDENTIFIER);
+        currentToken = scanner.scan(true); // currentToken: <Identifier>
         String type = parseIdentifier();
 
         currentToken = scanner.scan(true); // gets '(' or this is an error
-        ensureTokenType("Incomplete Statement: New statement missing a '('", Token.Kind.LPAREN);
+        ensureTokenType("Incomplete Statement: New statement missing a '('",
+                Token.Kind.LPAREN);
 
         currentToken = scanner.scan(true); // gets ')' or this is an error
-        ensureTokenType("Incomplete Statement: New statement missing a ')'", Token.Kind.RPAREN);
+        ensureTokenType("Incomplete Statement: New statement missing a ')'",
+                Token.Kind.RPAREN);
 
-        return new NewExpr(lineNum, type);
-
+        return new NewExpr(position, type);
     }
 
 
@@ -601,19 +603,22 @@ public class Parser {
         int lineNum = currentToken.position;
 
         currentToken = scanner.scan(true); // gets '(' or this is an error
-        ensureTokenType("Incomplete Statement: Cast statement missing a '('", Token.Kind.LPAREN);
+        ensureTokenType("Incomplete Statement: Cast statement missing a '('",
+                Token.Kind.LPAREN);
 
         currentToken = scanner.scan(true); // gets type
         String type = parseType();
 
         currentToken = scanner.scan(true); // gets ',' or this is an error
-        ensureTokenType("Incomplete Statement: Cast statement missing a ','", Token.Kind.COMMA);
+        ensureTokenType("Incomplete Statement: Cast statement missing a ','",
+                Token.Kind.COMMA);
 
         currentToken = scanner.scan(true); // gets expression
         Expr expr = parseExpression();
 
         currentToken = scanner.scan(true); // gets ')' or this is an error
-        ensureTokenType("Incomplete Statement: Cast statement missing a ')'", Token.Kind.RPAREN);
+        ensureTokenType("Incomplete Statement: Cast statement missing a ')'",
+                Token.Kind.RPAREN);
 
         return new CastExpr(lineNum, type, expr);
     }
@@ -624,9 +629,9 @@ public class Parser {
     private Expr parseUnaryPrefix() {
         int position = currentToken.position;
 
-        switch(currentToken.kind){
-            case PLUSMINUS: // - or +
-                currentToken = scanner.scan(true);
+        switch(currentToken.kind) {
+            case PLUSMINUS: // - or +, but here we only care about -
+                currentToken = scanner.scan(true); // satisfy invariant
                 return new UnaryNegExpr(position, parseUnaryPrefix());
             case UNARYNOT: // !
                 currentToken = scanner.scan(true);
@@ -638,7 +643,7 @@ public class Parser {
                 currentToken = scanner.scan(true);
                 return new UnaryDecrExpr(position, parseUnaryPrefix(), false);
             default:
-                return parseUnaryPostfix(); // todo: why does this not have a scanner.scan line?
+                return parseUnaryPostfix();
         }
     }
 
@@ -646,7 +651,7 @@ public class Parser {
     // <UnaryPostfix> ::= <Primary> <PostfixOp>
     // <PostfixOp> ::= ++ | -- | EMPTY
     private Expr parseUnaryPostfix() {
-        int lineNum = currentToken.position;
+        int position = currentToken.position;
 
         Expr primary = parsePrimary(); // gets the primary
         currentToken = scanner.scan(true); // gets the postfix operator
@@ -654,9 +659,9 @@ public class Parser {
         // returns expression
         switch (currentToken.kind) {
             case UNARYINCR:
-                return new UnaryIncrExpr(lineNum, primary, true); // ++
+                return new UnaryIncrExpr(position, primary, true); // ++
             case UNARYDECR:
-                return new UnaryDecrExpr(lineNum, primary, true); // --
+                return new UnaryDecrExpr(position, primary, true); // --
             default:
                 return primary; // empty, so just the primary
         }
@@ -664,71 +669,83 @@ public class Parser {
 
 
     // <Primary> ::= ( <Expression> ) | <IntegerConst> | <BooleanConst> |
-    //                              <StringConst> | <VarExpr>
+    //                                  <StringConst>  | <VarExpr>
     // <VarExpr> ::= <VarExprPrefix> <Identifier> <VarExprSuffix>
     // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
     // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
     private Expr parsePrimary() {
-        int startPosition = currentToken.position;
-        Expr expr;
-        ExprList args;
+        int position = currentToken.position;
+        Expr exprToReturn;
+
         // handle ( <Expression> )
-        if(currentToken.kind == Token.Kind.LPAREN){
-            currentToken = scanner.scan(true); // @<Expression>
-            expr = parseExpression(); // @ )
-            ensureTokenType("Incomplete Expression: Unclosed Parenthesis", Token.Kind.RPAREN);
+        if (currentToken.kind == Token.Kind.LPAREN) {
+            currentToken = scanner.scan(true); // currentToken: <Expression>
+            exprToReturn = parseExpression(); // currentToken: )
+            ensureTokenType("Incomplete Expression: Unclosed Parenthesis",
+                    Token.Kind.RPAREN);
             currentToken = scanner.scan(true); // prep next token
-        //handle integerConst
-        }else if(currentToken.kind == Token.Kind.INTCONST){
-            expr = parseIntConst(); // @ next token -- throws error
-        //handle booleanConst
-        }else if(currentToken.kind == Token.Kind.BOOLEAN){
-            expr = parseBoolean(); // @ next token -- throws error
-        // handle StringConst
-        }else if(currentToken.kind == Token.Kind.STRCONST){
-            expr = parseStringConst(); // @ next token -- throws error
-        // handle VarExpr
-        } else{// @<VarExprPrefix>::= SUPER . | THIS . | EMPTY
-            Expr refExpr = null;
-            String methodName;
-            if("super".equals(currentToken.spelling)
-                || "this".equals(currentToken.spelling)){
 
-                refExpr = parseExpression(); //currentToken -> '.'
-                ensureTokenType("reference call missing seperator '.'", Token.Kind.DOT);
+            // handle integerConst
+        } else if (currentToken.kind == Token.Kind.INTCONST) {
+            exprToReturn = parseIntConst();
 
-                currentToken = scanner.scan(true); // '.' -> <identifier>
+            // handle booleanConst
+        } else if (currentToken.kind == Token.Kind.BOOLEAN) {
+            exprToReturn = parseBoolean();
+
+            // handle StringConst
+        } else if (currentToken.kind == Token.Kind.STRCONST) {
+            exprToReturn = parseStringConst();
+
+            // handle VarExpr
+        } else {
+            // get prefix (super or this)
+            Expr refExpr;
+            String spelling = currentToken.spelling;
+            if ("super".equals(spelling) || "this".equals(spelling)) {
+                // todo: TEST THE SHIT OUT OF THIS
+                refExpr = parseExpression(); // currentToken: '.'
+                ensureTokenType("reference call missing separator '.'", Token.Kind.DOT);
+
+                currentToken = scanner.scan(true); // currentToken: <identifier>
+            } else {
+                refExpr = null; // currentToken: <identifier>
             }
 
-            methodName = parseIdentifier();
+            // get method name
+            String methodName = parseIdentifier(); // currentToken: ( or EMPTY
 
             // handle ( <Arguments> )
-            ensureTokenType("Method Call Incomplete : Missing  '('", Token.Kind.LPAREN);
-            currentToken = scanner.scan(true); // @<Expression>
-            args = parseArguments(); // @ )
-            ensureTokenType("Method Call Incomplete : Unclosed Parenthesis, Missing')",
-                Token.Kind.RPAREN);
-            currentToken = scanner.scan(true); // prep next token
-            expr = new DispatchExpr(startPosition, refExpr, methodName, args);
+            ExprList args;
+            if (currentToken.kind == Token.Kind.LPAREN) {
+                currentToken = scanner.scan(true);
+                args = parseArguments();
+                ensureTokenType("Method Call Incomplete:" +
+                        " Unclosed Parenthesis, Missing')", Token.Kind.RPAREN);
+                currentToken = scanner.scan(true); // prep next token
+            } else {
+                args = null;
+            }
+            exprToReturn = new DispatchExpr(position, refExpr, methodName, args);
         }
-        return expr;
+        return exprToReturn;
     }
 
 
     // <Arguments> ::= EMPTY | <Expression> <MoreArgs>
     // <MoreArgs>  ::= EMPTY | , <Expression> <MoreArgs>
-    // todo: this should be re-refactored after parsePrimary
     private ExprList parseArguments() {
         ExprList arguments = new ExprList(currentToken.position); // makes empty ExprList
 
-        while (currentToken.kind != Token.Kind.RPAREN){
-            arguments.addElement(parseFormal()); // Add Expresion to ExprList
+        while (currentToken.kind != Token.Kind.RPAREN) {
+            arguments.addElement(parseExpression()); // add Expression to ExprList
 
-            currentToken = scanner.scan(true); // either a ',' or a ')' or we have an error
-            ensureTokenType("Incomplete Statement: Parameter statement missing a ')' or ','", Token.Kind.COMMA, Token.Kind.RPAREN);
+            ensureTokenType("Incomplete Statement:" +
+                            " Parameter statement missing a ')' or ','",
+                    Token.Kind.COMMA, Token.Kind.RPAREN);
 
-            if (currentToken.kind == Token.Kind.COMMA){ // if it's a ',' we ignore it and go to the next
-                currentToken = scanner.scan(true);      // argument to parse
+            if (currentToken.kind == Token.Kind.COMMA) { // if it's a ',' we ignore it
+                currentToken = scanner.scan(true);
             }
         }
 
@@ -738,17 +755,17 @@ public class Parser {
 
     // <Parameters> ::=  EMPTY | <Formal> <MoreFormals>
     // <MoreFormals> ::= EMPTY | , <Formal> <MoreFormals
-    // todo: this should be re-refactored after parsePrimary
     private FormalList parseParameters() {
         FormalList parameters = new FormalList(currentToken.position); // makes empty FormalList
 
-        while (currentToken.kind != Token.Kind.RPAREN){
+        while (currentToken.kind != Token.Kind.RPAREN) {
             parameters.addElement(parseFormal()); // Add Formal to FormalList
 
-            currentToken = scanner.scan(true); // either a ',' or a ')' or we have an error
-            ensureTokenType("Incomplete Statement: Parameter statement missing a ')' or ','", Token.Kind.COMMA, Token.Kind.RPAREN);
+            ensureTokenType("Incomplete Statement:" +
+                            " Parameter statement missing a ')' or ','", Token.Kind.COMMA,
+                    Token.Kind.RPAREN);
 
-            if (currentToken.kind == Token.Kind.COMMA){ // if it's a ',' we ignore it and go to the next
+            if (currentToken.kind == Token.Kind.COMMA) { // if it's a ',' we ignore it and go to the next
                 currentToken = scanner.scan(true);      // formal parameter to parse
             }
         }
@@ -775,29 +792,6 @@ public class Parser {
 
     //----------------------------------------
     //Terminals
-
-    // todo: refactor this method once everything is fully implemented
-    private String parseOperator() {
-        if( currentToken.kind != Token.Kind.BINARYLOGIC ||
-                currentToken.kind != Token.Kind.PLUSMINUS ||
-                currentToken.kind != Token.Kind.MULDIV ||
-                currentToken.kind != Token.Kind.COMPARE ||
-                currentToken.kind != Token.Kind.UNARYINCR ||
-                currentToken.kind != Token.Kind.UNARYDECR ||
-                currentToken.kind != Token.Kind.ASSIGN ||
-                currentToken.kind != Token.Kind.UNARYNOT){
-            errorHandler.register(Error.Kind.PARSE_ERROR,
-                    "Invalid Operator");
-            throw new CompilationException(
-                    "Expected a valid Operator",
-                    new Throwable());
-        }
-        String operator = currentToken.getSpelling();
-        currentToken = scanner.scan(true);
-        return operator;
-    }
-
-
     private String parseIdentifier() {
         // ensure the correct type
         ensureTokenType("Invalid identifier token", Token.Kind.IDENTIFIER);
@@ -827,7 +821,8 @@ public class Parser {
 
     private ConstIntExpr parseIntConst() {
         // ensure correct token type
-        ensureTokenType("Invalid Integer Value: Expected Integer value in range 0-2147483647", Token.Kind.INTCONST);
+        ensureTokenType("Invalid Integer Value:" +
+                " Expected Integer value in range 0-2147483647", Token.Kind.INTCONST);
 
         // get needed information
         int position = currentToken.position;
@@ -841,7 +836,8 @@ public class Parser {
 
     private ConstBooleanExpr parseBoolean() {
         // ensure correct token type
-        ensureTokenType("Invalid Integer Value: Expected 'true' or 'false' as a boolean value", Token.Kind.BOOLEAN);
+        ensureTokenType("Invalid Integer Value:" +
+                " Expected 'true' or 'false' as a boolean value", Token.Kind.BOOLEAN);
 
         // get needed information
         int position = currentToken.position;
@@ -858,8 +854,8 @@ public class Parser {
      * message with the internal error handler and raises a compilation exception.
      *
      * @param errorMessage to register and raise if needed
-     * @param kinds        one or more Token.Kind values against which to check the type of the
-     *                     current token
+     * @param kinds        one or more Token.Kind values against which to check the type
+     *                     of the current token
      */
     private void ensureTokenType(String errorMessage, Token.Kind... kinds) {
         // see if current token is one of the passed types
@@ -876,6 +872,12 @@ public class Parser {
         }
     }
 
+    /**
+     * Helper method that registers an error with the internal error handler and throws
+     * the exception to stop the parsing.
+     *
+     * @param errorMessage to display in the error handler and in the runtime exception
+     */
     private void registerAndThrow(String errorMessage) {
         errorHandler.register(Error.Kind.PARSE_ERROR, errorMessage);
         throw new CompilationException(errorMessage, new Throwable());
