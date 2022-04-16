@@ -483,22 +483,11 @@ public class Parser {
         Expr left = parseAddExpr();
 
         List<String> opList = Arrays.asList("<",">","<=",">=");
-<<<<<<< HEAD
-
-        String op = currentToken.spelling;
-        if(!opList.contains(op)){
-=======
         if(!opList.contains(currentToken.getSpelling())){
->>>>>>> 60cc20e7a16ba0eae01c10fd37d505a92a3678ef
             return left;
         }
         String op = parseOperator();
 
-<<<<<<< HEAD
-        op = parseOperator();
-            currentToken = scanner.scan();
-=======
->>>>>>> 60cc20e7a16ba0eae01c10fd37d505a92a3678ef
         Expr right = parseAddExpr();
         switch (op){
             case "<":
@@ -678,6 +667,7 @@ public class Parser {
     // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
     // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
     private Expr parsePrimary() {
+        System.out.println(currentToken.spelling);
         int startPosition = currentToken.position;
         Expr expr;
         ExprList args;
@@ -700,17 +690,24 @@ public class Parser {
             // handle VarExpr
         } else{// @<VarExprPrefix>::= SUPER . | THIS . | EMPTY
             Expr refExpr = null;
-            String methodName;
-            if("super".equals(currentToken.spelling)
-                    || "this".equals(currentToken.spelling)){
+            String refName = currentToken.spelling;
+            String methodName = null;
 
+            if("super".equals(refName)
+                    || "this".equals(refName)){
+                
                 refExpr = parseExpression(); //currentToken -> '.'
-                ensureTokenType("reference call missing seperator '.'", Token.Kind.DOT);
-
-                currentToken = scanner.scan(true); // '.' -> <identifier>
             }
 
-            methodName = parseIdentifier();
+            if(currentToken.kind == Token.Kind.DOT){
+                ensureTokenType("reference call missing seperator '.'", Token.Kind.DOT);
+                currentToken = scanner.scan(true); // '.' -> <identifier>
+                methodName = parseIdentifier();
+            }else{
+                refExpr = null;
+                methodName = refName;
+            }
+            
             if(currentToken.kind.equals(Token.Kind.LPAREN)) {
 
                 // handle ( <Arguments> )
