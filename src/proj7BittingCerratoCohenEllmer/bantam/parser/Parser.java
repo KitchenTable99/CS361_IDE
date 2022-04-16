@@ -483,22 +483,11 @@ public class Parser {
         Expr left = parseAddExpr();
 
         List<String> opList = Arrays.asList("<",">","<=",">=");
-<<<<<<< HEAD
-
-        String op = currentToken.spelling;
-        if(!opList.contains(op)){
-=======
         if(!opList.contains(currentToken.getSpelling())){
->>>>>>> 60cc20e7a16ba0eae01c10fd37d505a92a3678ef
             return left;
         }
         String op = parseOperator();
 
-<<<<<<< HEAD
-        op = parseOperator();
-            currentToken = scanner.scan();
-=======
->>>>>>> 60cc20e7a16ba0eae01c10fd37d505a92a3678ef
         Expr right = parseAddExpr();
         switch (op){
             case "<":
@@ -589,10 +578,11 @@ public class Parser {
     private Expr parseNew() {
         int lineNum = currentToken.position;
 
-        //currentToken = scanner.scan(true); // gets Identifier
+        currentToken = scanner.scan(true); // gets Identifier
         ensureTokenType("Invalid New Statement: invalid identifier", Token.Kind.IDENTIFIER);
         String type = parseIdentifier();
 
+        currentToken = scanner.scan(true); // gets '(' or this is an error
         ensureTokenType("Incomplete Statement: New statement missing a '('", Token.Kind.LPAREN);
 
         currentToken = scanner.scan(true); // gets ')' or this is an error
@@ -894,8 +884,6 @@ public class Parser {
     }
 
     private void registerAndThrow(String errorMessage) {
-
-        System.out.println(currentToken.position +", "+ currentToken.spelling);
         errorHandler.register(Error.Kind.PARSE_ERROR, errorMessage);
         throw new CompilationException(errorMessage, new Throwable());
     }
