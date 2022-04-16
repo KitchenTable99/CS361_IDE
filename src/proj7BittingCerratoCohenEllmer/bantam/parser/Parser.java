@@ -668,7 +668,6 @@ public class Parser {
     // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
     // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
     private Expr parsePrimary() {
-        System.out.println(currentToken.spelling);
         int startPosition = currentToken.position;
         Expr expr;
         ExprList args;
@@ -692,24 +691,17 @@ public class Parser {
             // handle VarExpr
         }else{// @<VarExprPrefix>::= SUPER . | THIS . | EMPTY
             Expr refExpr = null;
-            String refName = currentToken.spelling;
-            String methodName = null;
+            String methodName;
+            if("super".equals(currentToken.spelling)
+                    || "this".equals(currentToken.spelling)){
 
-            if("super".equals(refName)
-                    || "this".equals(refName)){
-                
                 refExpr = parseExpression(); //currentToken -> '.'
+                ensureTokenType("reference call missing seperator '.'", Token.Kind.DOT);
+
+                currentToken = scanner.scan(true); // '.' -> <identifier>
             }
 
-            if(currentToken.kind == Token.Kind.DOT){
-                ensureTokenType("reference call missing seperator '.'", Token.Kind.DOT);
-                currentToken = scanner.scan(true); // '.' -> <identifier>
-                methodName = parseIdentifier();
-            }else{
-                refExpr = null;
-                methodName = refName;
-            }
-            
+            methodName = parseIdentifier();
             if(currentToken.kind.equals(Token.Kind.LPAREN)) {
 
                 // handle ( <Arguments> )
