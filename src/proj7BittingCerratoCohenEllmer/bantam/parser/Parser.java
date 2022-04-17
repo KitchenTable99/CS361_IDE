@@ -116,11 +116,13 @@ public class Parser {
 
 
         if(currentToken.kind.equals(Token.Kind.LPAREN)){ //Is a method
+            System.out.println("here");
             currentToken = scanner.scan(true);
             FormalList params = parseParameters();
             if(currentToken.kind.equals(Token.Kind.RPAREN)){
                 currentToken = scanner.scan(true);
                 Stmt blockStmt = parseBlock();
+                System.out.println("here2");
                 StmtList stmtList = ((BlockStmt)blockStmt).getStmtList();
                 return new Method(lineNum, type, identifier, params, stmtList);
             }else{
@@ -160,7 +162,6 @@ public class Parser {
             case VAR:
                 return parseVarDeclaration();
             case RETURN:
-
                 return parseReturn();
             case FOR:
                 return parseFor();
@@ -170,7 +171,6 @@ public class Parser {
                 return parseBreak();
             default:
                 return parseExpressionStmt();
-
         }
     }
 
@@ -402,7 +402,6 @@ public class Parser {
             left = new AssignExpr(lineNum, refName, name, right);
             currentToken = scanner.scan(true);
         }
-        System.out.println(currentToken.getSpelling());
 
         return left;
     }
@@ -575,17 +574,12 @@ public class Parser {
     // <NewExpression> ::= NEW <Identifier> ( )
     private Expr parseNew() {
         int lineNum = currentToken.position;
-
-        currentToken = scanner.scan(true); // gets Identifier
         ensureTokenType("Invalid New Statement: invalid identifier", Token.Kind.IDENTIFIER);
         String type = parseIdentifier();
-
-        currentToken = scanner.scan(true); // gets '(' or this is an error
         ensureTokenType("Incomplete Statement: New statement missing a '('", Token.Kind.LPAREN);
-
         currentToken = scanner.scan(true); // gets ')' or this is an error
         ensureTokenType("Incomplete Statement: New statement missing a ')'", Token.Kind.RPAREN);
-
+        currentToken = scanner.scan(true);
         return new NewExpr(lineNum, type);
 
     }
@@ -666,7 +660,6 @@ public class Parser {
     // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
     // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
     private Expr parsePrimary() {
-        System.out.println(currentToken.spelling);
         int startPosition = currentToken.position;
         Expr expr;
         ExprList args;
@@ -677,7 +670,6 @@ public class Parser {
             expr = parseExpression(); // @ )
             ensureTokenType("Incomplete Expression: Unclosed Parenthesis", Token.Kind.RPAREN);
             currentToken = scanner.scan(true); // prep next token
-            System.out.println("happened");
 
             //handle integerConst
         }else if(currentToken.kind == Token.Kind.INTCONST){
@@ -812,14 +804,25 @@ public class Parser {
 
 
     private String parseIdentifier() {
+        String identifier = "";
+        boolean readyForIdentifier = true; 
         // ensure the correct type
         ensureTokenType("Invalid identifier token", Token.Kind.IDENTIFIER);
-
-        // get the needed information
-        String identifier = currentToken.getSpelling();
-
-        // ensure invariant
-        currentToken = scanner.scan(true);
+        while ( (currentToken.kind == Token.Kind.IDENTIFIER && readyForIdentifier) ||
+            (currentToken.kind == Token.Kind.DOT && !readyForIdentifier) ){
+                if(currentToken.kind == Token.Kind.DOT){
+                    readyForIdentifier = true;
+                }else{
+                    readyForIdentifier = false;
+                }
+                // get the needed information
+                identifier += currentToken.getSpelling();
+                currentToken = scanner.scan(true);
+            }
+        if(readyForIdentifier){
+            registerAndThrow("Identifier cannot end with sperator '.'");
+        }
+        System.out.println("stored: " + identifier + ", rejected: " + currentToken.spelling );
         return identifier;
     }
 

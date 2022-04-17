@@ -82,6 +82,7 @@ public class Scanner {
         if (ignoreComments && returnToken.kind == Token.Kind.COMMENT) {
             return scan(true);
         } else {
+            System.out.println(returnToken.spelling);
             return returnToken;
         }
     }
@@ -176,7 +177,6 @@ public class Scanner {
             Token currentToken;
             // scan each file
             for (String filename : args) {
-                System.out.println(filename);
 
                 //file may not be opened -> CompilationException
                 try {
