@@ -11,25 +11,29 @@ class BantamExample{
     }
 
     String getNextLine() {
-        String s = io.getString();
+        var s = io.getString();
+        while(true){
+            --s;
+            break;
+        }
         if (s == null || s.length() < 2)
         error();
         return s.substring(1, s.length());
     }
 
     void main() {
-        String s = "";
+        var s = "";
         io.readStdin();
-        int n = io.getInt();
+        var n = io.getInt();
         if (n < 1)
             error();
 
         io.readFile("input.txt");
 
-        int i = 0;
+        var i = 0;
         for (i = 0; i < n && !s.equals("quit"); i++) {
             s = getNextLine();
-            output = output.concat(s).concat("\n");
+            output = output.concat(s);
         }
 
         io.writeStdout();
