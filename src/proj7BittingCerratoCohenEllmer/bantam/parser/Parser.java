@@ -630,21 +630,17 @@ public class Parser {
         int lineNum = currentToken.position;
 
         Expr primary = parsePrimary(); // gets the primary
-
-
-
 //        currentToken = scanner.scan(true); // gets the postfix operator
 
         // returns expression
         switch (currentToken.kind) {
             case UNARYINCR:
-                currentToken = scanner.scan();
+                currentToken = scanner.scan(true);
                 return new UnaryIncrExpr(lineNum, primary, true); // ++
             case UNARYDECR:
-                currentToken = scanner.scan();
+                currentToken = scanner.scan(true);
                 return new UnaryDecrExpr(lineNum, primary, true); // --
             default:
-
                 return primary; // empty, so just the primary
         }
     }
@@ -713,19 +709,13 @@ public class Parser {
     // todo: this should be re-refactored after parsePrimary
     private ExprList parseArguments() {
         ExprList arguments = new ExprList(currentToken.position); // makes empty ExprList
-        currentToken = scanner.scan(true); // either a ',' or a ')' or we have an error
         while (currentToken.kind != Token.Kind.RPAREN){
-            arguments.addElement(parseExpression()); // Add Expresion to ExprList
-            if(currentToken.kind == Token.Kind.RPAREN){
-                break;
-            }
-            ensureTokenType("Incomplete Statement: Parameter statement missing a ')' or ','", Token.Kind.COMMA, Token.Kind.RPAREN);
-
+            ensureTokenType("Incomplete Argument List: Expected Identifier", Token.Kind.IDENTIFIER, Token.Kind.BOOLEAN, Token.Kind.STRCONST, Token.Kind.INTCONST);
+            arguments.addElement(parseExpression()); // Add Expresion to ExprList  
             if (currentToken.kind == Token.Kind.COMMA){ // if it's a ',' we ignore it and go to the next
                 currentToken = scanner.scan(true);      // argument to parse
             }
         }
-
         return arguments;
     }
 
