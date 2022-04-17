@@ -50,6 +50,7 @@ public class Parser {
 
     // <Program> ::= <Class> | <Class> <Program>
     private Program parseProgram() {
+        System.out.println("program: " + currentToken.spelling );
         int position = currentToken.position;
         ClassList clist = new ClassList(position);
 
@@ -66,6 +67,7 @@ public class Parser {
     // <ExtendsClause> ::= EXTENDS <Identifier> | EMPTY
     // <MemberList> ::= EMPTY | <Member> <MemberList>
     private Class_ parseClass() {
+        System.out.println("class: " + currentToken.spelling );
         int position = currentToken.position;
         MemberList memberList = new MemberList(position);
 
@@ -94,6 +96,7 @@ public class Parser {
             if (currentToken.kind == Token.Kind.EOF) {
                 registerAndThrow("Incomplete Class Declaration: EOF occured before closing '}'");
             }
+            System.out.println("Member: " + currentToken.spelling );
             memberList.addElement(parseMember());
         }
 
@@ -115,6 +118,7 @@ public class Parser {
 
 
         if(currentToken.kind.equals(Token.Kind.LPAREN)){ //Is a method
+            System.out.println("method member: " + currentToken.spelling );
             currentToken = scanner.scan(true);
             FormalList params = parseParameters();
             if(currentToken.kind.equals(Token.Kind.RPAREN)){
@@ -126,6 +130,7 @@ public class Parser {
 //                TODO:errorhandler stuff, not sure what you wanted for errors
             }
         } // Is a field
+            System.out.println("field member: " + currentToken.spelling );
             ensureTokenType("field must have =", Token.Kind.ASSIGN);
 
             currentToken = scanner.scan(true);
@@ -144,7 +149,8 @@ public class Parser {
     // <Stmt> ::= <WhileStmt> | <ReturnStmt> | <BreakStmt> | <VarDeclaration>
     //             | <ExpressionStmt> | <ForStmt> | <BlockStmt> | <IfStmt>
     private Stmt parseStatement() {
-
+        System.out.println("statement: " + currentToken.spelling );
+        Stmt stmtHolder;
         switch (currentToken.kind) {
             case IF:
                 return parseIf();
@@ -161,14 +167,21 @@ public class Parser {
             case BREAK:
                 return parseBreak();
             default:
-
-                return parseExpressionStmt();
+                if(currentToken.kind == Token.Kind.LPAREN){
+                    stmtHolder = parseExpressionStmt();
+                    ensureTokenType("Invalid Statement: Unclosed Parenthesis", Token.Kind.RPAREN);
+                    currentToken = scanner.scan(true);
+                }else{
+                    stmtHolder = parseExpressionStmt();
+                }
+                return stmtHolder;
         }
     }
 
 
     // <WhileStmt> ::= WHILE ( <Expression> ) <Stmt>
     private Stmt parseWhile() {
+        System.out.println("while: " + currentToken.spelling );
         int position = currentToken.position;
 
         // enter while body
@@ -194,6 +207,7 @@ public class Parser {
 
     // <ReturnStmt> ::= RETURN <Expression> ; | RETURN ;
     private Stmt parseReturn() {
+        System.out.println("return: " + currentToken.spelling );
         int position = currentToken.position;
 
         // determine if empty return or return expression
@@ -217,6 +231,7 @@ public class Parser {
 
     // <BreakStmt> ::= BREAK ;
     private Stmt parseBreak() {
+        System.out.println("break: " + currentToken.spelling );
         int position = currentToken.position;
 
         // ensure semicolon ending
@@ -229,6 +244,7 @@ public class Parser {
 
     // <ExpressionStmt> ::= <Expression> ;
     private ExprStmt parseExpressionStmt() {
+        System.out.println("ExpressionStmt: " + currentToken.spelling );
 
         int position = currentToken.position;
 
@@ -244,6 +260,7 @@ public class Parser {
     // <VarDeclaration> ::= VAR <Id> = <Expression> ;
     // Every local variable must be initialized
     private Stmt parseVarDeclaration() {
+        System.out.println("VarDecl: " + currentToken.spelling );
         int position = currentToken.position;
 
         // get var name
@@ -275,6 +292,7 @@ public class Parser {
     // <Terminate> ::= EMPTY | <Expression>
     // <Increment> ::= EMPTY | <Expression>
     private Stmt parseFor() {
+        System.out.println("For: " + currentToken.spelling );
         int position = currentToken.position;
 
         // ensure predicate stuff contained in parentheses
@@ -317,7 +335,6 @@ public class Parser {
 
         // get body statement
         currentToken = scanner.scan(true);
-
         Stmt bodyStmt = parseStatement();
 
 
@@ -328,6 +345,7 @@ public class Parser {
     // <BlockStmt> ::= { <Body> }
     // <Body> ::= EMPTY | <Stmt> <Body>
     private Stmt parseBlock() {
+        System.out.println("Block: " + currentToken.spelling );
         int position = currentToken.position;
 
         // open the block statement
@@ -357,6 +375,7 @@ public class Parser {
 
     // <IfStmt> ::= IF ( <Expr> ) <Stmt> | IF ( <Expr> ) <Stmt> ELSE <Stmt>
     private Stmt parseIf() {
+        System.out.println("If: " + currentToken.spelling );
         int lineNum = currentToken.position;
 
         ensureTokenType("Incomplete Statement: If statement missing IF", Token.Kind.IF);
@@ -385,11 +404,14 @@ public class Parser {
     // <Expression> ::= <LogicalORExpr> <OptionalAssignment>
     // <OptionalAssignment> ::= EMPTY | = <Expression>
     private Expr parseExpression() {
+        System.out.println("Expression: " + currentToken.spelling );
         int lineNum = currentToken.position;
         Expr left = parseOrExpr();
         
+        
         String refName = currentToken.getSpelling();
-        if(currentToken.kind == Token.Kind.ASSIGN && (left instanceof VarExpr)) {
+        
+        if(currentToken.kind == Token.Kind.ASSIGN ) { // removed: && (left instanceof VarExpr)
             
             currentToken = scanner.scan();
 
@@ -404,16 +426,14 @@ public class Parser {
     // <LogicalOR> ::= <logicalAND> <LogicalORRest>
     // <LogicalORRest> ::= EMPTY |  || <LogicalAND> <LogicalORRest>
     private Expr parseOrExpr() {
+        System.out.println("OrExpr: " + currentToken.spelling );
         int position = currentToken.position;
         Expr left;
-
         left = parseAndExpr();
         while (currentToken.spelling.equals("||")) {
-            //...advance to the next token...
             Expr right = parseAndExpr();
             left = new BinaryLogicOrExpr(position, left, right);
         }
-
         return left;
     }
 
@@ -421,6 +441,7 @@ public class Parser {
     // <LogicalAND> ::= <ComparisonExpr> <LogicalANDRest>
     // <LogicalANDRest> ::= EMPTY |  && <ComparisonExpr> <LogicalANDRest>
     private Expr parseAndExpr() {
+        System.out.println("AndExpr: " + currentToken.spelling );
         int lineNum = currentToken.position;
         Expr left = parseEqualityExpr();
         while (currentToken.spelling.equals("&&")){
@@ -437,13 +458,11 @@ public class Parser {
     //                      <RelationalExpr>
     // <equalOrNotEqual> ::=  == | !=
     private Expr parseEqualityExpr() {
+        System.out.println("EqualityExpr: " + currentToken.spelling );
         int lineNum = currentToken.position;
-
         Expr left = parseRelationalExpr();
 
-
         if(currentToken.kind.equals(Token.Kind.COMPARE)){
-
 
             String typeOfEq = currentToken.spelling;
             currentToken = scanner.scan(true);
@@ -457,7 +476,6 @@ public class Parser {
 
                 left = new BinaryCompNeExpr(lineNum, left, right);
             }
-
         }
 
         return left;
@@ -467,6 +485,7 @@ public class Parser {
     // <RelationalExpr> ::= <AddExpr> | <AddExpr> <ComparisonOp> <AddExpr>
     // <ComparisonOp> ::= < | > | <= | >=
     private Expr parseRelationalExpr() {
+        System.out.println("RelationalExpr: " + currentToken.spelling );
         int lineNum = currentToken.position;
         Expr left = parseAddExpr();
 
@@ -502,6 +521,7 @@ public class Parser {
     // <AddExpr>::＝ <MultExpr> <MoreMultExpr>
     // <MoreMultExpr> ::= EMPTY | + <MultExpr> <MoreMultExpr> | - <MultExpr> <MoreMultExpr>
     private Expr parseAddExpr() {
+        System.out.println("AddExpr: " + currentToken.spelling );
         int lineNum = currentToken.position;
         Expr left = parseMultExpr();
         String op = currentToken.spelling;
@@ -524,6 +544,7 @@ public class Parser {
     //               % <NewCastOrUnary> <MoreNCU> |
     //               EMPTY
     private Expr parseMultExpr() {
+        System.out.println("MultExpr: " + currentToken.spelling );
         int lineNum = currentToken.position;
         Expr left = parseNewCastOrUnary();
 
@@ -549,6 +570,7 @@ public class Parser {
 
     // <NewCastOrUnary> ::= <NewExpression> | <CastExpression> | <UnaryPrefix>
     private Expr parseNewCastOrUnary() {
+        System.out.println("NewCastOrUnary: " + currentToken.spelling );
         switch(currentToken.kind){
             case NEW: // NewExpression
                 currentToken = scanner.scan(true);
@@ -564,6 +586,7 @@ public class Parser {
 
     // <NewExpression> ::= NEW <Identifier> ( )
     private Expr parseNew() {
+        System.out.println("New: " + currentToken.spelling );
         int lineNum = currentToken.position;
         ensureTokenType("Invalid New Statement: invalid identifier", Token.Kind.IDENTIFIER);
         String type = parseIdentifier();
@@ -578,6 +601,7 @@ public class Parser {
 
     // <CastExpression> ::= CAST ( <Type> , <Expression> )
     private Expr parseCast() {
+        System.out.println("Cast: " + currentToken.spelling );
         int lineNum = currentToken.position;
 
         currentToken = scanner.scan(true); // gets '(' or this is an error
@@ -602,6 +626,7 @@ public class Parser {
     // <UnaryPrefix> ::= <PrefixOp> <UnaryPreFix> | <UnaryPostfix>
     // <PrefixOp> ::= - | ! | ++ | --
     private Expr parseUnaryPrefix() {
+        System.out.println("UnaryPrefix: " + currentToken.spelling );
         int position = currentToken.position;
 
 
@@ -627,6 +652,7 @@ public class Parser {
     // <UnaryPostfix> ::= <Primary> <PostfixOp>
     // <PostfixOp> ::= ++ | -- | EMPTY
     private Expr parseUnaryPostfix() {
+        System.out.println("UnaryPostfix: " + currentToken.spelling );
         int lineNum = currentToken.position;
 
         Expr primary = parsePrimary(); // gets the primary
@@ -652,6 +678,7 @@ public class Parser {
     // <VarExprPrefix> ::= SUPER . | THIS . | EMPTY
     // <VarExprSuffix> ::= ( <Arguments> ) | EMPTY
     private Expr parsePrimary() {
+        System.out.println("Primary: " + currentToken.spelling );
         int startPosition = currentToken.position;
         Expr expr;
         ExprList args;
@@ -685,6 +712,13 @@ public class Parser {
                 currentToken = scanner.scan(true); // '.' -> <identifier>
             }
             methodName = parseIdentifier();
+            while(currentToken.kind.equals(Token.Kind.DOT)){
+                methodName += currentToken.spelling; // '.'
+                currentToken = scanner.scan(true);
+                ensureTokenType("Expected identifier after '.'", Token.Kind.IDENTIFIER);
+                methodName += currentToken.spelling; // '.'
+                currentToken = scanner.scan(true);
+            }
             if(currentToken.kind.equals(Token.Kind.LPAREN)) {
 
                 // handle ( <Arguments> )
@@ -708,6 +742,7 @@ public class Parser {
     // <MoreArgs>  ::= EMPTY | , <Expression> <MoreArgs>
     // todo: this should be re-refactored after parsePrimary
     private ExprList parseArguments() {
+        System.out.println("Arguments: " + currentToken.spelling );
         ExprList arguments = new ExprList(currentToken.position); // makes empty ExprList
         while (currentToken.kind != Token.Kind.RPAREN){
             ensureTokenType("Incomplete Argument List: Expected Identifier", Token.Kind.IDENTIFIER, Token.Kind.BOOLEAN, Token.Kind.STRCONST, Token.Kind.INTCONST);
@@ -724,6 +759,7 @@ public class Parser {
     // <MoreFormals> ::= EMPTY | , <Formal> <MoreFormals
     // todo: this should be re-refactored after parsePrimary
     private FormalList parseParameters() {
+        System.out.println("Parameters: " + currentToken.spelling );
         FormalList parameters = new FormalList(currentToken.position); // makes empty FormalList
 
         while (currentToken.kind != Token.Kind.RPAREN){
@@ -743,6 +779,7 @@ public class Parser {
 
     // <Formal> ::= <Type> <Identifier>
     private Formal parseFormal() {
+        System.out.println("Formal: " + currentToken.spelling );
         int position = currentToken.position;
         String type = parseType();
         String name = parseIdentifier();
@@ -752,6 +789,7 @@ public class Parser {
 
     // <Type> ::= <Identifier>
     private String parseType() {
+        System.out.println("Type: " + currentToken.spelling );
         return parseIdentifier();
     }
 
@@ -761,6 +799,7 @@ public class Parser {
 
     // todo: refactor this method once everything is fully implemented
     private String parseOperator() {
+        System.out.println("Operator: " + currentToken.spelling );
         if( currentToken.kind != Token.Kind.BINARYLOGIC &&
                 currentToken.kind != Token.Kind.PLUSMINUS &&
                 currentToken.kind != Token.Kind.MULDIV &&
@@ -782,30 +821,19 @@ public class Parser {
 
 
     private String parseIdentifier() {
-        String identifier = "";
-        boolean readyForIdentifier = true; 
-        
+        System.out.println("Identifier: " + currentToken.spelling );
+        String identifier;
+
         // ensure the correct type
         ensureTokenType("Invalid identifier token", Token.Kind.IDENTIFIER);
-        while ( (currentToken.kind == Token.Kind.IDENTIFIER && readyForIdentifier) ||
-            (currentToken.kind == Token.Kind.DOT && !readyForIdentifier) ){
-                if(currentToken.kind == Token.Kind.DOT){
-                    readyForIdentifier = true;
-                }else{
-                    readyForIdentifier = false;
-                }
-                // get the needed information
-                identifier += currentToken.getSpelling();
-                currentToken = scanner.scan(true);
-            }
-        if(readyForIdentifier){
-            registerAndThrow("Identifier cannot end with sperator '.'");
-        }
+        identifier = currentToken.getSpelling();
+        currentToken = scanner.scan(true);
         return identifier;
     }
 
 
     private ConstStringExpr parseStringConst() {
+        System.out.println("strconst: " + currentToken.spelling );
         // ensure correct token type
         ensureTokenType("Invalid String Value: Not a string", Token.Kind.STRCONST);
 
@@ -820,6 +848,7 @@ public class Parser {
 
 
     private ConstIntExpr parseIntConst() {
+        System.out.println("intconst: " + currentToken.spelling );
         // ensure correct token type
         ensureTokenType("Invalid Integer Value: Expected Integer value in range 0-2147483647", Token.Kind.INTCONST);
 
@@ -834,6 +863,7 @@ public class Parser {
 
 
     private ConstBooleanExpr parseBoolean() {
+        System.out.println("boolean: " + currentToken.spelling );
         // ensure correct token type
         ensureTokenType("Invalid Integer Value: Expected 'true' or 'false' as a boolean value", Token.Kind.BOOLEAN);
 
@@ -856,6 +886,7 @@ public class Parser {
      *                     current token
      */
     private void ensureTokenType(String errorMessage, Token.Kind... kinds) {
+        System.out.println("checked for: " + currentToken.spelling );
         // see if current token is one of the passed types
         boolean currentTokenTypeFound = false;
         for (Token.Kind kind : kinds) {

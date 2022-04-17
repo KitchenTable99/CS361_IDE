@@ -82,7 +82,6 @@ public class Scanner {
         if (ignoreComments && returnToken.kind == Token.Kind.COMMENT) {
             return scan(true);
         } else {
-            System.out.println(returnToken.spelling);
             return returnToken;
         }
     }

@@ -7,7 +7,7 @@ class BantamExample{
     void error() {
         io.writeStderr();
         io.putString("Bad input; exiting\n");
-        (new Sys()).exit(1);
+        Sys.exit(1);
     }
 
     String getNextLine() {
