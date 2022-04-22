@@ -213,7 +213,24 @@ public class TypeCheckerVisitor extends Visitor
      * @return result of the visit
      */
     public Object visit(DeclStmt node) {
-        /* ... for you to implement ... */
+        // check if it has already been declared
+        if (currentSymbolTable.getScopeLevel(node.getName()) ==  
+            currentSymbolTable.getCurrScopeLevel()) {
+            registerError(node,"The name of the variable "
+                    + node.getName() + " is the same as the name of another variable" +
+                    " in the same scope.");
+        }
+        // get its initialization
+        if (node.getInit() != null){ // cannot be null
+            node.getInit().accept(this);
+            if (!isSubtype(node.getInit().getExprType(), node.getType())) { // must match type
+                registerError(node,"The type of the return expr is " +
+                    node.getInit().getExprType() + " which is not compatible with " +
+                    " initialization of type" + node.getType());
+            }
+        } else {
+            registerError(node, "Variable declaration must be intialized.");
+        }
         return null;
     }
 
