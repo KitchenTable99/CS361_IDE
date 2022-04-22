@@ -24,9 +24,9 @@
    PARTICULAR PURPOSE. 
 */
 
-package bantam.util;
+package proj7BittingCerratoCohenEllmer.bantam.util;
 
-import bantam.ast.Class_;
+import proj7BittingCerratoCohenEllmer.bantam.ast.Class_;
 
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -278,5 +278,26 @@ public class ClassTreeNode {
      */
     public Hashtable<String, ClassTreeNode> getClassMap() {
         return classMap;
+    }
+
+    @Override
+    public String toString() {
+        return astNode.getName()
+             + ":" + (parent == null ? null : parent.getASTNode().getName());
+    }
+
+    /**
+     * removes the child from the list of children for this node.
+     * It returns true if the child was removed from the list or false if the child
+     * wasn't in this node's list of children
+     * @param child the ClassTreeNode to be removed from the list of children
+     * @return true if the child was removed from the list else false
+     */
+    public boolean removeChild(ClassTreeNode child) {
+        if ( children.contains(child)) {
+            children.remove(child);
+            return true;
+        }
+        return false;
     }
 }
