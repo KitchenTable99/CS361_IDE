@@ -268,7 +268,23 @@ public class TypeCheckerVisitor extends Visitor
      * @return result of the visit
      */
     public Object visit(ForStmt node) {
-        /* ... for you to implement ... */
+        if (node.getInitExpr() != null) // can be null or a expr
+            node.getInitExpr().accept(this);
+         
+        // TODO: Look and see if every error here is handled
+        node.getPredExpr().accept(this);
+        if (!isSubtype(node.getPredExpr().getExprType(), "boolean")) {
+            registerError(node,"The type of the predicate is " +
+                    node.getPredExpr().getExprType() + " which is not boolean.");
+        }
+        if (node.getUpdateExpr() != null) // can be null or a expr
+            node.getUpdateExpr().accept(this);
+        // TODO: Look and see if every error here is handled
+        currentSymbolTable.enterScope();
+        currentNestedLoops.push(node);
+        node.getBodyStmt().accept(this);
+        currentNestedLoops.pop();
+        currentSymbolTable.exitScope();
         return null;
     }
 
