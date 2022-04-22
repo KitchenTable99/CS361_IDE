@@ -295,7 +295,10 @@ public class TypeCheckerVisitor extends Visitor
      * @return result of the visit
      */
     public Object visit(BreakStmt node) {
-        /* ... for you to implement ... */
+        if (currentNestedLoops.size() == 0){ // make sure it is inside a loop
+            registerError(node, "Cannot use break statement outside of loop.");
+        }
+        // TODO: Make sure this is the only error that can happen with break stmt
         return null;
     }
 
