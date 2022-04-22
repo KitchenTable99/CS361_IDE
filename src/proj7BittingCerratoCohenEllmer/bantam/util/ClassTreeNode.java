@@ -40,7 +40,7 @@ import java.util.Vector;
  * class hierarchy tree and contains all the relevant information about
  * that class (AST node, parent, children, symbol table, etc.).
  *
- * @see bantam.semant.SemanticAnalyzer
+ * @see proj7BittingCerratoCohenEllmer.bantam.semant.SemanticAnalyzer
  */
 public class ClassTreeNode {
     /**

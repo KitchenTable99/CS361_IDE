@@ -148,7 +148,7 @@ public class SemanticAnalyzer
 
         // if errors were found, throw an exception, indicating failure
         if (errorHandler.errorsFound()) {
-            throw new CompilationException(errorHandler);
+            throw new CompilationException(errorHandler); //NOTE: I chose this way to construct it, might change later
         }
 
         return root;

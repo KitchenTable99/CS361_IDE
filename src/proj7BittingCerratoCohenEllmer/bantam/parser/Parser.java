@@ -485,7 +485,7 @@ public class Parser {
 
 
     // <RelationalExpr> ::= <AddExpr> | <AddExpr> <ComparisonOp> <AddExpr>
-    // <ComparisonOp> ::= < | > | <= | >=
+    // <ComparisonOp> ::= < | > | <= | >= | instance of
     private Expr parseRelationalExpr() {
 
         int lineNum = currentToken.position;
@@ -497,19 +497,27 @@ public class Parser {
         }
         String op = parseOperator();
 
-        Expr right = parseAddExpr();
+        Expr right;
         switch (op){
             case "<":
+                right = parseAddExpr();
                 left = new BinaryCompLtExpr(lineNum,left,right);
                 break;
             case ">":
+                right = parseAddExpr();
                 left = new BinaryCompGtExpr(lineNum,left,right);
                 break;
             case "<=":
+                right = parseAddExpr();
                 left = new BinaryCompLeqExpr(lineNum,left,right);
                 break;
             case ">=":
+                right = parseAddExpr();
                 left = new BinaryCompGeqExpr(lineNum, left, right);
+                break;
+            case "INSTANCEOF":
+                String type = parseType();
+                left = new InstanceofExpr(lineNum, left, type);
                 break;
         }
 

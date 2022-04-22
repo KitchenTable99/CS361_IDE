@@ -196,8 +196,8 @@ public class TypeCheckerVisitor extends Visitor
                     " of the formal parameter " + node.getName() + " is undefined.");
         }
         // add it to the current scope if there isn't already a formal of the same name
-        if (currentSymbolTable.lookup(node.getName(),
-                currentSymbolTable.getCurrScopeLevel()-1) != null) {
+        if (currentSymbolTable.getScopeLevel(node.getName()) ==  
+            currentSymbolTable.getCurrScopeLevel()) {
             registerError(node,"The name of the formal parameter "
                     + node.getName() + " is the same as the name of another formal" +
                     " parameter.");
