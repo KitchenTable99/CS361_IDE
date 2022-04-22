@@ -213,6 +213,7 @@ public class TypeCheckerVisitor extends Visitor
      * @return result of the visit
      */
     public Object visit(DeclStmt node) {
+        // TODO: Make sure this is all of the possible errors
         // check if it has already been declared
         if (currentSymbolTable.getScopeLevel(node.getName()) ==  
             currentSymbolTable.getCurrScopeLevel()) {
@@ -228,6 +229,7 @@ public class TypeCheckerVisitor extends Visitor
                     node.getInit().getExprType() + " which is not compatible with " +
                     " initialization of type" + node.getType());
             }
+            currentSymbolTable.add(node.getName(), node.getType());
         } else {
             registerError(node, "Variable declaration must be intialized.");
         }
@@ -457,7 +459,25 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(AssignExpr node) {
-        /* ... for you to implement ... */
+        if (node.getRefName() != null){ // does it have a reference object
+            if (currentSymbolTable.lookup(node.getRefName()) == null){
+                registerError(node, "Reference object " +
+                    node.getRefName() + " not found.");
+            }
+            // TODO: figure out if the reference object has a given field
+        } else if(currentSymbolTable.lookup(node.getName()) == null){
+            registerError(node, "Variable " + node.getName() + 
+                " referenced before declaration.");
+        } else {
+            node.getExpr().accept(this);
+            String type = (String) currentSymbolTable.lookup(node.getName());
+            if (!isSubtype(type, node.getExpr().getExprType())){ // check if compatible types
+                registerError(node, "Variable " + node.getName() + 
+                " of type " + type + " cannot be assigned with type " +
+                node.getExpr().getExprType());
+                }
+        }
+        // TODO: Make sure that we have checked everything possible
         return null;
     }
 
