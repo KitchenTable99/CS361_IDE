@@ -365,6 +365,7 @@ public class TypeCheckerVisitor extends Visitor
      */
     public Object visit(DispatchExpr node) {
         /* ... for you to implement ... */
+        // TODO: this, haha
         return null;
     }
 
@@ -519,6 +520,7 @@ public class TypeCheckerVisitor extends Visitor
      */
     public Object visit(VarExpr node) {
         /* ... for you to implement ... */
+        // TODO: this, haha
         return null;
     }
 
