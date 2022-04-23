@@ -477,19 +477,34 @@ public class TypeCheckerVisitor extends Visitor
                 registerError(node, "Reference object " +
                     node.getRefName() + " not found.");
             }
-            // TODO: figure out if the reference object has a given field
+            String refType = (String) currentSymbolTable.lookup(node.getRefName());
+            // IDEA: Look for field in level 0 for all (parent) classes
+            ClassTreeNode refClass = currentClass.lookupClass(refType);
+            boolean found = false;
+            while (refClass != null){
+                SymbolTable symbTab = refClass.getVarSymbolTable();
+                if (symbTab.lookup((String) node.getName(), 0) != null){ // is level 0 right?
+                    found = true; // this variable is a field of the class
+                    break;
+                }
+                refClass = refClass.getParent(); // maybe it is in a parent
+            }
+            if (!found){
+                registerError(node, "Object of type " + node.getRefName() + 
+                " does not have field " + node.getName() + ".");
+            }
+            // TODO: make sure that this works
         } else if(currentSymbolTable.lookup(node.getName()) == null){
             registerError(node, "Variable " + node.getName() + 
                 " referenced before declaration.");
-        } else {
-            node.getExpr().accept(this);
-            String type = (String) currentSymbolTable.lookup(node.getName());
-            if (!isSubtype(type, node.getExpr().getExprType())){ // check if compatible types
-                registerError(node, "Variable " + node.getName() + 
-                " of type " + type + " cannot be assigned with type " +
-                node.getExpr().getExprType());
-                }
         }
+        node.getExpr().accept(this);
+        String type = (String) currentSymbolTable.lookup(node.getName());
+        if (!isSubtype(type, node.getExpr().getExprType())){ // check if compatible types
+            registerError(node, "Variable " + node.getName() + 
+            " of type " + type + " cannot be assigned with type " +
+            node.getExpr().getExprType());
+            }
         node.setExprType( (String) currentSymbolTable.lookup(node.getName()));
         // TODO: Make sure that we have checked everything possible
         return null;

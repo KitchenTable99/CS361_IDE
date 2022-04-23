@@ -176,6 +176,7 @@ public class SemanticAnalyzer
      */
     private void checkForMainClassWithMainMethod() {
         // ... for you to implement ...
+        // TODO: this, haha
     }
 
     private void buildFieldAndMethodTables() {
