@@ -31,10 +31,8 @@ package proj7BittingCerratoCohenEllmer.bantam.semant;
 
 import proj7BittingCerratoCohenEllmer.bantam.ast.*;
 import proj7BittingCerratoCohenEllmer.bantam.parser.Parser;
-import proj7BittingCerratoCohenEllmer.bantam.util.*;
 import proj7BittingCerratoCohenEllmer.bantam.util.Error;
-import proj7BittingCerratoCohenEllmer.bantam.util.ClassTreeNode;
-import proj7BittingCerratoCohenEllmer.bantam.util.SymbolTable;
+import proj7BittingCerratoCohenEllmer.bantam.util.*;
 
 import java.util.*;
 
@@ -73,8 +71,7 @@ public class SemanticAnalyzer
     /**
      * Maps class names to ClassTreeNode objects describing the class
      */
-    private Hashtable<String, ClassTreeNode> classMap = new Hashtable<String,
-            ClassTreeNode>();
+    private Hashtable<String, ClassTreeNode> classMap = new Hashtable<>();
 
     /**
      * Object for error handling
@@ -175,8 +172,12 @@ public class SemanticAnalyzer
      * If not, an error is registered with the ErrorHandler.
      */
     private void checkForMainClassWithMainMethod() {
-        // ... for you to implement ...
-        // TODO: this, haha
+        MainMethodVisitor mmVisitor = new MainMethodVisitor();
+        boolean hasValidMain = mmVisitor.hasMain(program);
+        if (!hasValidMain) {
+            errorHandler.register(Error.Kind.SEMANT_ERROR,
+                    "Your program does not contain a valid main method.");
+        }
     }
 
     private void buildFieldAndMethodTables() {
