@@ -448,7 +448,20 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(CastExpr node) {
-        /* ... for you to implement ... */
+        node.getExpr().accept(this);
+        if (node.getUpCast()){ // casting to a parent
+            if (!isSubtype(node.getType(), node.getExpr().getExprType())){
+                registerError(node, "Cannot cast " + node.getExpr().getExprType() + 
+                " to " + node.getType());
+            }
+        } else { // casting to a child, or a compatible primitive
+            if (!isSubtype(node.getExpr().getExprType(), node.getType())){
+                registerError(node, "Cannot cast " + node.getExpr().getExprType() + 
+                " to " + node.getType());
+            }
+        }
+        // TODO: make sure I did the proper subtype checking based on updast or not
+        node.setExprType(node.getType());
         return null;
     }
 
@@ -477,6 +490,7 @@ public class TypeCheckerVisitor extends Visitor
                 node.getExpr().getExprType());
                 }
         }
+        node.setExprType( (String) currentSymbolTable.lookup(node.getName()));
         // TODO: Make sure that we have checked everything possible
         return null;
     }
