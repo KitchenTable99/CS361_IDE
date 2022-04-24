@@ -556,6 +556,7 @@ public class TypeCheckerVisitor extends Visitor
             } else if (currentSymbolTable.lookup(node.getName()) == null){
                 registerError(node, "Variable " + node.getName() +  " referenced" +
                 " before declaration.");
+                node.setExprType("null");
             } else {
                 node.setExprType((String) currentSymbolTable.lookup(node.getName()));
             }
