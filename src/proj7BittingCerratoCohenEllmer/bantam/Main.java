@@ -1,3 +1,11 @@
+/*
+ * File: Main.java
+ * Names: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
+ * Class: CS 361
+ * Project 6
+ * Date: March 18
+ */
+
 package proj7BittingCerratoCohenEllmer.bantam;
 
 import proj7BittingCerratoCohenEllmer.bantam.ast.Program;
