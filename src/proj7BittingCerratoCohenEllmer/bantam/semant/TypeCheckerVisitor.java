@@ -547,11 +547,19 @@ public class TypeCheckerVisitor extends Visitor
             }
             node.setExprType((String) symbTab.lookup((String) node.getName(), 0));
         } else { // no reference object
-            if (currentSymbolTable.lookup(node.getName()) == null){
+            if (node.getName() == "this"){
+                node.setExprType(currentClass.getName());
+            } else if (node.getName() == "super"){
+                node.setExprType(currentClass.getParent().getName());
+            } else if (node.getName() == "null") {
+                node.setExprType("null");
+            } else if (currentSymbolTable.lookup(node.getName()) == null){
                 registerError(node, "Variable " + node.getName() +  " referenced" +
                 " before declaration.");
+            } else {
+                node.setExprType((String) currentSymbolTable.lookup(node.getName()));
             }
-            node.setExprType((String) currentSymbolTable.lookup(node.getName()));
+            
         }
         return null;
     }
