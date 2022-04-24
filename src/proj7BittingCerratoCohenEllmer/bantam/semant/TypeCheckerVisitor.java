@@ -364,9 +364,20 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(DispatchExpr node) {
-        /* ... for you to implement ... */
-        // TODO: this, haha
-        return null;
+        Object method_type;
+
+        node.getRefExpr().accept(this);
+        method_type = currentSymbolTable.lookup(node.getMethodName());
+
+        if(node.getActualList() != null){
+            node.getActualList().accept(this);
+        }
+        
+        if(method_type == null){
+            registerError(node, "Method '" + node.getMethodName() + " not found!");
+        }
+
+        return method_type; // TODO: is this correct?
     }
 
     /**
@@ -519,9 +530,14 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(VarExpr node) {
-        /* ... for you to implement ... */
-        // TODO: this, haha
-        return null;
+        Object variable_type;
+        variable_type = currentSymbolTable.lookup(node.getName());
+
+        if(variable_type == null){
+            registerError(node, "Variable '" + node.getName() + " not found!");
+        }
+
+        return variable_type;
     }
 
     /**
