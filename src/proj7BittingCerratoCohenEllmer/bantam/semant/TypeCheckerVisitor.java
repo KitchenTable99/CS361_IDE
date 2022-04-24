@@ -364,20 +364,37 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(DispatchExpr node) {
-        Object method_type;
+        if (node.getRefExpr() != null){ // If we have a reference object
+            node.getRefExpr().accept(this);
+            String refType = (String) node.getRefExpr().getExprType();
+            ClassTreeNode refClass = currentClass.lookupClass(refType);
+            SymbolTable symbTab = refClass.getVarSymbolTable();
 
-        node.getRefExpr().accept(this);
-        method_type = currentSymbolTable.lookup(node.getMethodName());
+            if (symbTab.lookup((String) node.getMethodName(), 0) == null){
+                registerError(node, "Method " + node.getMethodName() +
+                    " is undeclared for Object of type " + refType);
+            }
+            node.setExprType((String) symbTab.lookup((String) node.getName(), 0));
 
-        if(node.getActualList() != null){
-            node.getActualList().accept(this);
+        } else { // no reference object
+            if (currentSymbolTable.lookup(node.getMethodName()) == null){
+                registerError(node, "Method " + node.getMethodName() +  " referenced" +
+                " before declaration.");
+                node.setExprType("null");
+            } else {
+                node.setExprType((String) currentSymbolTable.lookup(node.getName()));
+            }
         }
-        
-        if(method_type == null){
-            registerError(node, "Method '" + node.getMethodName() + " not found!");
-        }
+        return null;
 
-        return method_type; // TODO: is this correct?
+
+
+
+
+
+
+
+
     }
 
     /**
