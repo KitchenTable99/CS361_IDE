@@ -530,14 +530,30 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(VarExpr node) {
-        Object variable_type;
-        variable_type = currentSymbolTable.lookup(node.getName());
+        // Object variable_type;
+        // variable_type = currentSymbolTable.lookup(node.getName());
 
-        if(variable_type == null){
-            registerError(node, "Variable '" + node.getName() + " not found!");
+        // if(variable_type == null){
+        //     registerError(node, "Variable '" + node.getName() + " not found!");
+        // }
+        if (node.getRef() != null){ // If we have a reference object
+            node.getRef().accept(this);
+            String refType = (String) node.getRef().getExprType();
+            ClassTreeNode refClass = currentClass.lookupClass(refType);
+            SymbolTable symbTab = refClass.getVarSymbolTable();
+            if (symbTab.lookup((String) node.getName(), 0) == null){ // is level 0 right?
+                registerError(node, "Object of type " + refType + " does" +
+                " not have a field of name " + node.getName());
+            }
+            node.setExprType((String) symbTab.lookup((String) node.getName(), 0));
+        } else { // no reference object
+            if (currentSymbolTable.lookup(node.getName()) == null){
+                registerError(node, "Variable " + node.getName() +  " referenced" +
+                " before declaration.");
+            }
+            node.setExprType((String) currentSymbolTable.lookup(node.getName()));
         }
-
-        return variable_type;
+        return null;
     }
 
     /**
