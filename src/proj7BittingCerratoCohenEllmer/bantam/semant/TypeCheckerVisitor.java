@@ -364,9 +364,37 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(DispatchExpr node) {
-        /* ... for you to implement ... */
-        // TODO: this, haha
+        if (node.getRefExpr() != null){ // If we have a reference object
+            node.getRefExpr().accept(this);
+            String refType = (String) node.getRefExpr().getExprType();
+            ClassTreeNode refClass = currentClass.lookupClass(refType);
+            SymbolTable symbTab = refClass.getVarSymbolTable();
+
+            if (symbTab.lookup((String) node.getMethodName(), 0) == null){
+                registerError(node, "Method " + node.getMethodName() +
+                    " is undeclared for Object of type " + refType);
+            }
+            node.setExprType((String) symbTab.lookup((String) node.getName(), 0));
+
+        } else { // no reference object
+            if (currentSymbolTable.lookup(node.getMethodName()) == null){
+                registerError(node, "Method " + node.getMethodName() +  " referenced" +
+                " before declaration.");
+                node.setExprType("null");
+            } else {
+                node.setExprType((String) currentSymbolTable.lookup(node.getName()));
+            }
+        }
         return null;
+
+
+
+
+
+
+
+
+
     }
 
     /**
@@ -519,8 +547,38 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(VarExpr node) {
-        /* ... for you to implement ... */
-        // TODO: this, haha
+        // Object variable_type;
+        // variable_type = currentSymbolTable.lookup(node.getName());
+
+        // if(variable_type == null){
+        //     registerError(node, "Variable '" + node.getName() + " not found!");
+        // }
+        if (node.getRef() != null){ // If we have a reference object
+            node.getRef().accept(this);
+            String refType = (String) node.getRef().getExprType();
+            ClassTreeNode refClass = currentClass.lookupClass(refType);
+            SymbolTable symbTab = refClass.getVarSymbolTable();
+            if (symbTab.lookup((String) node.getName(), 0) == null){ // is level 0 right?
+                registerError(node, "Object of type " + refType + " does" +
+                " not have a field of name " + node.getName());
+            }
+            node.setExprType((String) symbTab.lookup((String) node.getName(), 0));
+        } else { // no reference object
+            if (node.getName() == "this"){
+                node.setExprType(currentClass.getName());
+            } else if (node.getName() == "super"){
+                node.setExprType(currentClass.getParent().getName());
+            } else if (node.getName() == "null") {
+                node.setExprType("null");
+            } else if (currentSymbolTable.lookup(node.getName()) == null){
+                registerError(node, "Variable " + node.getName() +  " referenced" +
+                " before declaration.");
+                node.setExprType("null");
+            } else {
+                node.setExprType((String) currentSymbolTable.lookup(node.getName()));
+            }
+            
+        }
         return null;
     }
 
