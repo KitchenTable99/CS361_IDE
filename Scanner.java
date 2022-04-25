@@ -1,9 +1,9 @@
-package proj7BittingCerratoCohenEllmer.bantam.lexer;
+package proj9BittingCerratoCohenEllmer.bantam.lexer;
 
-import proj7BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
-import proj7BittingCerratoCohenEllmer.bantam.util.Error;
-import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
-import proj7BittingCerratoCohenEllmer.bantam.util.CompilationException;
+import proj9BittingCerratoCohenEllmer.bantam.lexer.Token.Kind;
+import proj9BittingCerratoCohenEllmer.bantam.util.Error;
+import proj9BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
+import proj9BittingCerratoCohenEllmer.bantam.util.CompilationException;
 
 import java.io.IOException;
 import java.io.Reader;
