@@ -9,8 +9,8 @@ package proj7BittingCerratoCohenEllmer.bantam.semant;
 
 import proj7BittingCerratoCohenEllmer.bantam.ast.*;
 import proj7BittingCerratoCohenEllmer.bantam.util.ClassTreeNode;
-import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 import proj7BittingCerratoCohenEllmer.bantam.util.Error;
+import proj7BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 import proj7BittingCerratoCohenEllmer.bantam.util.SymbolTable;
 import proj7BittingCerratoCohenEllmer.bantam.visitor.Visitor;
 
@@ -181,6 +181,7 @@ public class TypeCheckerVisitor extends Visitor
         }
         currentMethod = null;
         currentSymbolTable.exitScope();
+        currentSymbolTable.add(node.getName(), node.getReturnType());
         return null;
     }
 
@@ -224,14 +225,10 @@ public class TypeCheckerVisitor extends Visitor
         // get its initialization
         if (node.getInit() != null){ // cannot be null
             node.getInit().accept(this);
-            if (!isSubtype(node.getInit().getExprType(), node.getType())) { // must match type
-                registerError(node,"The type of the return expr is " +
-                    node.getInit().getExprType() + " which is not compatible with " +
-                    " initialization of type" + node.getType());
-            }
+            node.setType(node.getInit().getExprType());
             currentSymbolTable.add(node.getName(), node.getType());
         } else {
-            registerError(node, "Variable declaration must be intialized.");
+            registerError(node, "Variable declaration must be initialized.");
         }
         return null;
     }
@@ -366,15 +363,18 @@ public class TypeCheckerVisitor extends Visitor
     public Object visit(DispatchExpr node) {
         if (node.getRefExpr() != null){ // If we have a reference object
             node.getRefExpr().accept(this);
-            String refType = (String) node.getRefExpr().getExprType();
+            String refType = node.getRefExpr().getExprType();
             ClassTreeNode refClass = currentClass.lookupClass(refType);
             SymbolTable symbTab = refClass.getVarSymbolTable();
+            System.out.println(node.getMethodName() + symbTab);
 
-            if (symbTab.lookup((String) node.getMethodName(), 0) == null){
+            if (symbTab.lookup(node.getMethodName()) == null) {
                 registerError(node, "Method " + node.getMethodName() +
-                    " is undeclared for Object of type " + refType);
+                        " is undeclared for Object of type " + refType);
+                node.setExprType("Object");
+            } else {
+                node.setExprType((String) symbTab.lookup(node.getMethodName()));
             }
-            node.setExprType((String) symbTab.lookup((String) node.getName(), 0));
 
         } else { // no reference object
             if (currentSymbolTable.lookup(node.getMethodName()) == null){
@@ -382,19 +382,10 @@ public class TypeCheckerVisitor extends Visitor
                 " before declaration.");
                 node.setExprType("null");
             } else {
-                node.setExprType((String) currentSymbolTable.lookup(node.getName()));
+                node.setExprType((String) currentSymbolTable.lookup(node.getMethodName()));
             }
         }
         return null;
-
-
-
-
-
-
-
-
-
     }
 
     /**
@@ -571,9 +562,9 @@ public class TypeCheckerVisitor extends Visitor
             } else if (node.getName() == "null") {
                 node.setExprType("null");
             } else if (currentSymbolTable.lookup(node.getName()) == null){
-                registerError(node, "Variable " + node.getName() +  " referenced" +
-                " before declaration.");
-                node.setExprType("null");
+                registerError(node, "Variable " + node.getName() + " referenced" +
+                        " before declaration.");
+                node.setExprType("Object");
             } else {
                 node.setExprType((String) currentSymbolTable.lookup(node.getName()));
             }

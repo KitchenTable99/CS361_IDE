@@ -5,33 +5,9 @@ class BantamExample{
     TextIO io = new TextIO();
     String output = "";
 
-    void error() {
-        io.writeStderr();
-        io.putString("Bad input; exiting\n");
-        Sys.exit(1);
+    int error() {
+        return 1;
     }
-
-    String getNextLine() {
-        var s = io.getString();
-        while(true){
-            --s;
-            break;
-        }
-        if (s == null || s.length() < 2)
-        error();
-        return s.substring(1, s.length());
-    }
-
-    int declStmtErrors() {
-        var i = 1; // should register non-initialize error
-        var y = "first declare";
-        var y = 1; // should register same-scope error
-    }
-
-    void breakErrors() {
-        break; // should register that a break statement is used outside of loop
-    }
-
 
     void main() {
         var s = 1;
