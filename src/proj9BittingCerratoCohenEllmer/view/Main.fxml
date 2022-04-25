@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    File: Main.fxml
+    Authors: Caleb Bitting, Andy Xu, Jasper Loverude
+    Class: CS 361
+    Created for Project 5 on March 7
+-->
+<!-- set primary scene of size 800*600 -->
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.fxmisc.richtext.StyleClassedTextArea?>
+<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="proj9BittingCerratoCohenEllmer.controllers.MasterController">
+    <!-- make menu bar expand to fill the window if user resizes window  -->
+    <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+             AnchorPane.topAnchor="0.0">
+        <!-- File menu with 6 menu items  -->
+        <Menu mnemonicParsing="false" text="File">
+            <MenuItem accelerator="Shortcut+I" mnemonicParsing="false"
+                      onAction="#handleAbout" text="About..."/>
+            <SeparatorMenuItem mnemonicParsing="false"/>
+
+            <MenuItem text="New" accelerator="Shortcut+N" mnemonicParsing="false"
+                      onAction="#handleNew"/>
+            <MenuItem text="Open..." accelerator="Shortcut+O" mnemonicParsing="false"
+                      onAction="#handleOpen"/>
+            <MenuItem text="Close" fx:id="closeMI" accelerator="Shortcut+W"
+                      mnemonicParsing="false" onAction="#handleClose"/>
+            <MenuItem text="Save" fx:id="saveMI" accelerator="Shortcut+S"
+                      mnemonicParsing="false" onAction="#handleSave"/>
+            <MenuItem text="Save as..." fx:id="saveAsMI" accelerator="Shortcut+Shift+S"
+                      mnemonicParsing="false" onAction="#handleSaveAs"/>
+
+            <SeparatorMenuItem mnemonicParsing="false"/>
+            <MenuItem text="Exit" accelerator="Shortcut+Q" mnemonicParsing="false"
+                      onAction="#handleExit"/>
+        </Menu>
+        <!-- Edit menu also has 6 items  -->
+        <Menu mnemonicParsing="false" text="Edit">
+            <MenuItem text="Undo" fx:id="undoMI" accelerator="Shortcut+Z"
+                      mnemonicParsing="false" onAction="#handleUndo"/>
+            <MenuItem text="Redo" fx:id="redoMI" accelerator="Shortcut+Shift+Z"
+                      mnemonicParsing="false" onAction="#handleRedo"/>
+            <MenuItem text="Cut" fx:id="cutMI" accelerator="Shortcut+X"
+                      mnemonicParsing="false" onAction="#handleCut"/>
+            <MenuItem text="Copy" fx:id="copyMI" accelerator="Shortcut+C"
+                      mnemonicParsing="false" onAction="#handleCopy"/>
+            <MenuItem text="Paste" fx:id="pasteMI" accelerator="Shortcut+V"
+                      mnemonicParsing="false" onAction="#handlePaste"/>
+            <MenuItem text="Select all" fx:id="selectAllMI" accelerator="Shortcut+A"
+                      mnemonicParsing="false" onAction="#handleSelectAll"/>
+        </Menu>
+    </MenuBar>
+    <!-- use a separate FXML file to enable nested controllers  -->
+    <!-- it is necessary to have an fx:id equal to the field in the main controller minus "MasterController"  -->
+    <!-- ex. in MasterController.java, the controller for the element below is named tabController  -->
+    <!--     here the fx:id should be "tab" -->
+    <fx:include fx:id="tab" source="CodeTabs.fxml"/>
+    <!-- use a ToolBar to hold the two buttons -->
+    <ToolBar layoutY="27.0" prefHeight="49.0" prefWidth="400.0"
+             AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+        <Button text="Compile" fx:id="compileButton" mnemonicParsing="false"
+                onAction="#handleCompile"/>
+        <Button text="Compile &amp; Run" fx:id="compileRunButton" mnemonicParsing="false"
+                onAction="#handleCompileRun"/>
+        <Button text="Stop" fx:id="stopButton" mnemonicParsing="false"
+                onAction="#handleStop"/>
+    </ToolBar>
+    <StyleClassedTextArea fx:id="console" layoutX="6.0" layoutY="474.0"
+                          prefHeight="100.0" prefWidth="780.0"
+                          AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="0.0"
+                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="480.0"/>
+</AnchorPane>
