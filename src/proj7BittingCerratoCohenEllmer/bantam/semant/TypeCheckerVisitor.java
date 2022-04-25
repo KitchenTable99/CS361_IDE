@@ -505,6 +505,7 @@ public class TypeCheckerVisitor extends Visitor
         if (currentSymbolTable.lookup(node.getName()) == null) {
             registerError(node, "Variable " + node.getName() +
                     " referenced before declaration.");
+            System.out.println("Came here with " + node.getName());
         }
 
         // do the visiting
@@ -512,7 +513,9 @@ public class TypeCheckerVisitor extends Visitor
 
         // ensure correct type assignment
         String type = (String) currentSymbolTable.lookup(node.getName());
-        if (!isSubtype(type, node.getExpr().getExprType())) {
+        if (type == null) {
+            node.setExprType("Object");
+        } else if (!isSubtype(type, node.getExpr().getExprType())) {
             registerError(node, "Variable " + node.getName() +
                     " of type " + type + " cannot be assigned with type " +
                     node.getExpr().getExprType());
@@ -531,37 +534,40 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(VarExpr node) {
-        // Object variable_type;
-        // variable_type = currentSymbolTable.lookup(node.getName());
-
-        // if(variable_type == null){
-        //     registerError(node, "Variable '" + node.getName() + " not found!");
-        // }
-        if (node.getRef() != null){ // If we have a reference object
+        if (node.getRef() != null) { // If we have a reference object
+            // get the correct reference table
             node.getRef().accept(this);
-            String refType = (String) node.getRef().getExprType();
+            String refType = node.getRef().getExprType();
             ClassTreeNode refClass = currentClass.lookupClass(refType);
-            SymbolTable symbTab = refClass.getVarSymbolTable();
-            if (symbTab.lookup((String) node.getName(), 0) == null){ // is level 0 right?
+            SymbolTable symTab = refClass.getVarSymbolTable();
+            if (symTab.lookup(node.getName()) == null) {
                 registerError(node, "Object of type " + refType + " does" +
-                " not have a field of name " + node.getName());
-            }
-            node.setExprType((String) symbTab.lookup((String) node.getName(), 0));
-        } else { // no reference object
-            if (node.getName() == "this"){
-                node.setExprType(currentClass.getName());
-            } else if (node.getName() == "super"){
-                node.setExprType(currentClass.getParent().getName());
-            } else if (node.getName() == "null") {
-                node.setExprType("null");
-            } else if (currentSymbolTable.lookup(node.getName()) == null){
-                registerError(node, "Variable " + node.getName() + " referenced" +
-                        " before declaration.");
+                        " not have a field of name " + node.getName());
                 node.setExprType("Object");
             } else {
-                node.setExprType((String) currentSymbolTable.lookup(node.getName()));
+                node.setExprType((String) symTab.lookup(node.getName()));
             }
-            
+        } else { // no reference object
+            // set expression type
+            switch (node.getName()) {
+                case "this":
+                    node.setExprType(currentClass.getName());
+                    break;
+                case "super":
+                    node.setExprType(currentClass.getParent().getName());
+                    break;
+                case "null":
+                    node.setExprType("null");
+                    break;
+                default:
+                    String exprType = (String) currentSymbolTable.lookup(node.getName());
+                    if (exprType == null) {
+                        node.setExprType("Object");
+                    } else {
+                        node.setExprType(exprType);
+                    }
+                    break;
+            }
         }
         return null;
     }

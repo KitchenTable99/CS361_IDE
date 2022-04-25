@@ -22,7 +22,10 @@ class BantamExample{
         // this var declaration should complain about scope
         var i = "invalid";
 
-        // we do not have to check 'var j' as the parser will catch that
+        // this should complain about not being declared yet
+        foo = 0;
+
+        // we do not have to check 'var j;' as the parser will catch that
         // and won't make it here
 
         // this will make sure break only happens in loops
