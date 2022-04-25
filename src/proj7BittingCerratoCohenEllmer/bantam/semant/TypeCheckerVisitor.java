@@ -214,21 +214,18 @@ public class TypeCheckerVisitor extends Visitor
      * @return result of the visit
      */
     public Object visit(DeclStmt node) {
-        // TODO: Make sure this is all of the possible errors
-        // check if it has already been declared
-        if (currentSymbolTable.getScopeLevel(node.getName()) ==  
-            currentSymbolTable.getCurrScopeLevel()) {
-            registerError(node,"The name of the variable "
-                    + node.getName() + " is the same as the name of another variable" +
-                    " in the same scope.");
+        // check if already declared
+        if (currentSymbolTable.getScopeLevel(node.getName()) ==
+                currentSymbolTable.getCurrScopeLevel()) {
+            registerError(node, "The variable " + node.getName() +
+                    " has already been declared in this scope.");
         }
-        // get its initialization
-        if (node.getInit() != null){ // cannot be null
+
+        // initialize and store var if null, the parser would've thrown an exception
+        if (node.getInit() != null) {
             node.getInit().accept(this);
             node.setType(node.getInit().getExprType());
             currentSymbolTable.add(node.getName(), node.getType());
-        } else {
-            registerError(node, "Variable declaration must be initialized.");
         }
         return null;
     }
@@ -284,18 +281,24 @@ public class TypeCheckerVisitor extends Visitor
      * @return result of the visit
      */
     public Object visit(ForStmt node) {
-        if (node.getInitExpr() != null) // can be null or a expr
+        // visit init if not null
+        if (node.getInitExpr() != null) {
             node.getInitExpr().accept(this);
-         
-        // TODO: Look and see if every error here is handled
+        }
+
+        // visit predicate expression
         node.getPredExpr().accept(this);
         if (!isSubtype(node.getPredExpr().getExprType(), "boolean")) {
-            registerError(node,"The type of the predicate is " +
-                    node.getPredExpr().getExprType() + " which is not boolean.");
+            registerError(node, "The type of the predicate is " +
+                    node.getPredExpr().getExprType() + " when it should be boolean.");
         }
-        if (node.getUpdateExpr() != null) // can be null or a expr
+
+        // visit update expression if not null
+        if (node.getUpdateExpr() != null) {
             node.getUpdateExpr().accept(this);
-        // TODO: Look and see if every error here is handled
+        }
+
+        // visit body
         currentSymbolTable.enterScope();
         currentNestedLoops.push(node);
         node.getBodyStmt().accept(this);
@@ -314,7 +317,6 @@ public class TypeCheckerVisitor extends Visitor
         if (currentNestedLoops.size() == 0){ // make sure it is inside a loop
             registerError(node, "Cannot use break statement outside of loop.");
         }
-        // TODO: Make sure this is the only error that can happen with break stmt
         return null;
     }
 
@@ -361,25 +363,27 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(DispatchExpr node) {
-        if (node.getRefExpr() != null){ // If we have a reference object
+        // deal with reference object
+        if (node.getRefExpr() != null) {
+            // visit object and get symbol table
             node.getRefExpr().accept(this);
             String refType = node.getRefExpr().getExprType();
             ClassTreeNode refClass = currentClass.lookupClass(refType);
-            SymbolTable symbTab = refClass.getVarSymbolTable();
-            System.out.println(node.getMethodName() + symbTab);
+            SymbolTable refClassSymTab = refClass.getVarSymbolTable();
 
-            if (symbTab.lookup(node.getMethodName()) == null) {
+            // check for the method
+            if (refClassSymTab.lookup(node.getMethodName()) == null) {
                 registerError(node, "Method " + node.getMethodName() +
-                        " is undeclared for Object of type " + refType);
-                node.setExprType("Object");
+                        " is undeclared for an object of type " + refType);
+                node.setExprType("null");
             } else {
-                node.setExprType((String) symbTab.lookup(node.getMethodName()));
+                node.setExprType((String) refClassSymTab.lookup(node.getMethodName()));
             }
 
         } else { // no reference object
-            if (currentSymbolTable.lookup(node.getMethodName()) == null){
-                registerError(node, "Method " + node.getMethodName() +  " referenced" +
-                " before declaration.");
+            if (currentSymbolTable.lookup(node.getMethodName()) == null) {
+                registerError(node, "Method " + node.getMethodName() + " referenced" +
+                        " without declaration.");
                 node.setExprType("null");
             } else {
                 node.setExprType((String) currentSymbolTable.lookup(node.getMethodName()));
@@ -468,20 +472,25 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(CastExpr node) {
+        // evaluate the expression
         node.getExpr().accept(this);
-        if (node.getUpCast()){ // casting to a parent
-            if (!isSubtype(node.getType(), node.getExpr().getExprType())){
-                registerError(node, "Cannot cast " + node.getExpr().getExprType() + 
-                " to " + node.getType());
-            }
-        } else { // casting to a child, or a compatible primitive
-            if (!isSubtype(node.getExpr().getExprType(), node.getType())){
-                registerError(node, "Cannot cast " + node.getExpr().getExprType() + 
-                " to " + node.getType());
-            }
+
+        // determine if casts are valid
+        boolean validParentCast = isSubtype(node.getType(), node.getExpr().getExprType());
+        boolean validChildCast = isSubtype(node.getExpr().getExprType(), node.getType());
+        if (node.getUpCast() && !validParentCast) { // casting to a parent
+            registerError(node, "Cannot cast " + node.getExpr().getExprType() +
+                    " to " + node.getType());
+            node.setExprType("Object");
+
+            // casting to a child, or a compatible primitive
+        } else if (!node.getUpCast() && !validChildCast) {
+            registerError(node, "Cannot cast " + node.getExpr().getExprType() +
+                    " to " + node.getType());
+            node.setExprType("Object");
+        } else { // this is a valid cast
+            node.setExprType(node.getType());
         }
-        // TODO: make sure I did the proper subtype checking based on updast or not
-        node.setExprType(node.getType());
         return null;
     }
 
@@ -492,41 +501,25 @@ public class TypeCheckerVisitor extends Visitor
      * @return the type of the expression
      */
     public Object visit(AssignExpr node) {
-        if (node.getRefName() != null){ // does it have a reference object
-            if (currentSymbolTable.lookup(node.getRefName()) == null){
-                registerError(node, "Reference object " +
-                    node.getRefName() + " not found.");
-            }
-            String refType = (String) currentSymbolTable.lookup(node.getRefName());
-            // IDEA: Look for field in level 0 for all (parent) classes
-            ClassTreeNode refClass = currentClass.lookupClass(refType);
-            boolean found = false;
-            while (refClass != null){
-                SymbolTable symbTab = refClass.getVarSymbolTable();
-                if (symbTab.lookup((String) node.getName(), 0) != null){ // is level 0 right?
-                    found = true; // this variable is a field of the class
-                    break;
-                }
-                refClass = refClass.getParent(); // maybe it is in a parent
-            }
-            if (!found){
-                registerError(node, "Object of type " + node.getRefName() + 
-                " does not have field " + node.getName() + ".");
-            }
-            // TODO: make sure that this works
-        } else if(currentSymbolTable.lookup(node.getName()) == null){
-            registerError(node, "Variable " + node.getName() + 
-                " referenced before declaration.");
+        // make sure the variable can be assigned to
+        if (currentSymbolTable.lookup(node.getName()) == null) {
+            registerError(node, "Variable " + node.getName() +
+                    " referenced before declaration.");
         }
+
+        // do the visiting
         node.getExpr().accept(this);
+
+        // ensure correct type assignment
         String type = (String) currentSymbolTable.lookup(node.getName());
-        if (!isSubtype(type, node.getExpr().getExprType())){ // check if compatible types
-            registerError(node, "Variable " + node.getName() + 
-            " of type " + type + " cannot be assigned with type " +
-            node.getExpr().getExprType());
-            }
-        node.setExprType( (String) currentSymbolTable.lookup(node.getName()));
-        // TODO: Make sure that we have checked everything possible
+        if (!isSubtype(type, node.getExpr().getExprType())) {
+            registerError(node, "Variable " + node.getName() +
+                    " of type " + type + " cannot be assigned with type " +
+                    node.getExpr().getExprType());
+            node.setExprType("null");
+        } else {
+            node.setExprType((String) currentSymbolTable.lookup(node.getName()));
+        }
         return null;
     }
 
