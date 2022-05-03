@@ -1,5 +1,5 @@
 /*
- * File: PrecursorStringToken.java
+ * File: StringTokenBuilder.java
  * Author: cbitting
  * Date: 4/8/2021
  */
@@ -15,7 +15,7 @@ import java.util.Stack;
  * If some token starts with a ", this PrecursorToken contains all the logic needed
  * to tokenize that string.
  */
-public class PrecursorStringToken extends AbstractPrecursorToken {
+public class StringTokenBuilder extends TokenBuilder {
 
     /**
      * Holds legal escaped characters in strings
@@ -28,7 +28,7 @@ public class PrecursorStringToken extends AbstractPrecursorToken {
         add('f');
     }};
 
-    public PrecursorStringToken(Stack<Character> sc, int n, String s) {
+    public StringTokenBuilder(Stack<Character> sc, int n, String s) {
         super(sc, n, s);
     }
 

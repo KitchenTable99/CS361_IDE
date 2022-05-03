@@ -1,25 +1,22 @@
 /*
- * File: PrecursorStringToken.java
- * Author: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
- * Date: 4/11/2021
+ * File: Scanner.java
+ * Author: cbitting
+ * Date: 4/8/2021
  */
 package proj10BittingCerratoCohenEllmer.bantam.lexer;
 
-import proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens.AbstractPrecursorToken;
-import proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens.MalformedSpellingStackException;
-import proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens.PrecursorTokenFactory;
+import proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens.*;
 import proj10BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj10BittingCerratoCohenEllmer.bantam.util.Error;
 import proj10BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
 import java.util.Optional;
+import java.util.Stack;
 
 /**
- * This class reads characters from a file or a Reader
- * and breaks it into Tokens.
+ * This class generates precursor tokens based on a passed character.
  */
 public class Scanner {
     /**
@@ -32,14 +29,10 @@ public class Scanner {
     private final ErrorHandler errorHandler;
 
     /**
-     * holds Tokens that were read but not included in the previous token
+     * INVARIANT: when the token is finished scanning, this field holds the first
+     * character of the next token
      */
     private char currentChar;
-
-    /**
-     * factory to generate all the precursor tokens based on the first token
-     */
-    private final PrecursorTokenFactory preTokenFactory = new PrecursorTokenFactory();
 
     /**
      * creates a new scanner for the given file
@@ -50,7 +43,7 @@ public class Scanner {
     public Scanner(String filename, ErrorHandler handler) {
         errorHandler = handler;
         sourceFile = new SourceFile(filename);
-        currentChar = '\0';
+        currentChar = sourceFile.getNextChar(true);
     }
 
     /**
@@ -62,28 +55,7 @@ public class Scanner {
     public Scanner(Reader reader, ErrorHandler handler) {
         errorHandler = handler;
         sourceFile = new SourceFile(reader);
-        currentChar = '\0';
-    }
-
-    public String getFilename() {
-        return sourceFile.getFilename();
-    }
-
-    /**
-     * Returns the next token provided it isn't a comment. Comments are thrown away.
-     *
-     * @param ignoreComments whether to ignore comments. Passing false functions as a
-     *                       call to scan.
-     * @return the Token containing the characters read
-     * @see #scan()
-     */
-    public Token scan(boolean ignoreComments) {
-        Token returnToken = scan();
-        if (ignoreComments && returnToken.kind == Token.Kind.COMMENT) {
-            return scan(true);
-        } else {
-            return returnToken;
-        }
+        currentChar = sourceFile.getNextChar(true);
     }
 
     /**
@@ -95,29 +67,23 @@ public class Scanner {
      * @return the Token containing the characters read
      */
     public Token scan() {
-
-        AbstractPrecursorToken precursorToken = null;
-        do {
-            // create a new precursor token or push the char to the existing one
-            if (precursorToken == null) {
-                precursorToken = preTokenFactory.createPrecursorToken(
-                        getNextChar(true),
-                        sourceFile.getCurrentLineNumber(),
-                        sourceFile.getFilename());
-            } else {
-                precursorToken.pushChar(getNextChar(false));
-            }
-        } while (!precursorToken.isComplete());
+        TokenBuilder tokenBuilder = createTokenBuilder(currentChar);
+        while (!tokenBuilder.isComplete()) {
+            tokenBuilder.pushChar(sourceFile.getNextChar(false));
+        }
 
         // store last char in currentChar if needed
-        Optional<Character> extraChar = precursorToken.getExtraChar();
-        extraChar.ifPresent(c -> currentChar = c);
+        Optional<Character> extraChar = tokenBuilder.getExtraChar();
+        extraChar.ifPresentOrElse(
+                c -> currentChar = c,
+                () -> currentChar = sourceFile.getNextChar(true)
+        );
 
         // create the token from the precursor token
         // create token before extracting errors as some errors occur during creation
         Token finalToken;
         try {
-            finalToken = precursorToken.getFinalToken(sourceFile.getCurrentLineNumber());
+            finalToken = tokenBuilder.getFinalToken(sourceFile.getCurrentLineNumber());
         } catch (MalformedSpellingStackException e) {
             // this will never happen because we call getExtraChar above
             e.printStackTrace();
@@ -125,7 +91,7 @@ public class Scanner {
         }
 
         // register any errors that occurred with the error handler
-        Optional<List<Error>> errorList = precursorToken.getErrors();
+        Optional<List<Error>> errorList = tokenBuilder.getErrors();
         errorList.ifPresent(el -> {
             for (Error e : el) {
                 errorHandler.register(e);
@@ -136,38 +102,76 @@ public class Scanner {
     }
 
     /**
-     * Helper method to get the next character in the file. Different from
-     * SourceFile.getNextChar() in two significant ways. <p> First, if there is a char
-     * stored in the currentChar field, this method will attempt to return that
-     * char and reset the field. <p> Second, the caller can request a non-whitespace char
+     * Returns the filename of the internal source file
      *
-     * @param ignoreWhitespace whether to ignore whitespace characters
-     * @return the next possibly-non-whitespace char in the file including the
-     * currentChar field
+     * @return the name of the internal source file
      */
-    private char getNextChar(boolean ignoreWhitespace) {
-        // get the next character no matter what it is
-        char nextChar;
-        if (currentChar != '\0') {
-            nextChar = currentChar;
-            currentChar = '\0';  // reset currentChar
-        } else {
-            try {
-                nextChar = sourceFile.getNextChar();
-            } catch (IOException e) {
-                nextChar = '\0';
-                throw new CompilationException("no more chars to get", e);
-            }
-        }
+    public String getFilename() {
+        return sourceFile.getFilename();
+    }
 
-        // get the next character if we didn't want this whitespace character
-        if (ignoreWhitespace && Character.isWhitespace(nextChar)) {
-            return getNextChar(true);
-        } else {
-            return nextChar;
+    /**
+     * Creates a TokenBuilder based on the passed character
+     *
+     * @param initialChar the first char in the token
+     * @return the appropriate TokenBuilder for the passed token
+     */
+    private TokenBuilder createTokenBuilder(char initialChar) {
+        int lineNum = sourceFile.getCurrentLineNumber();
+        String filename = sourceFile.getFilename();
+        Stack<Character> spellingStack = new Stack<>();
+        spellingStack.push(initialChar);
+
+        switch (initialChar) {
+            case '/':
+                return new SlashTokenBuilder(spellingStack, lineNum, filename);
+            case '&':
+            case '|':
+            case '+':
+            case '-':
+            case '*':
+            case '%':
+            case '<':
+            case '>':
+                return new MathTokenBuilder(spellingStack, lineNum, filename);
+            case '=':
+                return new EqualsTokenBuilder(spellingStack, lineNum, filename);
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                return new IntegerTokenBuilder(spellingStack, lineNum, filename);
+            case '"':
+                return new StringTokenBuilder(spellingStack, lineNum, filename);
+            case '!':
+                return new ExclamationTokenBuilder(spellingStack, lineNum, filename);
+            case '(':
+            case ')':
+            case '{':
+            case '}':
+            case ';':
+            case '.':
+            case ':':
+            case ',':
+            case '\u0000':
+                return new SingleCharTokenBuilder(spellingStack, lineNum, filename);
+            default:
+                if (Character.isLetter(spellingStack.lastElement())) {
+                    return new IdentifierTokenBuilder(spellingStack, lineNum, filename);
+                }
+                return new UnsupportedCharTokenBuilder(spellingStack, lineNum, filename);
         }
     }
 
+    /**
+     * Driver test code
+     */
     public static void main(String[] args) {
         // files specified on cmd line
         if (args.length > 0) {
@@ -214,5 +218,4 @@ public class Scanner {
 
 
     }
-
 }

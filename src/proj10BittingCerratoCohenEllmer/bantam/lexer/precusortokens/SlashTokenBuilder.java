@@ -1,5 +1,5 @@
 /*
- * File: PrecursorSlashToken.java
+ * File: SlashTokenBuilder.java
  * Author: cbitting
  * Date: 4/8/2021
  */
@@ -14,12 +14,12 @@ import java.util.Stack;
  * If some token starts with a slash, this PrecursorToken contains all the logic needed
  * to tokenize that string.
  */
-public class PrecursorSlashToken extends AbstractPrecursorToken {
+public class SlashTokenBuilder extends TokenBuilder {
 
     private boolean typeKnown = false;
     private boolean isComment = false;
 
-    public PrecursorSlashToken(Stack<Character> sc, int l, String s) {
+    public SlashTokenBuilder(Stack<Character> sc, int l, String s) {
         super(sc, l, s);
     }
 

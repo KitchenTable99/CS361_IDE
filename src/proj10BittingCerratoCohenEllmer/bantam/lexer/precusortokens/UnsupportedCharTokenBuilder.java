@@ -1,5 +1,5 @@
 /*
- * File: UnsupportedCharToken.java
+ * File: UnsupportedCharTokenBuilder.java
  * Author: cbitting
  * modified: ecohen
  * Date: 4/14/2021
@@ -15,9 +15,9 @@ import java.util.Stack;
  * If some token is complete as a single symbol, this PrecursorToken contains all the
  * logic needed to tokenize that string.
  */
-public class UnsupportedCharToken extends AbstractPrecursorToken {
+public class UnsupportedCharTokenBuilder extends TokenBuilder {
 
-    public UnsupportedCharToken(Stack<Character> sc, int n, String s) {
+    public UnsupportedCharTokenBuilder(Stack<Character> sc, int n, String s) {
         super(sc, n, s);
         containsCompleteToken = true;
     }

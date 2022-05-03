@@ -1,5 +1,5 @@
 /*
- * File: AbstractPrecursorToken.java
+ * File: TokenBuilder.java
  * Author: cbitting
  * Date: 4/8/2021
  */
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
-public abstract class AbstractPrecursorToken {
+public abstract class TokenBuilder {
 
     /**
      * The internal stack used to hold characters in this precursor token.
@@ -47,7 +47,7 @@ public abstract class AbstractPrecursorToken {
      */
     protected String filename;
 
-    public AbstractPrecursorToken(Stack<Character> sc, int n, String s) {
+    public TokenBuilder(Stack<Character> sc, int n, String s) {
         spellingStack = sc;
         startingLineNumber = n;
         filename = s;
