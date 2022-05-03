@@ -1,0 +1,3 @@
+class BantamExampleTwo extends BantamExample {
+    ;
+}
