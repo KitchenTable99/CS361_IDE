@@ -1,69 +1,69 @@
 # TODO
 
-## Access Check
-* Matt
-* ~~Ian~~
+## General Project 10 Shit
 
-## Fixes from Project 5
-* ~~add file header to SaveReason.java~~
-* ~~add file header to DialogHelper.java~~
-* ~~rename HighlightedCodeArea~~
-  * ~~JavaCodeArea seems like a good candidate but Dale seemed to indicate even this isn't enough, so I don't know what it should be called~~
-  * ~~Having CodeArea in the name indicates this is a subclass of CodeArea which it isn't~~
-* ~~Controller class does too much—break it into smaller pieces~~
-* ~~Handle the IOException thrown in Main.java~~
+* Update keyword highlighting in the IDE
+* Replace "Compile" and "Compile & Run" with "Check"
+    * **NB:** This will require the Project 6 refactor to have already happened
 
-## Bugs that Dale found
+## Increase Bantam Java Syntax
 
-* Running a program that contains an infinite loop of print statements prints nothing and freezes
-* ~~When compiling and running the example Scanner thing from Moodle, the print statements don't seem to work~~
-  * ~~The file on Dale's side also immediately crashed upon execution completion. I can't replicate that bug.~~
-  * ~~It is caused by your use of inputReader.readLine() on approximately line 662 of Controller. That method reads
-    input until it encounters \n or \r. The JavaScannerExample prints out the two prompts using System.out.print, not
-    System.out.println, and so no \n nor \r are output by that program and hence no \n or \r appears in the
-    inputReader’s stream.~~
+* Variable type declaration
+    * Scanner
+    * Parser
+    * Semantic Analyzer
+    * Create example for Dale
+    * Catalog running instructions for Dale
+* Cast Syntax
+    * Scanner
+    * Parser
+    * Semantic Analyzer
+    * Create example for Dale
+    * Catalog running instructions for Dale
 
-## Non-instruction instructions
+## Finalize New Scanner (for Caleb)
 
-* ~~refactor so that only void functions have side effects~~
+* Move getNextNonWhitespaceChar to SourceFile
+* Pass SourceFile to TokenBuilderFactory
+* Bypass Scanner altogether
 
-# Vim Setup
+## Apply Dale's Feedback From Project9
 
-* ~~create VimTab extends Tab that has two modes~~
-* ~~editing mode allows typing~~
-* command mode has a blocky cursor that highlights characters and DOES NOT TYPE
-* ~~flip between them by changing a boolean field~~
-* ~~create a keylistener that waits for keys to be pressed~~
+* If there is a local var named “boo” but no field named “boo”, then “this.boo” should be illegal. Your code doesn’t
+  catch this.
+* Your checker doesn’t check the number and types of actual parameters to see if they match in number and are subtypes
+  of the formal parameters when visiting a DispatchExpr.
+* Your checker allowed DeclStmts of the form “var x = null;” and “var x = foo();” where foo is a void method.
+* Your checker allows reserved words like “boolean” as variable names.
+* Your checker allows declarations such as “var x = varr;” where varr is an undeclared variable.
+* Your checker doesn’t allow a for stmt of the form “for(;;){}”, even though it is legal.
+* Your checker allows 2 local vars of the same name with overlapping scope if one is declared at a more nested level
+  than the other.
+* Your checker ignores the refName field of AssignExpr nodes and so checks the wrong variable sometimes.
+* Your visit(DispatchExpr) searches for the method name in the class’s varSymbolTable instead of its methodSymbolTable.
+  As a result, it reports that the String class doesn’t have a toString() method.
 
-# Vim Keys
+## Apply Dale's Feedback From Project6
 
-#### ACTIVE IN EDIT
+* Switch the controller pieces
+* You created new classes ProcessBuilderShuttle and SaveInformationShuttle, which are good ideas to minimize functions
+  with side effects. But the use of the ProcessBuilderShuttle is awkward. A simpler approach is to have the
+  handleCompile method call tabController’s readyForCompile to see if it should proceed. Then in handleCompile, have the
+  TabController return the file path of the selected tab, and then have handleCompile create and initialize the
+  ProcessBuilder and then call doCompiling. This approach eliminates the need for the ProcessBuilderShuttle class.
+* JavaCodeArea is still not a good name for your class because it implies that it extends CodeArea, which it doesn’t.
+  You can’t add it to a tab, for example.
+* SaveFailureException is a perfectly acceptable subclass of Exception, but there should be documentation (internal or
+  external or in the report above) saying what it is used for. The Javadoc header doesn’t give any helpful information
+  in that regard.
+* Minimize negatives like “not” in method names to prevent the need for double negatives. For example, the method
+  notReadyForP should be changed to isReadyForP and then you can use instructions like “if (! isReadyForP())...” like
+  you do with the other “Ready” methods.
 
-* (esc)  switch to command mode and set the caret one character back (if possible)
+# What we did
 
-#### ACTIVE IN COMMAND
-
-* i:  switch to edit mode and leave the caret in place
-* a: switch to edit mode and advance the caret one character
-* I (as in upper case indigo): switch to edit mode at the place of the first character in the line (so that you type
-  before everything)
-* A: switch to edit mode after the last character in the line
-
-
-* h: move the caret one character to the left
-* l (as in lima): move the caret one character to the right
-* j: move the caret one line up. point to last character in the line or the same character position.
-* k: move the caret one line down. point to last character in the line or the same character position.
-
-
-* w: move the caret to the beginning of the next word advance a line if needed. Nothing happens at the end of the file.
-* b: move the caret to the beginning of the previous word regressing a line if needed. If currently in the middle of a
-  word, move to the beginning of that one. Nothing happens at the beginning of the file
-
-
-* r: replace the character at the caret position with the next one typed
-* x: remove the character at the caret position
-* dd: remove the current line (include the newline character). Place the line in an internal clipboard.
-* yy: place the current line (include the newline character) in the internal clipboard
-* p: paste and remove the line from the internal clipboard BELOW THE CARET
-* P: paste and remove the line from the internal clipboard ABOVE THE CARET
+* Variable Type Declaration
+* Cast Syntax
+* Elegantly fixed project 6
+* Elegantly fixed project 9
+* Made the given scanner class so elegant we deleted it

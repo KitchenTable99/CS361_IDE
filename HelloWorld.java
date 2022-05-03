@@ -1,4 +1,4 @@
-package proj9BittingCerratoCohenEllmer.bantam;
+package proj10BittingCerratoCohenEllmer.bantam;
 //TODO: change to ScannerTestFile?
 class HelloWorld {
     public static void main(String[] args) {
