@@ -589,7 +589,7 @@ public class Parser {
             case NEW:
                 result = parseNew();
                 break;
-            case CAST:
+            case LPAREN:
                 result = parseCast();
                 break;
             default:
@@ -610,18 +610,16 @@ public class Parser {
         return new NewExpr(position, type);
     }
 
-    //<CastExpression>::= CAST ( <Type> , <Expression> )
+    //<CastExpression>::= ( <Type> ) <Expression>
     private Expr parseCast() {
 
         Expr castExpression;
         int position = currentToken.position;
         advance();
-
-        advanceIfTokenMatches(LPAREN);
         String type = parseType();
-        advanceIfTokenMatches(COMMA);
-        Expr expression = parseExpression();
         advanceIfTokenMatches(RPAREN);
+
+        Expr expression = parseExpression();
 
         castExpression = new CastExpr(position, type, expression);
         return castExpression;
