@@ -1,5 +1,5 @@
 /*
- * File: PrecursorMathToken.java
+ * File: MathTokenBuilder.java
  * Author: cbitting
  * Date: 4/8/2021
  */
@@ -13,9 +13,9 @@ import java.util.Stack;
  * If some token starts with a mathematical symbol, this PrecursorToken contains all the
  * logic needed to tokenize the string
  */
-public class PrecursorMathToken extends AbstractPrecursorToken {
+public class MathTokenBuilder extends TokenBuilder {
 
-    public PrecursorMathToken(Stack<Character> sc, int n, String s) {
+    public MathTokenBuilder(Stack<Character> sc, int n, String s) {
         super(sc, n, s);
     }
 

@@ -1,5 +1,5 @@
 /*
- * File: PrecursorSingleCharToken.java
+ * File: SingleCharTokenBuilder.java
  * Author: cbitting
  * Date: 4/8/2021
  */
@@ -13,9 +13,9 @@ import java.util.Stack;
  * If some token is complete as a single symbol, this PrecursorToken contains all the
  * logic needed to tokenize that string.
  */
-public class PrecursorSingleCharToken extends AbstractPrecursorToken {
+public class SingleCharTokenBuilder extends TokenBuilder {
 
-    public PrecursorSingleCharToken(Stack<Character> sc, int n, String s) {
+    public SingleCharTokenBuilder(Stack<Character> sc, int n, String s) {
         super(sc, n, s);
         containsCompleteToken = true;
     }

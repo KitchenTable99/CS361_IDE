@@ -1,8 +1,7 @@
 /*
- * File: PrecursorSingleCharToken.java
+ * File: EqualsTokenBuilder.java
  * Author: cbitting
- * Adapted: ecohen
- * Date: 4/9/2021
+ * Date: 4/8/2021
  */
 package proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
 
@@ -11,28 +10,24 @@ import proj10BittingCerratoCohenEllmer.bantam.lexer.Token;
 import java.util.Stack;
 
 /**
- * If some token is contains an Exclamation (!), this PrecursorToken contains all the
- * logic needed to tokenize that string.
+ * If some token starts with a letter, this PrecursorToken contains all the logic
+ * used to tokenize that string.
  */
-public class PrecursorExclamationToken extends AbstractPrecursorToken {
+public class IdentifierTokenBuilder extends TokenBuilder {
 
-    public PrecursorExclamationToken(Stack<Character> sc, int n, String s) {
+    public IdentifierTokenBuilder(Stack<Character> sc, int n, String s) {
         super(sc, n, s);
-        containsCompleteToken = false;
     }
 
     @Override
     public void pushChar(char c) {
         spellingStack.push(c);
 
-        if ( c == '=') {
-            containsCompleteToken = true;
-        } else {
+        if (!(Character.isLetterOrDigit(c) || c == '_')) {
             popLastBeforeCreation = true;
             containsCompleteToken = true;
         }
     }
-
 
     @Override
     public Token getFinalToken(int currentLineNumber)
@@ -40,11 +35,8 @@ public class PrecursorExclamationToken extends AbstractPrecursorToken {
         if (popLastBeforeCreation) {
             throw new MalformedSpellingStackException("You need to pop the stack first");
         }
-        if(spellingStack.size() == 1){
-            return new Token(Token.Kind.UNARYNOT,
-                makeStackString(false), currentLineNumber);
-        }
-        return new Token(Token.Kind.COMPARE,
+
+        return new Token(Token.Kind.IDENTIFIER,
             makeStackString(false), currentLineNumber);
     }
 }
