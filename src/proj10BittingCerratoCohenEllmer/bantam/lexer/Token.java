@@ -58,7 +58,7 @@
          } else if (kind == Kind.IDENTIFIER && reservedWords.contains(spelling)) {
              this.kind = Enum.valueOf(Kind.class, spelling.toUpperCase());
          } else if(kind == Kind.IDENTIFIER && builtinTypes.contains(spelling)) {
-             this.kind = Enum.valueOf(Kind.class,"VAR"); //Converts builtin types to VAR for builtin type checking
+             this.kind = Enum.valueOf(Kind.class,"TYPE"); //Converts builtin types to VAR for builtin type checking
          } else{
 
              this.kind = kind;
@@ -78,7 +78,7 @@
       */
      public enum Kind {
          // literals, identifiers...
-         INTCONST, STRCONST, BOOLEAN, IDENTIFIER,
+         INTCONST, STRCONST, BOOLEAN, IDENTIFIER, TYPE,
 
          // operators...
          BINARYLOGIC, PLUSMINUS, MULDIV, COMPARE, UNARYINCR, UNARYDECR, ASSIGN,

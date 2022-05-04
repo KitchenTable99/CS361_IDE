@@ -5,6 +5,7 @@ import proj10BittingCerratoCohenEllmer.bantam.parser.Parser;
 import proj10BittingCerratoCohenEllmer.bantam.treedrawer.Drawer;
 import proj10BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj10BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
+import proj10BittingCerratoCohenEllmer.bantam.util.Error;
 
 public class Main {
     /**
@@ -37,9 +38,9 @@ public class Main {
                             "*** " + filename + " had " 
                                 + errorCount + " errors! ***");
                         // (cmd + /) uncomment to view individual errors
-                        // for (Error error : bantamErrorHandler.getErrorList()) {
-                        //     System.out.println(error);
-                        // }
+                        for (Error error : bantamErrorHandler.getErrorList()) {
+                            System.out.println(error);
+                        }
                     }else{
                         System.out.println(
                             "*** Scanning file " + filename 

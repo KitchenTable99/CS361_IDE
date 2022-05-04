@@ -1,6 +1,5 @@
 class BantamExample{
-
-    String string = "hi";
+    String string = "45";
 
     int hello() {
         return 1;
@@ -21,6 +20,7 @@ class BantamExample{
 
         // this var declaration should complain about scope
         var i = "invalid";
+        int;
 
         // this should complain about not being declared yet
         foo = 0;
