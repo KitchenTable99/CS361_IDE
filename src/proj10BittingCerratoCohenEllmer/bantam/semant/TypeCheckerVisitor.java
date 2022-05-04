@@ -72,6 +72,9 @@ public class TypeCheckerVisitor extends Visitor
         if (t1.equals("boolean") || t2.equals("boolean")) {
             return t2.equals(t1);
         }
+        if(t1.equals("double") || t2.equals("double")){
+            return t2.equals(t1);
+        }
         // go up the inheritance tree of t1 to see if you
         // encounter t2
         ClassTreeNode t1Node = currentClass.lookupClass(t1);
@@ -89,7 +92,8 @@ public class TypeCheckerVisitor extends Visitor
      * returns true if the given type is int or boolean
      */
     private boolean isPrimitiveType(String type) {
-        return type.equals("int") || type.equals("boolean");
+        return type.equals("int") || type.equals("boolean")
+                || type.equals("double");
     }
 
     /**
@@ -877,6 +881,19 @@ public class TypeCheckerVisitor extends Visitor
         node.setExprType("int");
         return null;
     }
+
+    /**
+     * Visit an double constant expression node
+     *
+     * @param node the int constant expression node
+     * @return the type of the expression
+     */
+    public Object visit(ConstDblExpr node) {
+        node.setExprType("double");
+        return null;
+    }
+
+
 
     /**
      * Visit a boolean constant expression node

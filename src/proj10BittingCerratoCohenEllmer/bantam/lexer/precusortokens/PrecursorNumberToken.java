@@ -14,10 +14,13 @@ import java.util.Stack;
  * If some token starts with a digit, this PrecursorToken contains all the logic needed
  * to tokenize the string
  */
-public class PrecursorIntegerToken extends AbstractPrecursorToken {
+public class PrecursorNumberToken extends AbstractPrecursorToken {
 
-    public PrecursorIntegerToken(Stack<Character> sc, int n, String s) {
+    private boolean onePoint;
+
+    public PrecursorNumberToken(Stack<Character> sc, int n, String s) {
         super(sc, n, s);
+        this.onePoint = false;
     }
 
     @Override
@@ -25,8 +28,14 @@ public class PrecursorIntegerToken extends AbstractPrecursorToken {
         spellingStack.push(c);
 
         if (!Character.isDigit(c)) {
-            containsCompleteToken = true;
-            popLastBeforeCreation = true;
+             if(!this.onePoint && c == '.'){
+                this.onePoint = true;
+            }else{
+
+
+                 containsCompleteToken = true;
+                 popLastBeforeCreation = true;
+             }
         }
     }
 
@@ -37,15 +46,21 @@ public class PrecursorIntegerToken extends AbstractPrecursorToken {
             throw new MalformedSpellingStackException("You need to pop the stack first");
         }
 
-        // make sure the int is small enough
+        // decide if number is integer or double
         Token.Kind tokenKind;
         try{
-            Integer.parseInt(makeStackString(true));
-            tokenKind = Token.Kind.INTCONST;
+            String stack = makeStackString(true);
+            if(stack.contains(".")){
+                Double.parseDouble(stack);
+                tokenKind = Token.Kind.DBLCONST;
+            }else {
+                Integer.parseInt(stack);
+                tokenKind = Token.Kind.INTCONST;
+            }
         }catch(NumberFormatException e){
             tokenError.add(new Error(Error.Kind.LEX_ERROR, filename,
-                currentLineNumber,
-                "Integer Constant too large!"));
+                    currentLineNumber,
+                    "Number Constant too large!"));
             tokenKind = Token.Kind.ERROR;
         }
 

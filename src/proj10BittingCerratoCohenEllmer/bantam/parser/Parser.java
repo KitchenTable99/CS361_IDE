@@ -589,7 +589,7 @@ public class Parser {
             case NEW:
                 result = parseNew();
                 break;
-            case LPAREN:
+            case CAST:
                 result = parseCast();
                 break;
             default:
@@ -610,16 +610,18 @@ public class Parser {
         return new NewExpr(position, type);
     }
 
-    //<CastExpression>::= ( <Type> ) <Expression>
+    //<CastExpression>::= CAST ( <Type> , <Expression> )
     private Expr parseCast() {
 
         Expr castExpression;
         int position = currentToken.position;
         advance();
-        String type = parseType();
-        advanceIfTokenMatches(RPAREN);
 
+        advanceIfTokenMatches(LPAREN);
+        String type = parseType();
+        advanceIfTokenMatches(COMMA);
         Expr expression = parseExpression();
+        advanceIfTokenMatches(RPAREN);
 
         castExpression = new CastExpr(position, type, expression);
         return castExpression;
@@ -683,7 +685,8 @@ public class Parser {
 
     /*
      * <Primary> ::= ( <Expression> ) <ExprSuffix> | <IntegerConst> | <BooleanConst> |
-     *                               <StringConst> <IdSuffix> | <Identifier> <Suffix>
+     *                                <DoubleConst> <StringConst> <IdSuffix> | <Identifier>
+     *                                <Suffix>
      * <IdSuffix>    ::=  . <Identifier> <Suffix> | EMPTY
      * <DispSuffix>  ::=  ( <Arguments> ) <IdSuffix> | EMPTY
      * <ExprSuffix>  ::=  <IdSuffix> | <IndexSuffix>
@@ -693,6 +696,8 @@ public class Parser {
         Expr primary;
 
         switch (currentToken.kind) {
+            case DBLCONST:
+                return parseDblConst();
             case INTCONST:
                 return parseIntConst();
             case BOOLEAN:
@@ -820,6 +825,13 @@ public class Parser {
         return new ConstStringExpr(position, spelling);
     }
 
+    private ConstDblExpr parseDblConst(){
+        int position = currentToken.position;
+        String spelling = currentToken.spelling;
+        advanceIfTokenMatches(DBLCONST);
+        return new ConstDblExpr(position, spelling);
+    }
+
 
     private ConstIntExpr parseIntConst() {
         int position = currentToken.position;
@@ -841,7 +853,7 @@ public class Parser {
         ErrorHandler errorHandler = new ErrorHandler();
         Parser parser = new Parser(errorHandler);
 
-        args = new String[]{"testsByDale/AAA.btm"};
+        args = new String[]{"HelloWorld.java"};
 
         for (String inFile : args) {
             System.out.println("\n========== Results for " + inFile + " =============");

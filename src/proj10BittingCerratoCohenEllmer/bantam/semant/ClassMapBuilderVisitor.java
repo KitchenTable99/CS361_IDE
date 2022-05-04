@@ -42,7 +42,7 @@ public class ClassMapBuilderVisitor extends Visitor {
         else if(SemanticAnalyzer.reservedIdentifiers.contains(node.getName()))
             errorHandler.register(Error.Kind.SEMANT_ERROR,node.getFilename(),
                     node.getLineNum(),"A class cannot be named 'this', 'super'," +
-                            "'void', 'int', 'boolean', or 'null'; " +
+                            "'void', 'int', 'boolean', 'double', or 'null'; " +
                             node.getName());
         else {
             ClassTreeNode treeNode = new ClassTreeNode(node, false, true, classMap);

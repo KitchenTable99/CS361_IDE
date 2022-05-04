@@ -232,6 +232,10 @@ public class LayoutVisitor extends Visitor {
         return layoutNullary("Int:" + node.getConstant());
     }
 
+    public Object visit(ConstDblExpr node) {
+        return layoutNullary("Double:" + node.getConstant());
+    }
+
     public Object visit(ConstBooleanExpr node) {
         return layoutNullary("Bool:" + node.getConstant());
     }

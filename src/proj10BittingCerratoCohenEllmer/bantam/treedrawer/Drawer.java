@@ -34,8 +34,8 @@ public class Drawer {
 
         FontMetrics fontMetrics = frame.getFontMetrics(font);
 
-        proj10BittingCerratoCohenEllmer.bantam.treedrawer.LayoutVisitor layout = new LayoutVisitor(fontMetrics);
-        proj10BittingCerratoCohenEllmer.bantam.treedrawer.DrawingTree theDrawing = (DrawingTree) AST.accept(layout);
+        LayoutVisitor layout = new LayoutVisitor(fontMetrics);
+        DrawingTree theDrawing = (DrawingTree) AST.accept(layout);
         theDrawing.position(new Point(2048, 10));
         panel.setDrawing(theDrawing);
 

@@ -57,7 +57,7 @@ public abstract class BinaryCompExpr extends BinaryExpr {
      *
      * @param v bantam.visitor object
      * @return result of visiting this node
-     * @see proj10BittingCerratoCohenEllmer.bantam.visitor.Visitor
+     * @see Visitor
      */
     abstract public Object accept(Visitor v);
 }

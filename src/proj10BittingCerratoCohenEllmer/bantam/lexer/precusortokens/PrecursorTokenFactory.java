@@ -41,7 +41,7 @@ public class PrecursorTokenFactory {
             case '7':
             case '8':
             case '9':
-                return new PrecursorIntegerToken(spellingStack, lineNum, filename);
+                return new PrecursorNumberToken(spellingStack, lineNum, filename);
             case '"':
                 return new PrecursorStringToken(spellingStack, lineNum, filename);
             case '!':

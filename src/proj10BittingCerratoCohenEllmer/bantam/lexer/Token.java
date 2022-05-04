@@ -75,7 +75,7 @@
       */
      public enum Kind {
          // literals, identifiers...
-         INTCONST, STRCONST, BOOLEAN, IDENTIFIER,
+         INTCONST, STRCONST, BOOLEAN, IDENTIFIER, DBLCONST,
 
          // operators...
          BINARYLOGIC, PLUSMINUS, MULDIV, COMPARE, UNARYINCR, UNARYDECR, ASSIGN,
@@ -91,16 +91,15 @@
          COMMENT, ERROR, EOF, //end of file token
 
          // reserved words
-         BREAK, CLASS, VAR, ELSE, EXTENDS, FOR, IF, INSTANCEOF, NEW,
-         RETURN, WHILE //CAST, removed for Java cast syntax
+         BREAK, CAST, CLASS, VAR, ELSE, EXTENDS, FOR, IF, INSTANCEOF, NEW,
+         RETURN, WHILE
      }
 
      /**
       * a set of all the reserved words of Bantam Java
       */
-     private static Set<String> reservedWords = Set.of("break", "class", "var",
-             "else", "extends", "for", "if", "instanceof", "new", "return", "while"); 
-             // "cast", removed
+     private static Set<String> reservedWords = Set.of("break", "cast", "class", "var",
+             "else", "extends", "for", "if", "instanceof", "new", "return", "while");
 
  }
 

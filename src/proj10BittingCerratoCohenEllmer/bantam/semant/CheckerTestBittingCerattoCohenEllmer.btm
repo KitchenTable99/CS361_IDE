@@ -6,6 +6,10 @@ class BantamExample{
         return 1;
     }
 
+    double hi(){
+        return 1.5;
+    }
+
     void main() {
         // this for loop should be fine
         var i = 0;
