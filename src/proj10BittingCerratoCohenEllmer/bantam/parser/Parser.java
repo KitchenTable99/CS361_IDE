@@ -92,7 +92,7 @@ public class Parser {
         errorHandler.register(Error.Kind.PARSE_ERROR, scanner.getFilename(), position,
                 message);
         // exit immediately because the parser can't continue
-        throw new CompilationException("Parser error found.", new Throwable());
+        throw new CompilationException(message, new Throwable());
     }
 
     /**
