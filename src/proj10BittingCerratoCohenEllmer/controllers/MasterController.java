@@ -48,7 +48,7 @@ public class MasterController {
     @FXML
     private MenuItem saveMI, saveAsMI, closeMI;
     @FXML
-    private CodeTabController tabController;
+    private TabPane tabPane;
 
     // Class DialogHelper handling all dialog instantiation
     private final DialogHelper dialogHelper = new DialogHelper();
@@ -57,8 +57,6 @@ public class MasterController {
 
     private final SimpleBooleanProperty isThreadActive = new SimpleBooleanProperty(false);
 
-    @FXML
-    private TabPane tabPane;
     // keep track of the content and where it was saved
     private final HashMap<Tab, String> savedContents = new HashMap<>();
     private final HashMap<Tab, String> savedPaths = new HashMap<>();
@@ -84,35 +82,25 @@ public class MasterController {
     @FXML
     private void initialize() {
 
-        tabController.makeNewTab();
+        makeNewTab();
 
         // disable appropriate menu items when no tabs are open
         // TODO: delegate disabling to some helper class
-        closeMI.disableProperty().bind(hasNoTabs());
-        saveMI.disableProperty().bind(hasNoTabs());
-        saveAsMI.disableProperty().bind(hasNoTabs());
-        undoMI.disableProperty().bind(hasNoTabs());
-        redoMI.disableProperty().bind(hasNoTabs());
-        selectAllMI.disableProperty().bind(hasNoTabs());
-        cutMI.disableProperty().bind(hasNoTabs());
-        copyMI.disableProperty().bind(hasNoTabs());
-        pasteMI.disableProperty().bind(hasNoTabs());
+        closeMI.disableProperty().bind(noTabs());
+        saveMI.disableProperty().bind(noTabs());
+        saveAsMI.disableProperty().bind(noTabs());
+        undoMI.disableProperty().bind(noTabs());
+        redoMI.disableProperty().bind(noTabs());
+        selectAllMI.disableProperty().bind(noTabs());
+        cutMI.disableProperty().bind(noTabs());
+        copyMI.disableProperty().bind(noTabs());
+        pasteMI.disableProperty().bind(noTabs());
 
         // Bind compile buttons so that they are disabled when a process is running
-        compileButton.disableProperty().bind(Bindings.or(isThreadActive, hasNoTabs()));
-        compileRunButton.disableProperty().bind(Bindings.or(isThreadActive, hasNoTabs()));
-        stopButton.disableProperty().bind(Bindings.or(isThreadActive.not(), hasNoTabs()));
+        compileButton.disableProperty().bind(Bindings.or(isThreadActive, noTabs()));
+        compileRunButton.disableProperty().bind(Bindings.or(isThreadActive, noTabs()));
+        stopButton.disableProperty().bind(Bindings.or(isThreadActive.not(), noTabs()));
     }
-
-    /**
-     * Calls the noTabs method of the tabController
-     * @see CodeTabController#noTabs
-     * @return the binding indicating whether there are tabs
-     */
-    private BooleanBinding hasNoTabs() {
-        return tabController.noTabs();
-    }
-
 
     /**
      * Handles menu bar item About. Shows a dialog that contains program information.
@@ -129,12 +117,10 @@ public class MasterController {
 
     /**
      * Creates a new tab.
-     *
-     * @see CodeTabController#makeNewTab
      */
     @FXML
     private void handleNew() {
-        tabController.makeNewTab();
+        makeNewTab();
     }
 
     /**
@@ -142,11 +128,10 @@ public class MasterController {
      *
      * @param event An ActionEvent object that gives information about the event
      *              and its source.
-     * @see CodeTabController#openFile
      */
     @FXML
     private void handleOpen(ActionEvent event) {
-        tabController.openFile();
+        openFile();
     }
 
 
@@ -155,11 +140,10 @@ public class MasterController {
      *
      * @param event An ActionEvent object that gives information about the event
      *              and its source.
-     * @see CodeTabController#closeSelectedTab
      */
     @FXML
     public void handleClose(ActionEvent event) {
-        tabController.closeSelectedTab(SaveReason.CLOSING, new SaveInformationShuttle());
+        closeSelectedTab(SaveReason.CLOSING, new SaveInformationShuttle());
     }
 
     /**
@@ -167,11 +151,10 @@ public class MasterController {
      *
      * @param event An ActionEvent object that gives information about the event
      *              and its source.
-     * @see CodeTabController#closeAllTabs
      */
     @FXML
     private void handleExit(ActionEvent event) {
-        tabController.closeAllTabs();
+        closeAllTabs();
     }
 
 
@@ -180,14 +163,12 @@ public class MasterController {
      *
      * @param event An ActionEvent object that gives information about the event
      *              and its source.
-     *
-     * @see CodeTabController#saveCurrentTab
      */
     @FXML
     private void handleSave(ActionEvent event) {
         SaveInformationShuttle saveShuttle = new SaveInformationShuttle();
         try {
-            tabController.saveCurrentTab(saveShuttle);
+            saveCurrentTab(saveShuttle);
         } catch (SaveFailureException e) {
             dialogHelper.getAlert("Unable to save file", e.getMessage()).show();
         }
@@ -198,14 +179,12 @@ public class MasterController {
      *
      * @param event An ActionEvent object that gives information about the event
      *              and its source.
-     *
-     * @see CodeTabController#saveCurrentTab
      */
     @FXML
     private void handleSaveAs(ActionEvent event) {
         SaveInformationShuttle saveShuttle = new SaveInformationShuttle();
         try {
-            tabController.saveCurrentTabAs(saveShuttle);
+            saveCurrentTabAs(saveShuttle);
         } catch (SaveFailureException e) {
             dialogHelper.getAlert("Unable to save file", e.getMessage()).show();
         }
@@ -219,7 +198,7 @@ public class MasterController {
      */
     @FXML
     private void handleUndo(ActionEvent event) {
-        tabController.getSelectedTextBox().undo();
+        getSelectedTextBox().undo();
     }
 
     /**
@@ -230,7 +209,7 @@ public class MasterController {
      */
     @FXML
     private void handleRedo(ActionEvent event) {
-        tabController.getSelectedTextBox().redo();
+        getSelectedTextBox().redo();
     }
 
     /**
@@ -241,7 +220,7 @@ public class MasterController {
      */
     @FXML
     private void handleCut(ActionEvent event) {
-        tabController.getSelectedTextBox().cut();
+        getSelectedTextBox().cut();
     }
 
     /**
@@ -252,7 +231,7 @@ public class MasterController {
      */
     @FXML
     private void handleCopy(ActionEvent event) {
-        tabController.getSelectedTextBox().copy();
+        getSelectedTextBox().copy();
     }
 
     /**
@@ -263,7 +242,7 @@ public class MasterController {
      */
     @FXML
     private void handlePaste(ActionEvent event) {
-        tabController.getSelectedTextBox().paste();
+        getSelectedTextBox().paste();
     }
 
     /**
@@ -274,7 +253,7 @@ public class MasterController {
      */
     @FXML
     private void handleSelectAll(ActionEvent event) {
-        tabController.getSelectedTextBox().selectAll();
+        getSelectedTextBox().selectAll();
     }
 
 
@@ -320,12 +299,11 @@ public class MasterController {
      *
      * @param event An ActionEvent object that gives information about the event
      *              and its source.
-     * @see CodeTabController#prepareCompileProcess
      */
     @FXML
     private void handleCompile(ActionEvent event) {
         ProcessBuilderShuttle shuttle = new ProcessBuilderShuttle();
-        tabController.prepareCompileProcess(shuttle);
+        prepareCompileProcess(shuttle);
         ProcessBuilder processBuilder = shuttle.getProcessBuilder();
         doCompiling(processBuilder, true);
     }
@@ -339,14 +317,14 @@ public class MasterController {
     @FXML
     private void handleCompileRun(ActionEvent event) {
         ProcessBuilderShuttle shuttle = new ProcessBuilderShuttle();
-        tabController.prepareCompileProcess(shuttle);
+        prepareCompileProcess(shuttle);
         ProcessBuilder compileProcess = shuttle.getProcessBuilder();
         doCompiling(compileProcess, false);
 
         // TODO if we want to print out compile successful, ensure that wait happens here.
         // TODO put this thread business in its own method the only differences are which streams are connected to the console
         // prepare running in a new thread
-        ProcessBuilder runProcess = tabController.prepareRunningProcess();
+        ProcessBuilder runProcess = prepareRunningProcess();
         processThread = new Thread(() -> {
             try {
                 Process process = runProcess.start();
@@ -474,7 +452,7 @@ public class MasterController {
      *
      * @see #getNextAvailableUntitled
      */
-    public void makeNewTab() {
+    private void makeNewTab() {
         // calls helper method for untitled tabName generation
         String newTabName = getNextAvailableUntitled();
 
