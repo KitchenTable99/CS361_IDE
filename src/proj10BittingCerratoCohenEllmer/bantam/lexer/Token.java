@@ -91,15 +91,16 @@
          COMMENT, ERROR, EOF, //end of file token
 
          // reserved words
-         BREAK, CAST, CLASS, VAR, ELSE, EXTENDS, FOR, IF, INSTANCEOF, NEW,
-         RETURN, WHILE
+         BREAK, CLASS, VAR, ELSE, EXTENDS, FOR, IF, INSTANCEOF, NEW,
+         RETURN, WHILE //CAST, removed for Java cast syntax
      }
 
      /**
       * a set of all the reserved words of Bantam Java
       */
-     private static Set<String> reservedWords = Set.of("break", "cast", "class", "var",
-             "else", "extends", "for", "if", "instanceof", "new", "return", "while");
+     private static Set<String> reservedWords = Set.of("break", "class", "var",
+             "else", "extends", "for", "if", "instanceof", "new", "return", "while"); 
+             // "cast", removed
 
  }
 
