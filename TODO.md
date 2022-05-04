@@ -23,9 +23,9 @@
 
 ## Finalize New Scanner (for Caleb)
 
-* Move getNextNonWhitespaceChar to SourceFile
-* Pass SourceFile to TokenBuilderFactory
-* Bypass Scanner altogether
+* ~~Move getNextNonWhitespaceChar to SourceFile~~
+* ~~Pass SourceFile to TokenBuilderFactory~~
+* ~~Bypass Scanner altogether~~
 
 ## Apply Dale's Feedback From Project9
 
