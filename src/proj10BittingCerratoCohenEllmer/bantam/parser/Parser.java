@@ -318,7 +318,8 @@ public class Parser {
     private Stmt parseDeclStmt() {
 
         int position = currentToken.position;
-        Stmt stmt;
+        DeclStmt stmt;
+        String type = currentToken.spelling;
         advance(); // the keyword var
 
         String id = parseIdentifier();
@@ -326,6 +327,7 @@ public class Parser {
         Expr value = parseExpression();
 
         stmt = new DeclStmt(position, id, value);
+        stmt.setType(type);
         advanceIfTokenMatches(SEMICOLON);
 
         return stmt;

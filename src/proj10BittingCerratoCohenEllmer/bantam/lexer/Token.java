@@ -57,7 +57,10 @@
              this.kind = Kind.BOOLEAN;
          } else if (kind == Kind.IDENTIFIER && reservedWords.contains(spelling)) {
              this.kind = Enum.valueOf(Kind.class, spelling.toUpperCase());
-         } else {
+         } else if(kind == Kind.IDENTIFIER && builtinTypes.contains(spelling)) {
+             this.kind = Enum.valueOf(Kind.class,"VAR"); //Converts builtin types to VAR for builtin type checking
+         } else{
+
              this.kind = kind;
          }
      }
@@ -100,6 +103,9 @@
       */
      private static Set<String> reservedWords = Set.of("break", "cast", "class", "var",
              "else", "extends", "for", "if", "instanceof", "new", "return", "while");
+
+     private static Set<String> builtinTypes = Set.of("int","char", "boolean", "double",
+             "String");
 
  }
 

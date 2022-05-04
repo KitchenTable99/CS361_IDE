@@ -224,7 +224,14 @@ public class TypeCheckerVisitor extends Visitor
         // initialize and store var if null, the parser would've thrown an exception
         if (node.getInit() != null) {
             node.getInit().accept(this);
-            node.setType(node.getInit().getExprType());
+            if(node.getType() != "var"){
+                if (node.getType() != node.getInit().getExprType()){
+                    registerError(node, "Cannot instatiate variable of type" + node.getType() +
+                    " with expression of type "+ node.getInit().getExprType() + ".");
+                }
+            } else {
+                node.setType(node.getInit().getExprType());
+            }
             currentSymbolTable.add(node.getName(), node.getType());
         }
         return null;
