@@ -24,6 +24,7 @@ public class DialogHelper {
         reasonMap.put(SaveReason.CLOSING, "closing it?");
         reasonMap.put(SaveReason.EXITING, "exiting?");
         reasonMap.put(SaveReason.COMPILING, "compiling?");
+        reasonMap.put(SaveReason.CHECKING, "checking?");
     }
 
     public Dialog<ButtonType> getAboutDialog() {

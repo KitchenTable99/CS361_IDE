@@ -1,0 +1,6 @@
+class Bantam {
+
+    void main() {
+     	var x = 1;
+    }
+}

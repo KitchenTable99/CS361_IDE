@@ -6,12 +6,7 @@
 */
 
 
-/* Set color for each of the three buttons */
-#compileButton {
-    -fx-background-color: lightblue;
-}
-
-#compileRunButton {
+#checkButton {
     -fx-background-color: palegreen;
 }
 
