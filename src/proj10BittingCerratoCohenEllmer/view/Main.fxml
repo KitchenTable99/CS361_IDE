@@ -63,6 +63,8 @@
              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
         <Button text="Check" fx:id="checkButton" mnemonicParsing="false"
                 onAction="#handleCheck"/>
+        <Button text="Pretty Print" fx:id="pprintButton" mnemonicParsing="false"
+                onAction="#handlePPrint"/>
         <Button text="Stop" fx:id="stopButton" mnemonicParsing="false"
                 onAction="#handleStop"/>
     </ToolBar>

@@ -3,15 +3,15 @@
 ## General Project 10 Shit
 
 * Update keyword highlighting in the IDE
-* Replace "Compile" and "Compile & Run" with "Check"
-    * **NB:** This will require the Project 6 refactor to have already happened
+* ~~Replace "Compile" and "Compile & Run" with "Check"~~
+    * ~~**NB:** This will require the Project 6 refactor to have already happened~~
 
 ## Increase Bantam Java Syntax
 
-* Variable type declaration
-    * Scanner
-    * Parser
-    * Semantic Analyzer
+* ~~Variable type declaration~~
+    * ~~Scanner~~
+    * ~~Parser~~
+    * ~~Semantic Analyzer~~
     * Create example for Dale
     * Catalog running instructions for Dale
 * Cast Syntax
@@ -45,20 +45,20 @@
 
 ## Apply Dale's Feedback From Project6
 
-* Switch the controller pieces
-* You created new classes ProcessBuilderShuttle and SaveInformationShuttle, which are good ideas to minimize functions
+* ~~Switch the controller pieces~~
+* ~~You created new classes ProcessBuilderShuttle and SaveInformationShuttle, which are good ideas to minimize functions
   with side effects. But the use of the ProcessBuilderShuttle is awkward. A simpler approach is to have the
   handleCompile method call tabController’s readyForCompile to see if it should proceed. Then in handleCompile, have the
   TabController return the file path of the selected tab, and then have handleCompile create and initialize the
-  ProcessBuilder and then call doCompiling. This approach eliminates the need for the ProcessBuilderShuttle class.
-* JavaCodeArea is still not a good name for your class because it implies that it extends CodeArea, which it doesn’t.
-  You can’t add it to a tab, for example.
-* SaveFailureException is a perfectly acceptable subclass of Exception, but there should be documentation (internal or
+  ProcessBuilder and then call doCompiling. This approach eliminates the need for the ProcessBuilderShuttle class.~~
+~~* JavaCodeArea is still not a good name for your class because it implies that it extends CodeArea, which it doesn’t.
+  You can’t add it to a tab, for example.~~
+~~* SaveFailureException is a perfectly acceptable subclass of Exception, but there should be documentation (internal or
   external or in the report above) saying what it is used for. The Javadoc header doesn’t give any helpful information
-  in that regard.
-* Minimize negatives like “not” in method names to prevent the need for double negatives. For example, the method
+  in that regard.~~
+~~* Minimize negatives like “not” in method names to prevent the need for double negatives. For example, the method
   notReadyForP should be changed to isReadyForP and then you can use instructions like “if (! isReadyForP())...” like
-  you do with the other “Ready” methods.
+  you do with the other “Ready” methods.~~
 
 # What we did
 

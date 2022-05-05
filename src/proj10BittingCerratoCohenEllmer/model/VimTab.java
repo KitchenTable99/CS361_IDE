@@ -34,7 +34,7 @@ public class VimTab extends Tab {
     private final CodeArea codeArea;
 
     /**
-     * Constructs a new VimTab with a JavaCodeArea.
+     * Constructs a new VimTab with a HighlightedCodeAreaWhichDoesNotExtendCodeArea.
      *
      * @param tabName String to name the tab
      */
@@ -84,8 +84,9 @@ public class VimTab extends Tab {
         };
 
         // set tab content
-        JavaCodeArea javaCodeArea = new JavaCodeArea();
-        codeArea = javaCodeArea.getCodeArea();
+        HighlightedCodeAreaWhichDoesNotExtendCodeArea hcawdneca = // this is obviously an abbreviation of the class name
+                new HighlightedCodeAreaWhichDoesNotExtendCodeArea();
+        codeArea = hcawdneca.getCodeArea();
         codeArea.addEventFilter(KeyEvent.ANY, vimHandler);
         setContent(new VirtualizedScrollPane<>(codeArea));
     }
@@ -137,7 +138,7 @@ public class VimTab extends Tab {
      * in future versions.
      */
     private void handleP() {
-        if (notReadyForP()) {
+        if (!isReadyForP()) {
             return;
         }
 
@@ -180,7 +181,7 @@ public class VimTab extends Tab {
      * @deprecated
      */
     private void handleUpperCaseP() {
-        if (notReadyForP()) {
+        if (!isReadyForP()) {
             return;
         }
         int caretPos = codeArea.getCaretPosition();
@@ -204,7 +205,7 @@ public class VimTab extends Tab {
      * @deprecated
      */
     private void handleLowerCaseP() {
-        if (notReadyForP()) {
+        if (!isReadyForP()) {
             return;
         }
         int caretPos = codeArea.getCaretPosition();
@@ -225,7 +226,7 @@ public class VimTab extends Tab {
      *
      * @return boolean representing whether "put/Put" can be used
      */
-    private boolean notReadyForP() {
+    private boolean isReadyForP() {
         return yankRegister.equals("");
     }
 
