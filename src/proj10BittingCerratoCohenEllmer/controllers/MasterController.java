@@ -23,6 +23,7 @@ import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.StyleClassedTextArea;
+import proj10BittingCerratoCohenEllmer.bantam.PrettyPrinterVisitor;
 import proj10BittingCerratoCohenEllmer.bantam.ast.Program;
 import proj10BittingCerratoCohenEllmer.bantam.parser.Parser;
 import proj10BittingCerratoCohenEllmer.bantam.util.CompilationException;
@@ -119,10 +120,21 @@ public class MasterController {
     }
 
     @FXML
-    private void handlePPrint(ActionEvent event) throws URISyntaxException, IOException {
-        Desktop desk = Desktop.getDesktop();
-        System.out.println("This will never pretty print anything. Only Rick Roll you.\uD83D\uDE08");
-        desk.browse(new URI("http://google.com"));
+    private void handlePPrint(ActionEvent event) {
+        ErrorHandler bantamErrorHandler = new ErrorHandler();
+        Parser bantamParser = new Parser(bantamErrorHandler);
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        String filename = savedPaths.get(selectedTab);
+        PrettyPrinterVisitor ppv = new PrettyPrinterVisitor();
+        Program currentProgram = null;
+        try {
+            currentProgram = bantamParser.parse(filename);
+        } catch (CompilationException e) {
+            System.out.println(e);
+        }
+        System.out.println(currentProgram);
+        String newConsole = ppv.generateOutputString(currentProgram);
+        getSelectedTextBox().replaceText(newConsole);
     }
 
     /**
