@@ -16,6 +16,9 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.MenuItem;
 import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
@@ -30,9 +33,12 @@ import proj10BittingCerratoCohenEllmer.model.SaveInformationShuttle;
 import proj10BittingCerratoCohenEllmer.model.VimTab;
 import proj10BittingCerratoCohenEllmer.view.DialogHelper;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -55,7 +61,7 @@ public class MasterController {
     @FXML
     private StyleClassedTextArea console;
     @FXML
-    private Button checkButton, stopButton;
+    private Button checkButton, stopButton, pprintButton;
     @FXML
     private MenuItem undoMI, redoMI;
     @FXML
@@ -112,6 +118,12 @@ public class MasterController {
         dialog.showAndWait();
     }
 
+    @FXML
+    private void handlePPrint(ActionEvent event) throws URISyntaxException, IOException {
+        Desktop desk = Desktop.getDesktop();
+        System.out.println("This will never pretty print anything. Only Rick Roll you.\uD83D\uDE08");
+        desk.browse(new URI("http://google.com"));
+    }
 
     /**
      * Creates a new tab.

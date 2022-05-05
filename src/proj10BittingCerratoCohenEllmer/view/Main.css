@@ -10,6 +10,10 @@
     -fx-background-color: palegreen;
 }
 
+#pprintButton {
+    -fx-background-color: lightblue;
+}
+
 #stopButton {
     -fx-background-color: lightcoral;
 }

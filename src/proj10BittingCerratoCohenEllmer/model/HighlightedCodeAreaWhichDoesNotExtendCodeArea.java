@@ -1,5 +1,5 @@
 /*
- * File: JavaCodeArea.java
+ * File: HighlightedCodeAreaWhichDoesNotExtendCodeArea.java
  * Names: Caleb Bitting, Matt Cerrato, Erik Cohen, Ian Ellmer
  * Class: CS 361
  * Project 6
@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
  * Code is from JavaKeywordsAsyncDemo.java in RichTextFX package,
  * and is modified.
  */
-public class JavaCodeArea {
+public class HighlightedCodeAreaWhichDoesNotExtendCodeArea {
 
     // added new keyword "var"
     private static final String[] KEYWORDS = new String[] {
@@ -76,7 +76,7 @@ public class JavaCodeArea {
      * Constructor that initialized the codeArea field and executor
      * and does the customization by calling helper functions.
      */
-    public JavaCodeArea() {
+    public HighlightedCodeAreaWhichDoesNotExtendCodeArea() {
         executor = Executors.newSingleThreadExecutor();
         codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
