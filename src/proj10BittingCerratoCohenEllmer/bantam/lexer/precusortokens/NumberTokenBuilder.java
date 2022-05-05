@@ -11,17 +11,14 @@ import proj10BittingCerratoCohenEllmer.bantam.util.Error;
 import java.util.List;
 import java.util.Stack;
 
-enum type {DOUBLE, INT}
-
 /**
  * If some token starts with a digit, this PrecursorToken contains all the logic needed
  * to tokenize the string.
  */
 public class NumberTokenBuilder extends TokenBuilder {
 
-    private type tokenType = type.INT;
-    private final List<Character> letterChars = List.of('d', 'e', 'E', 'f');
-    private final List<Character> mathChars = List.of('+', '-', '.');
+    private boolean isDouble = false;
+    private final List<Character> validDoubleChars = List.of('d', 'e', 'E', 'f', '+', '-', '.');
 
     public NumberTokenBuilder(Stack<Character> sc, int n, String s) {
         super(sc, n, s);
@@ -31,18 +28,14 @@ public class NumberTokenBuilder extends TokenBuilder {
     public void pushChar(char c) {
         spellingStack.push(c);
 
-        if (!Character.isDigit(c)) {
-            if (letterChars.contains(c) || mathChars.contains(c)) {
-                pushDoubleChar(c);
-            } else {
-                containsCompleteToken = true;
-                popLastBeforeCreation = true;
-            }
+        if (!Character.isDigit(c) && validDoubleChars.contains(c)) {
+            // 12e4.8f5d4 is allowed by this if-else tree, but the
+            // invalid number will be caught in the getFinalToken method
+            isDouble = true;
+        } else if (!Character.isDigit(c)) {
+            containsCompleteToken = true;
+            popLastBeforeCreation = true;
         }
-    }
-
-    public void pushDoubleChar(char c) {
-        tokenType = type.DOUBLE;
     }
 
     @Override
@@ -53,24 +46,23 @@ public class NumberTokenBuilder extends TokenBuilder {
         }
 
 
-        Token.Kind tokenKind = Token.Kind.ERROR;
-
-        // decide if number is integer or double
+        Token.Kind tokenKind;
+        String stackString = makeStackString(true);
         try {
-            String stack = makeStackString(true);
-            if (tokenType.equals(type.DOUBLE)) {
-                Double.parseDouble(stack);
+            if (isDouble) {
+                Double.parseDouble(stackString);
                 tokenKind = Token.Kind.DBLCONST;
-            } else if (tokenType.equals(type.INT)) {
-                Integer.parseInt(stack);
+            } else {
+                Integer.parseInt(stackString);
                 tokenKind = Token.Kind.INTCONST;
             }
         } catch (NumberFormatException e) {
+            tokenKind = Token.Kind.ERROR;
             tokenError.add(new Error(Error.Kind.LEX_ERROR, filename,
                     currentLineNumber,
-                    "Number Constant not valid"));
+                    "Number constant not valid"));
         }
 
-        return new Token(tokenKind, makeStackString(false), currentLineNumber);
+        return new Token(tokenKind, stackString, currentLineNumber);
     }
 }

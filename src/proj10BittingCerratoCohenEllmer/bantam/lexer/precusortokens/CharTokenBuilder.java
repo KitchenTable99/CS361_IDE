@@ -28,7 +28,6 @@ public class CharTokenBuilder extends TokenBuilder {
         }
     }
 
-
     @Override
     public Token getFinalToken(int currentLineNumber) {
         Token.Kind tokenKind;
