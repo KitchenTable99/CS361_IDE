@@ -402,6 +402,7 @@ public class SemanticAnalyzer
         SemanticAnalyzer analyzer = new SemanticAnalyzer(errorHandler);
 
         for (String inFile : args) {
+            
             System.out.println("\n========== Results for " + inFile + " =============");
             try {
                 errorHandler.clear();
