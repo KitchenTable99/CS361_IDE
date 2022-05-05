@@ -44,6 +44,8 @@ public class PrecursorTokenFactory {
                 return new PrecursorNumberToken(spellingStack, lineNum, filename);
             case '"':
                 return new PrecursorStringToken(spellingStack, lineNum, filename);
+            case '\'':
+                return new PrecursorCharToken(spellingStack,lineNum,filename);
             case '!':
                 return new PrecursorExclamationToken(spellingStack, lineNum, filename);
             case '(':

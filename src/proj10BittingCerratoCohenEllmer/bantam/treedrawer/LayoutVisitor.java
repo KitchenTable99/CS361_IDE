@@ -236,6 +236,10 @@ public class LayoutVisitor extends Visitor {
         return layoutNullary("Double:" + node.getConstant());
     }
 
+    public Object visit(ConstChrExpr node) {
+        return layoutNullary("Char:" + node.getConstant());
+    }
+
     public Object visit(ConstBooleanExpr node) {
         return layoutNullary("Bool:" + node.getConstant());
     }

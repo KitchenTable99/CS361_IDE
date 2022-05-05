@@ -31,8 +31,6 @@ public class PrecursorNumberToken extends AbstractPrecursorToken {
              if(!this.onePoint && c == '.'){
                 this.onePoint = true;
             }else{
-
-
                  containsCompleteToken = true;
                  popLastBeforeCreation = true;
              }

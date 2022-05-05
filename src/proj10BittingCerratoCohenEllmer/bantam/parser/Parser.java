@@ -696,6 +696,8 @@ public class Parser {
         Expr primary;
 
         switch (currentToken.kind) {
+            case CHRCONST:
+                return parseChrConst();
             case DBLCONST:
                 return parseDblConst();
             case INTCONST:
@@ -825,6 +827,13 @@ public class Parser {
         return new ConstStringExpr(position, spelling);
     }
 
+    private ConstChrExpr parseChrConst(){
+        int position = currentToken.position;
+        String spelling = currentToken.spelling;
+        advanceIfTokenMatches(CHRCONST);
+        return new ConstChrExpr(position, spelling);
+    }
+
     private ConstDblExpr parseDblConst(){
         int position = currentToken.position;
         String spelling = currentToken.spelling;
@@ -853,7 +862,7 @@ public class Parser {
         ErrorHandler errorHandler = new ErrorHandler();
         Parser parser = new Parser(errorHandler);
 
-        args = new String[]{"HelloWorld.java"};
+        args = new String[]{"HelloWorld"};
 
         for (String inFile : args) {
             System.out.println("\n========== Results for " + inFile + " =============");

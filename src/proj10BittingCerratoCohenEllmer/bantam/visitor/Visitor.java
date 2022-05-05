@@ -659,6 +659,11 @@ public abstract class Visitor {
         return null;
     }
 
+    public Object visit(ConstChrExpr node) {
+        return null;
+    }
+
+
     /**
      * Visit a string constant expression node
      *

@@ -75,6 +75,9 @@ public class TypeCheckerVisitor extends Visitor
         if(t1.equals("double") || t2.equals("double")){
             return t2.equals(t1);
         }
+        if(t1.equals("char")|| t2.equals("char")){
+            return t2.equals(t1);
+        }
         // go up the inheritance tree of t1 to see if you
         // encounter t2
         ClassTreeNode t1Node = currentClass.lookupClass(t1);
@@ -93,7 +96,7 @@ public class TypeCheckerVisitor extends Visitor
      */
     private boolean isPrimitiveType(String type) {
         return type.equals("int") || type.equals("boolean")
-                || type.equals("double");
+                || type.equals("double") || type.equals("char");
     }
 
     /**
@@ -890,6 +893,17 @@ public class TypeCheckerVisitor extends Visitor
      */
     public Object visit(ConstDblExpr node) {
         node.setExprType("double");
+        return null;
+    }
+
+    /**
+     * Visit an char constant expression node
+     *
+     * @param node the int constant expression node
+     * @return the type of the expression
+     */
+    public Object visit(ConstChrExpr node) {
+        node.setExprType("char");
         return null;
     }
 

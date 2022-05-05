@@ -55,7 +55,7 @@ public class SemanticAnalyzer
      * However, class names can be used as variable names.
      */
     public static final Set<String> reservedIdentifiers = new HashSet<>(Arrays.asList(
-            "null", "this", "super", "void", "int", "boolean", "double"));
+            "null", "this", "super", "void", "int", "boolean", "double","char"));
 
     /**
      * Root of the AST

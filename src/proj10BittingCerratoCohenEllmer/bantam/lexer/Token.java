@@ -75,7 +75,7 @@
       */
      public enum Kind {
          // literals, identifiers...
-         INTCONST, STRCONST, BOOLEAN, IDENTIFIER, DBLCONST,
+         INTCONST, STRCONST, BOOLEAN, IDENTIFIER, DBLCONST, CHRCONST,
 
          // operators...
          BINARYLOGIC, PLUSMINUS, MULDIV, COMPARE, UNARYINCR, UNARYDECR, ASSIGN,
