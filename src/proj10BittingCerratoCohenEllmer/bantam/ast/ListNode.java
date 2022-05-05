@@ -94,7 +94,7 @@ public abstract class ListNode extends ASTNode
      * get the index-th element
      *
      * @return index-th element
-     * @throws java.lang.ArrayIndexOutOfBoundsException if the index is
+     * @throws ArrayIndexOutOfBoundsException if the index is
      *                                                  too large or too small
      */
     public ASTNode get(int index) {
@@ -106,7 +106,7 @@ public abstract class ListNode extends ASTNode
      *
      * @param v bantam.visitor object
      * @return result of visiting this node
-     * @see proj10BittingCerratoCohenEllmer.bantam.visitor.Visitor
+     * @see Visitor
      */
     abstract public Object accept(Visitor v);
 }

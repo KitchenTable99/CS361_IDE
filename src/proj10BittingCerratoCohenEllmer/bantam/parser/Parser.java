@@ -685,7 +685,8 @@ public class Parser {
 
     /*
      * <Primary> ::= ( <Expression> ) <ExprSuffix> | <IntegerConst> | <BooleanConst> |
-     *                               <StringConst> <IdSuffix> | <Identifier> <Suffix>
+     *                                <DoubleConst> <StringConst> <IdSuffix> | <Identifier>
+     *                                <Suffix>
      * <IdSuffix>    ::=  . <Identifier> <Suffix> | EMPTY
      * <DispSuffix>  ::=  ( <Arguments> ) <IdSuffix> | EMPTY
      * <ExprSuffix>  ::=  <IdSuffix> | <IndexSuffix>
@@ -695,6 +696,10 @@ public class Parser {
         Expr primary;
 
         switch (currentToken.kind) {
+            case CHRCONST:
+                return parseChrConst();
+            case DBLCONST:
+                return parseDblConst();
             case INTCONST:
                 return parseIntConst();
             case BOOLEAN:
@@ -822,6 +827,20 @@ public class Parser {
         return new ConstStringExpr(position, spelling);
     }
 
+    private ConstChrExpr parseChrConst(){
+        int position = currentToken.position;
+        String spelling = currentToken.spelling;
+        advanceIfTokenMatches(CHRCONST);
+        return new ConstChrExpr(position, spelling);
+    }
+
+    private ConstDblExpr parseDblConst(){
+        int position = currentToken.position;
+        String spelling = currentToken.spelling;
+        advanceIfTokenMatches(DBLCONST);
+        return new ConstDblExpr(position, spelling);
+    }
+
 
     private ConstIntExpr parseIntConst() {
         int position = currentToken.position;
@@ -843,7 +862,7 @@ public class Parser {
         ErrorHandler errorHandler = new ErrorHandler();
         Parser parser = new Parser(errorHandler);
 
-        args = new String[]{"Bantam.txt"};
+        args = new String[]{"HelloWorld"};
 
         for (String inFile : args) {
             System.out.println("\n========== Results for " + inFile + " =============");
