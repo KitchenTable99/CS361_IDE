@@ -148,9 +148,11 @@ public class Scanner {
             case '7':
             case '8':
             case '9':
-                return new IntegerTokenBuilder(spellingStack, lineNum, filename);
+                return new NumberTokenBuilder(spellingStack, lineNum, filename);
             case '"':
                 return new StringTokenBuilder(spellingStack, lineNum, filename);
+            case '\'':
+                return new CharTokenBuilder(spellingStack, lineNum, filename);
             case '!':
                 return new ExclamationTokenBuilder(spellingStack, lineNum, filename);
             case '(':
