@@ -178,7 +178,7 @@ public class Scanner {
      */
     public static void main(String[] args) {
         // files specified on cmd line
-        args = new String[]{"Bantam.txt"};
+        args = new String[]{"OneLine.txt"};
         if (args.length > 0) {
             Scanner bantamScanner;
             ErrorHandler bantamErrorHandler;
