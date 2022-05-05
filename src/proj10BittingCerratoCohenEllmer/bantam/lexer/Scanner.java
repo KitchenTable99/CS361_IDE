@@ -75,7 +75,9 @@ public class Scanner {
         // store last char in currentChar if needed
         Optional<Character> extraChar = tokenBuilder.getExtraChar();
         extraChar.ifPresentOrElse(
-                c -> currentChar = c,
+                c -> currentChar = Character.isWhitespace(c)
+                        ? sourceFile.getNextChar(true)
+                        : c,
                 () -> currentChar = sourceFile.getNextChar(true)
         );
 
@@ -174,6 +176,7 @@ public class Scanner {
      */
     public static void main(String[] args) {
         // files specified on cmd line
+        args = new String[]{"Bantam.txt"};
         if (args.length > 0) {
             Scanner bantamScanner;
             ErrorHandler bantamErrorHandler;

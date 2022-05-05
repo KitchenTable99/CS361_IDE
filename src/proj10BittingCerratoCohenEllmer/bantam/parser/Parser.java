@@ -843,7 +843,7 @@ public class Parser {
         ErrorHandler errorHandler = new ErrorHandler();
         Parser parser = new Parser(errorHandler);
 
-        args = new String[]{"testsByDale/AAA.btm"};
+        args = new String[]{"Bantam.txt"};
 
         for (String inFile : args) {
             System.out.println("\n========== Results for " + inFile + " =============");

@@ -61,10 +61,8 @@
     <!-- use a ToolBar to hold the two buttons -->
     <ToolBar layoutY="27.0" prefHeight="49.0" prefWidth="400.0"
              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-        <Button text="Compile" fx:id="compileButton" mnemonicParsing="false"
-                onAction="#handleCompile"/>
-        <Button text="Compile &amp; Run" fx:id="compileRunButton" mnemonicParsing="false"
-                onAction="#handleCompileRun"/>
+        <Button text="Check" fx:id="checkButton" mnemonicParsing="false"
+                onAction="#handleCheck"/>
         <Button text="Stop" fx:id="stopButton" mnemonicParsing="false"
                 onAction="#handleStop"/>
     </ToolBar>

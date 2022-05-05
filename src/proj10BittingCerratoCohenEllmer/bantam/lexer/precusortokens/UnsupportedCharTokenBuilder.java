@@ -29,8 +29,8 @@ public class UnsupportedCharTokenBuilder extends TokenBuilder {
     @Override
     public Token getFinalToken(int currentLineNumber) {
         tokenError.add(new Error(Error.Kind.LEX_ERROR, filename,
-            currentLineNumber,
-            "Unsupported Character : " + spellingStack.peek()));
+                currentLineNumber,
+                "Unsupported Character : " + Character.getNumericValue(spellingStack.peek())));
         return new Token(Token.Kind.ERROR, makeStackString(false), currentLineNumber);
     }
 }

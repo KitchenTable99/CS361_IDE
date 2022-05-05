@@ -9,5 +9,5 @@
 package proj10BittingCerratoCohenEllmer.controllers;
 
 public enum SaveReason {
-    CLOSING, EXITING, COMPILING
+    CLOSING, EXITING, COMPILING, CHECKING
 }

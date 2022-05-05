@@ -14,24 +14,30 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.StyleClassedTextArea;
+import proj10BittingCerratoCohenEllmer.bantam.ast.Program;
+import proj10BittingCerratoCohenEllmer.bantam.parser.Parser;
+import proj10BittingCerratoCohenEllmer.bantam.util.CompilationException;
+import proj10BittingCerratoCohenEllmer.bantam.util.Error;
+import proj10BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
 import proj10BittingCerratoCohenEllmer.model.SaveFailureException;
 import proj10BittingCerratoCohenEllmer.model.SaveInformationShuttle;
 import proj10BittingCerratoCohenEllmer.model.VimTab;
 import proj10BittingCerratoCohenEllmer.view.DialogHelper;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -40,32 +46,25 @@ import java.util.Optional;
  */
 public class MasterController {
 
-    @FXML private StyleClassedTextArea console;
-    @FXML private Button compileButton, compileRunButton, stopButton;
-    @FXML private MenuItem undoMI, redoMI;
+    // Class DialogHelper handling all dialog instantiation
+    private final DialogHelper dialogHelper = new DialogHelper();
+    private final SimpleBooleanProperty isThreadActive = new SimpleBooleanProperty(false);
+    // keep track of the content and where it was saved
+    private final HashMap<Tab, String> savedContents = new HashMap<>();
+    private final HashMap<Tab, String> savedPaths = new HashMap<>();
+    @FXML
+    private StyleClassedTextArea console;
+    @FXML
+    private Button checkButton, stopButton;
+    @FXML
+    private MenuItem undoMI, redoMI;
     @FXML
     private MenuItem selectAllMI, cutMI, copyMI, pasteMI;
     @FXML
     private MenuItem saveMI, saveAsMI, closeMI;
     @FXML
     private TabPane tabPane;
-
-    // Class DialogHelper handling all dialog instantiation
-    private final DialogHelper dialogHelper = new DialogHelper();
-
     private Thread processThread = null;
-
-    private final SimpleBooleanProperty isThreadActive = new SimpleBooleanProperty(false);
-
-    // keep track of the content and where it was saved
-    private final HashMap<Tab, String> savedContents = new HashMap<>();
-    private final HashMap<Tab, String> savedPaths = new HashMap<>();
-
-    // Vim Command Parameters
-    private boolean inVIMCommandMode = false;
-
-    //An Arraylist to keep track of commands for VIM chaining.
-    private String vimCommands = "";
 
     /**
      * Exposes the exit handler's functionality to outside classes.
@@ -97,8 +96,7 @@ public class MasterController {
         pasteMI.disableProperty().bind(noTabs());
 
         // Bind compile buttons so that they are disabled when a process is running
-        compileButton.disableProperty().bind(Bindings.or(isThreadActive, noTabs()));
-        compileRunButton.disableProperty().bind(Bindings.or(isThreadActive, noTabs()));
+        checkButton.disableProperty().bind(Bindings.or(isThreadActive, noTabs()));
         stopButton.disableProperty().bind(Bindings.or(isThreadActive.not(), noTabs()));
     }
 
@@ -171,6 +169,99 @@ public class MasterController {
             saveCurrentTab(saveShuttle);
         } catch (SaveFailureException e) {
             dialogHelper.getAlert("Unable to save file", e.getMessage()).show();
+        }
+    }
+
+    /**
+     * Handler method for menu bar item Save. Behaves like Save as... if the text
+     * has never been saved before. Otherwise, save the text to its corresponding
+     * text file.
+     *
+     * @throws SaveFailureException if the file cannot be saved
+     */
+    public void saveCurrentTab(SaveInformationShuttle shuttle)
+            throws SaveFailureException {
+        // if the text has been saved before
+        if (savedContents.containsKey(getSelectedTab())) {
+            // create a File object for the corresponding text file
+            File savedFile = new File(savedPaths.get(getSelectedTab()));
+            try {
+                // write the new content to the text file
+                FileWriter writer = new FileWriter(savedFile);
+                writer.write(getSelectedTextBox().getText());
+                writer.close();
+
+                // update savedContents field
+                savedContents.put(getSelectedTab(), getSelectedTextBox().getText());
+
+                // store shuttle information
+                shuttle.setSuccessfulSave();
+            } catch (IOException e) {
+                throw new SaveFailureException(e.getMessage(), e.getCause());
+            }
+        }
+        // if text in selected tab was not loaded from a file nor ever saved to a file
+        else {
+            saveCurrentTabAs(shuttle);
+        }
+    }
+
+    /**
+     * Gets the currently selected tab in tabPane
+     *
+     * @return the selected tab
+     */
+    public Tab getSelectedTab() {
+        return tabPane.getSelectionModel().getSelectedItem();
+    }
+
+    /**
+     * Gets the text box in the selected tab
+     *
+     * @return CodeArea the text box in the selected tab
+     */
+    public CodeArea getSelectedTextBox() {
+        Tab currentTab = getSelectedTab();
+        VirtualizedScrollPane scrollPane;
+        scrollPane = (VirtualizedScrollPane) currentTab.getContent();
+        return (CodeArea) scrollPane.getContent();
+    }
+
+    /**
+     * Handles menu bar item Save as....  a dialog appears in which the user is asked for
+     * to save a file with four permitted extensions: .java, .txt, .fxml, and .css.
+     *
+     * @throws SaveFailureException if the file cannot be saved
+     */
+    public void saveCurrentTabAs(SaveInformationShuttle shuttle)
+            throws SaveFailureException {
+        // create a new fileChooser
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Java Files", "*.java"),
+                new FileChooser.ExtensionFilter("Text Files", "*.txt"),
+                new FileChooser.ExtensionFilter("FXML Files", "*.fxml"),
+                new FileChooser.ExtensionFilter("CSS Files", "*.css"));
+        File fileToSave = fileChooser.showSaveDialog(tabPane.getScene().getWindow());
+        // if user did not choose CANCEL
+        if (fileToSave != null) {
+            try {
+                // save file
+                FileWriter fw = new FileWriter(fileToSave);
+                fw.write(getSelectedTextBox().getText());
+                fw.close();
+
+                // update savedContents field and tab text
+                savedContents.put(getSelectedTab(), getSelectedTextBox().getText());
+                savedPaths.put(getSelectedTab(), fileToSave.getPath());
+                getSelectedTab().setText(fileToSave.getName());
+                getSelectedTab().getTooltip().setText(fileToSave.getPath());
+
+                // store information in the shuttle object
+                shuttle.setSuccessfulSave();
+            } catch (IOException e) {
+                throw new SaveFailureException(e.getMessage(), e.getCause());
+            }
         }
     }
 
@@ -256,170 +347,44 @@ public class MasterController {
         getSelectedTextBox().selectAll();
     }
 
-
-    // TODO add javadoc once the thread methods have been combined
-    private void doCompiling(ProcessBuilder processBuilder, boolean printSuccess) {
-        if (processBuilder == null) {
+    @FXML
+    private void handleCheck(ActionEvent event) {
+        boolean saved = readyForCompile();
+        if (!saved) {
             return;
         }
-        // prepare running in a new thread
-        processThread = new Thread(() -> {
-            try {
-                Process process = processBuilder.start();
-
-                // interact with the console
-                sendInputFromStreamToConsole(console, process.getErrorStream());
-
-                // indicate the process is complete
-                process.waitFor();
-                if (process.exitValue() == 0 && printSuccess) {
-                    Platform.runLater(() -> {
-                        console.appendText("Compilation successful");
-                    });
-                }
-            }
-            catch (IOException | InterruptedException e) {
-                Platform.runLater(() -> {
-                    dialogHelper.getAlert("Runtime Error", e.getMessage()).show();
-                });
-            }
-            // after the thread is done running, it should set the internal field back to null so that
-            // the bindings can recognize that there is no process running
-            processThread = null;
-            isThreadActive.set(false);
-            // TODO ensure that the tabs grey out correctly
-        });
-        isThreadActive.set(true);
-        processThread.start();
-    }
-
-
-    /**
-     * Handler method for Compile button. Compiles the active tab
-     *
-     * @param event An ActionEvent object that gives information about the event
-     *              and its source.
-     */
-    @FXML
-    private void handleCompile(ActionEvent event) {
-        ProcessBuilderShuttle shuttle = new ProcessBuilderShuttle();
-        prepareCompileProcess(shuttle);
-        ProcessBuilder processBuilder = shuttle.getProcessBuilder();
-        doCompiling(processBuilder, true);
-    }
-
-    /**
-     * Handler method for Compile & Run button.
-     *
-     * @param event An ActionEvent object that gives information about the event
-     *              and its source.
-     */
-    @FXML
-    private void handleCompileRun(ActionEvent event) {
-        ProcessBuilderShuttle shuttle = new ProcessBuilderShuttle();
-        prepareCompileProcess(shuttle);
-        ProcessBuilder compileProcess = shuttle.getProcessBuilder();
-        doCompiling(compileProcess, false);
-
-        // TODO if we want to print out compile successful, ensure that wait happens here.
-        // TODO put this thread business in its own method the only differences are which streams are connected to the console
-        // prepare running in a new thread
-        ProcessBuilder runProcess = prepareRunningProcess();
-        processThread = new Thread(() -> {
-            try {
-                Process process = runProcess.start();
-
-                // interact with the console
-                sendInputFromConsoleToStream(console, process.getOutputStream());
-                sendInputFromStreamToConsole(console, process.getInputStream());
-
-                // if compilation process exits successfully
-                process.waitFor();
-                Platform.runLater(() -> {
-                    console.appendText(String.format("\nProcess finished with exit code %d.\n", process.exitValue()));
-                });
-            }
-            catch (IOException | InterruptedException e) {
-                Platform.runLater(() -> {
-                    dialogHelper.getAlert("Runtime Error", e.getMessage()).show();
-                });
-            }
-            // after the thread is done running, it should set the internal field back to null so that
-            // the bindings can recognize that there is no process running
-            processThread = null;
-            isThreadActive.set(false);
-        });
-        isThreadActive.set(true);
-        processThread.start();
-    }
-
-    /**
-     * gets input typed into the Console and writes it to the given OutputStream
-     * The characters are written to the OutputStream when \r or \n are typed.
-     * @author dskrien
-     *
-     * @param ioConsole    the StyleClassedTextArea whose input is sent to the stream
-     * @param outputStream the OutputStream where the Console input is sent
-     */
-    public void sendInputFromConsoleToStream(StyleClassedTextArea ioConsole,
-                                             OutputStream outputStream) {
-        ioConsole.setOnKeyTyped(new EventHandler<>()
-        {
-            String result = ""; // the text to sent to the stream
-
-            @Override
-            public void handle(KeyEvent event) {
-                String ch = event.getCharacter();
-                result += ch;
-                if (ch.equals("\r") || ch.equals("\n")) {
-                    try {
-                        for (char c : result.toCharArray()) {
-                            outputStream.write(c);
-                        }
-                        outputStream.flush();
-                        result = "";
-                    } catch (IOException e) {
-                        Platform.runLater(() -> new Alert(Alert.AlertType.ERROR,
-                                "Could not send input to the output stream."));
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * gets the input from an InputStream and writes it continuously to the ioConsole.
-     * @author dskrien
-     *
-     * @param ioConsole   the StyleClassedTextArea where the data is written
-     * @param inputStream the InputStream providing the data to be written
-     */
-    public void sendInputFromStreamToConsole(StyleClassedTextArea ioConsole,
-                                             InputStream inputStream) throws IOException {
-        // for a discussion of how to convert inputStream data to strings, see
-        // [stackoverflow.com/questions/309424/read-convert-an-inputstream-to-a-string]
-        byte[] buffer = new byte[1024];
-        int length;
-        while ((length = inputStream.read(buffer)) != -1) {
-            String result = new String(buffer, 0, length);
+        ErrorHandler bantamErrorHandler = new ErrorHandler();
+        Parser bantamParser = new Parser(bantamErrorHandler);
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        String filename = savedPaths.get(selectedTab);
+        try {
+            Program currentProgram = bantamParser.parse(filename);
             Platform.runLater(() -> {
-                ioConsole.appendText(result);
-                ioConsole.moveTo(ioConsole.getLength()); //move cursor to the end
-                ioConsole.requestFollowCaret();
+                console.appendText("\nFinished checking code. No errors!");
+            });
+        } catch (CompilationException e) {
+            List<Error> errors = bantamErrorHandler.getErrorList();
+            StringBuilder toDisplay = new StringBuilder("Errors occurred while checking code:\n");
+            for (Error error : errors) {
+                toDisplay.append("\t").append(error.toString()).append("\n");
+            }
+            Platform.runLater(() -> {
+                console.appendText(toDisplay.toString());
             });
         }
+
     }
 
     /**
      * Handles the stop button. Forcefully stops the thread and resets the processThread
      * to null.
+     *
      * @param event An ActionEvent object that gives information about the event
      *              and its source.
      * @deprecated
      */
     @FXML
     private void handleStop(ActionEvent event) {
-        ;
         if (processThread != null) {
             processThread.stop(); // TODO: do this in a non-depricated manner
             isThreadActive.set(false);
@@ -435,15 +400,6 @@ public class MasterController {
      */
     public BooleanBinding noTabs() {
         return Bindings.isEmpty(tabPane.getTabs());
-    }
-
-    /**
-     * Gets the currently selected tab in tabPane
-     *
-     * @return the selected tab
-     */
-    public Tab getSelectedTab() {
-        return tabPane.getSelectionModel().getSelectedItem();
     }
 
     /**
@@ -504,78 +460,6 @@ public class MasterController {
                 getSelectedTab().getTooltip().setText(selectedFile.getPath());
             } catch (IOException e) {
                 dialogHelper.getAlert("File Opening Error", e.getMessage()).show();
-            }
-        }
-    }
-
-    /**
-     * Handler method for menu bar item Save. Behaves like Save as... if the text
-     * has never been saved before. Otherwise, save the text to its corresponding
-     * text file.
-     *
-     * @throws SaveFailureException if the file cannot be saved
-     */
-    public void saveCurrentTab(SaveInformationShuttle shuttle)
-            throws SaveFailureException {
-        // if the text has been saved before
-        if (savedContents.containsKey(getSelectedTab())) {
-            // create a File object for the corresponding text file
-            File savedFile = new File(savedPaths.get(getSelectedTab()));
-            try {
-                // write the new content to the text file
-                FileWriter writer = new FileWriter(savedFile);
-                writer.write(getSelectedTextBox().getText());
-                writer.close();
-
-                // update savedContents field
-                savedContents.put(getSelectedTab(), getSelectedTextBox().getText());
-
-                // store shuttle information
-                shuttle.setSuccessfulSave();
-            } catch (IOException e) {
-                throw new SaveFailureException(e.getMessage(), e.getCause());
-            }
-        }
-        // if text in selected tab was not loaded from a file nor ever saved to a file
-        else {
-            saveCurrentTabAs(shuttle);
-        }
-    }
-
-    /**
-     * Handles menu bar item Save as....  a dialog appears in which the user is asked for
-     * to save a file with four permitted extensions: .java, .txt, .fxml, and .css.
-     *
-     * @throws SaveFailureException if the file cannot be saved
-     */
-    public void saveCurrentTabAs(SaveInformationShuttle shuttle)
-            throws SaveFailureException {
-        // create a new fileChooser
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Java Files", "*.java"),
-                new FileChooser.ExtensionFilter("Text Files", "*.txt"),
-                new FileChooser.ExtensionFilter("FXML Files", "*.fxml"),
-                new FileChooser.ExtensionFilter("CSS Files", "*.css"));
-        File fileToSave = fileChooser.showSaveDialog(tabPane.getScene().getWindow());
-        // if user did not choose CANCEL
-        if (fileToSave != null) {
-            try {
-                // save file
-                FileWriter fw = new FileWriter(fileToSave);
-                fw.write(getSelectedTextBox().getText());
-                fw.close();
-
-                // update savedContents field and tab text
-                savedContents.put(getSelectedTab(), getSelectedTextBox().getText());
-                savedPaths.put(getSelectedTab(), fileToSave.getPath());
-                getSelectedTab().setText(fileToSave.getName());
-                getSelectedTab().getTooltip().setText(fileToSave.getPath());
-
-                // store information in the shuttle object
-                shuttle.setSuccessfulSave();
-            } catch (IOException e) {
-                throw new SaveFailureException(e.getMessage(), e.getCause());
             }
         }
     }
@@ -643,19 +527,6 @@ public class MasterController {
         System.exit(0);
     }
 
-
-    /**
-     * Gets the text box in the selected tab
-     *
-     * @return CodeArea the text box in the selected tab
-     */
-    public CodeArea getSelectedTextBox() {
-        Tab currentTab = getSelectedTab();
-        VirtualizedScrollPane scrollPane;
-        scrollPane = (VirtualizedScrollPane) currentTab.getContent();
-        return (CodeArea) scrollPane.getContent();
-    }
-
     /**
      * Ensures that the tab has been saved and prepares a ProcessBuilder to actually
      * compile the selected tab. Sets the field of the passed shuttle to the new
@@ -707,7 +578,7 @@ public class MasterController {
             // Creates new dialog
             String tabText = getSelectedTab().getText();
             Dialog<ButtonType> saveDialog =
-                    dialogHelper.getSavingDialog(tabText, SaveReason.COMPILING);
+                    dialogHelper.getSavingDialog(tabText, SaveReason.CHECKING);
             Optional<ButtonType> result = saveDialog.showAndWait();
 
             // call handleSave() if user chooses YES
@@ -721,9 +592,9 @@ public class MasterController {
                 if (shuttle.isSaveSuccessful()) {
                     return true;
                 } else {
-                    String body = "Compilation was canceled because you " +
+                    String body = "Checking was canceled because you " +
                             "aborted saving the file";
-                    dialogHelper.getAlert("Compilation Canceled", body).show();
+                    dialogHelper.getAlert("Checking Canceled", body).show();
                     return false;
                 }
             }
@@ -737,8 +608,8 @@ public class MasterController {
                 } else {
                     // make an alert box
                     String body = "Current tab has not been saved." +
-                            "Please save before compiling.";
-                    dialogHelper.getAlert("Unable to Compile", body).show();
+                            "Please save before checking.";
+                    dialogHelper.getAlert("Unable to Check", body).show();
                     return false;
                 }
             }
