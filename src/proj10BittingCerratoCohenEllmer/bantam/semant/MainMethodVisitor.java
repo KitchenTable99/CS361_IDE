@@ -43,8 +43,7 @@ public class MainMethodVisitor extends Visitor {
     public Object visit(Method node) {
         boolean nameMain = "main".equals(node.getName());
         boolean voidMethod = "void".equals(node.getReturnType());
-        boolean noParameters = null == node.getFormalList();
-
+        boolean noParameters = (node.getFormalList().getSize() == 0);
         if (nameMain && voidMethod && noParameters) {
             hasAppropriateMainMethod = true;
         }
