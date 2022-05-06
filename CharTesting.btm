@@ -1,0 +1,13 @@
+class Bantam {
+    double g;
+
+    void main() {
+        // these work
+        char a = 'a';
+
+        // these don't
+        char c = "b";
+        char b  = '';
+        char d = 'ab';
+    }
+}
