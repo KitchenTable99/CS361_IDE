@@ -1,8 +1,8 @@
 # TODO
 
-## General Project 10 Shit
+## General Project 10 Shit ✅
 
-## Increase Bantam Java Syntax ✅
+## Increase Bantam Java Syntax 
 
 * ~~Variable type declaration~~
     * ~~Scanner~~
