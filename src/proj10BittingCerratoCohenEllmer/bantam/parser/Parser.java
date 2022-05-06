@@ -615,11 +615,10 @@ public class Parser {
 
         Expr castExpression;
         int position = currentToken.position;
-        advance();
-        String type = parseType();
+        advance(); // move from '(' to type
+        String type = parseType(); // should end with ')'
         advanceIfTokenMatches(RPAREN);
-
-        Expr expression = parseExpression();
+        Expr expression = parseExpression(); // Expression to re-type
 
         castExpression = new CastExpr(position, type, expression);
         return castExpression;
