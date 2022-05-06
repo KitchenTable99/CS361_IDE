@@ -26,6 +26,7 @@ import org.fxmisc.richtext.StyleClassedTextArea;
 import proj10BittingCerratoCohenEllmer.bantam.PrettyPrinterVisitor;
 import proj10BittingCerratoCohenEllmer.bantam.ast.Program;
 import proj10BittingCerratoCohenEllmer.bantam.parser.Parser;
+import proj10BittingCerratoCohenEllmer.bantam.treedrawer.Drawer;
 import proj10BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj10BittingCerratoCohenEllmer.bantam.util.Error;
 import proj10BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
@@ -384,6 +385,7 @@ public class MasterController {
             Platform.runLater(() -> {
                 console.appendText("\nFinished checking code. No errors!");
             });
+            new Drawer().draw("cunt", currentProgram);
         } catch (CompilationException e) {
             List<Error> errors = bantamErrorHandler.getErrorList();
             StringBuilder toDisplay = new StringBuilder("Errors occurred while checking code:\n");

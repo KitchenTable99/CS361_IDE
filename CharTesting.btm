@@ -7,7 +7,7 @@ class Bantam {
 
         // these don't
         char c = "b";
-        char b  = '';
-        char d = 'ab';
+        //char b  = '';
+        //char d = 'ab';
     }
 }
