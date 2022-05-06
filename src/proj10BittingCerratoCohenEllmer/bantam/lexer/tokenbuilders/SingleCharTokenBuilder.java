@@ -3,7 +3,7 @@
  * Author: cbitting
  * Date: 4/8/2021
  */
-package proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
+package proj10BittingCerratoCohenEllmer.bantam.lexer.tokenbuilders;
 
 import proj10BittingCerratoCohenEllmer.bantam.lexer.Token;
 

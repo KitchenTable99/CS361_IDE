@@ -5,7 +5,7 @@
  */
 package proj10BittingCerratoCohenEllmer.bantam.lexer;
 
-import proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens.*;
+import proj10BittingCerratoCohenEllmer.bantam.lexer.tokenbuilders.*;
 import proj10BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj10BittingCerratoCohenEllmer.bantam.util.Error;
 import proj10BittingCerratoCohenEllmer.bantam.util.ErrorHandler;

@@ -62,29 +62,44 @@ public class Parser {
     // If so, fetches the next token.
     // If not, reports a syntactic bantam.error.
 
+    public static void main(String[] args) {
+        ErrorHandler errorHandler = new ErrorHandler();
+        Parser parser = new Parser(errorHandler);
+
+        args = new String[]{"HelloWorld"};
+
+        for (String inFile : args) {
+            System.out.println("\n========== Results for " + inFile + " =============");
+            try {
+                errorHandler.clear();
+                Program program = parser.parse(inFile);
+                System.out.println("  Parsing was successful.");
+                new Drawer().draw(inFile, program);
+            } catch (CompilationException ex) {
+                System.out.println("  There were errors:");
+                List<Error> errors = errorHandler.getErrorList();
+                for (Error error : errors) {
+                    System.out.println("\t" + error.toString());
+                }
+            }
+        }
+    }
+
     private void advanceIfTokenMatches(Token.Kind tokenKindExpected) {
         if (currentToken.kind == COMMENT) {
             advance();
         }
         if (currentToken.kind == tokenKindExpected) {
             advance(); // move on to the next token
-        } else if (currentToken.kind == VAR && tokenKindExpected == IDENTIFIER){
+        } else if (currentToken.kind == VAR && tokenKindExpected == IDENTIFIER) {
             advance(); // if we are expecting an Identifier and Get a Var, this is just a type declaration
-                       // and we can continue parsing without issue, we pass any issues on to the semantic
-                       // analyzer
-        }else {
+            // and we can continue parsing without issue, we pass any issues on to the semantic
+            // analyzer
+        } else {
             reportSyntacticError(currentToken.position, tokenKindExpected.name(),
-                    currentToken.spelling);
+                    currentToken.getSpelling());
         }
     }
-
-    // unconditionally fetch the next token
-    private void advance() {
-        do {
-            currentToken = scanner.scan();
-        } while (currentToken.kind == COMMENT);
-    }
-
 
     //----------------------------------
     //register a SyntaxError and throw a CompilationException to exit from parsing
@@ -818,13 +833,18 @@ public class Parser {
         return op;
     }
 
+    // unconditionally fetch the next token
+    private void advance() {
+        do {
+            currentToken = scanner.scan();
+        } while (currentToken.kind == COMMENT);
+    }
 
     private String parseIdentifier() {
         String name = currentToken.getSpelling();
         advanceIfTokenMatches(IDENTIFIER);
         return name;
     }
-
 
     private ConstStringExpr parseStringConst() {
         int position = currentToken.position;
@@ -833,20 +853,19 @@ public class Parser {
         return new ConstStringExpr(position, spelling);
     }
 
-    private ConstChrExpr parseChrConst(){
+    private ConstChrExpr parseChrConst() {
         int position = currentToken.position;
         String spelling = currentToken.spelling;
         advanceIfTokenMatches(CHRCONST);
         return new ConstChrExpr(position, spelling);
     }
 
-    private ConstDblExpr parseDblConst(){
+    private ConstDblExpr parseDblConst() {
         int position = currentToken.position;
         String spelling = currentToken.spelling;
         advanceIfTokenMatches(DBLCONST);
         return new ConstDblExpr(position, spelling);
     }
-
 
     private ConstIntExpr parseIntConst() {
         int position = currentToken.position;
@@ -855,37 +874,11 @@ public class Parser {
         return new ConstIntExpr(position, spelling);
     }
 
-
     private ConstBooleanExpr parseBoolean() {
         int position = currentToken.position;
         String spelling = currentToken.spelling;
         advanceIfTokenMatches(BOOLEAN);
         return new ConstBooleanExpr(position, spelling);
-    }
-
-
-    public static void main(String[] args) {
-        ErrorHandler errorHandler = new ErrorHandler();
-        Parser parser = new Parser(errorHandler);
-
-        args = new String[]{"HelloWorld"};
-
-        for (String inFile : args) {
-            System.out.println("\n========== Results for " + inFile + " =============");
-            try {
-                errorHandler.clear();
-                Program program = parser.parse(inFile);
-                System.out.println("  Parsing was successful.");
-                new Drawer().draw(inFile, program);
-            } catch (CompilationException ex) {
-                System.out.println("  There were errors:");
-                List<Error> errors = errorHandler.getErrorList();
-                for (Error error : errors) {
-                    System.out.println("\t" + error.toString());
-                }
-            }
-        }
-
     }
 
 }
