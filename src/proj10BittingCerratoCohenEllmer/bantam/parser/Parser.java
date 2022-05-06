@@ -69,7 +69,9 @@ public class Parser {
         if (currentToken.kind == tokenKindExpected) {
             advance(); // move on to the next token
         } else if (currentToken.kind == VAR && tokenKindExpected == IDENTIFIER){
-            advance(); // if we are expecting  an Identifier and get a var, we are still okay
+            advance(); // if we are expecting an Identifier and Get a Var, this is just a type declaration
+                       // and we can continue parsing without issue, we pass any issues on to the semantic
+                       // analyzer
         }else {
             reportSyntacticError(currentToken.position, tokenKindExpected.name(),
                     currentToken.spelling);
