@@ -3,7 +3,7 @@
  * Author: cbitting, matt cerrato
  * Date: 5/5/2022
  */
-package proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
+package proj10BittingCerratoCohenEllmer.bantam.lexer.tokenbuilders;
 
 import proj10BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj10BittingCerratoCohenEllmer.bantam.util.Error;
@@ -17,8 +17,8 @@ import java.util.Stack;
  */
 public class NumberTokenBuilder extends TokenBuilder {
 
-    private boolean isDouble = false;
     private final List<Character> validDoubleChars = List.of('d', 'e', 'E', 'f', '+', '-', '.');
+    private boolean isDouble = false;
 
     public NumberTokenBuilder(Stack<Character> sc, int n, String s) {
         super(sc, n, s);
@@ -45,24 +45,30 @@ public class NumberTokenBuilder extends TokenBuilder {
             throw new MalformedSpellingStackException("You need to pop the stack first");
         }
 
+        return new Token(getTokenKind(currentLineNumber), makeStackString(false),
+                currentLineNumber);
+    }
 
-        Token.Kind tokenKind;
+    private Token.Kind getTokenKind(int currentLineNumber) {
         String stackString = makeStackString(true);
         try {
             if (isDouble) {
                 Double.parseDouble(stackString);
-                tokenKind = Token.Kind.DBLCONST;
+                return Token.Kind.DBLCONST;
             } else {
                 Integer.parseInt(stackString);
-                tokenKind = Token.Kind.INTCONST;
+                return Token.Kind.INTCONST;
             }
         } catch (NumberFormatException e) {
-            tokenKind = Token.Kind.ERROR;
-            tokenError.add(new Error(Error.Kind.LEX_ERROR, filename,
-                    currentLineNumber,
-                    "Number constant not valid"));
+            if (isDouble) {
+                tokenErrors.add(new Error(Error.Kind.LEX_ERROR, filename,
+                        currentLineNumber,
+                        "Number constant not valid"));
+                return Token.Kind.ERROR;
+            } else {
+                isDouble = true;
+                return getTokenKind(currentLineNumber);
+            }
         }
-
-        return new Token(tokenKind, stackString, currentLineNumber);
     }
 }

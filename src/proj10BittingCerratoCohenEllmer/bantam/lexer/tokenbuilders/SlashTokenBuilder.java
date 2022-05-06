@@ -3,7 +3,7 @@
  * Author: cbitting
  * Date: 4/8/2021
  */
-package proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
+package proj10BittingCerratoCohenEllmer.bantam.lexer.tokenbuilders;
 
 import proj10BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj10BittingCerratoCohenEllmer.bantam.util.Error;
@@ -56,7 +56,7 @@ public class SlashTokenBuilder extends TokenBuilder {
             containsCompleteToken = true;
         } else {
             if (lastChar == '\u0000') {
-                tokenError.add(new Error(Error.Kind.LEX_ERROR,
+                tokenErrors.add(new Error(Error.Kind.LEX_ERROR,
                         filename,
                         startingLineNumber,
                         "Unterminated Block Comment!"));
@@ -76,7 +76,7 @@ public class SlashTokenBuilder extends TokenBuilder {
         }
 
         Token.Kind tokenKind;
-        if (tokenError.size() != 0) {
+        if (tokenErrors.size() != 0) {
             tokenKind = Token.Kind.ERROR;
         } else if (isComment) {
             tokenKind = Token.Kind.COMMENT;

@@ -11,8 +11,8 @@ class Bantam {
         double g = 2147483648; // one more than Integer.MAX_VALUE
 
         // these don't
-        double h = 1.2.4;
-        double i = 3f9;
+        //double h = 1.2.4;
+        //double i = 3f9;
 	double j = 3F;
     }
 }

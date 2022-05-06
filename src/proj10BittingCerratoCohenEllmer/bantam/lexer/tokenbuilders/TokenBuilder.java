@@ -3,7 +3,7 @@
  * Author: cbitting
  * Date: 4/8/2021
  */
-package proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
+package proj10BittingCerratoCohenEllmer.bantam.lexer.tokenbuilders;
 
 import proj10BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj10BittingCerratoCohenEllmer.bantam.util.Error;
@@ -35,7 +35,7 @@ public abstract class TokenBuilder {
     /**
      * A list of error objects that occurred during the lexing of this token.
      */
-    protected List<Error> tokenError = new ArrayList<>();
+    protected List<Error> tokenErrors = new ArrayList<>();
 
     /**
      * The line number that this token started on. Used to detect multiline strings.
@@ -85,8 +85,8 @@ public abstract class TokenBuilder {
      * @return Optional wrapped list of Error objects.
      */
     public Optional<List<Error>> getErrors() {
-        if (tokenError.size() != 0) {
-            return Optional.of(tokenError);
+        if (tokenErrors.size() != 0) {
+            return Optional.of(tokenErrors);
         } else {
             return Optional.empty();
         }

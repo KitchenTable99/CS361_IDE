@@ -3,7 +3,7 @@
  * Author: cbitting
  * Date: 4/8/2021
  */
-package proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
+package proj10BittingCerratoCohenEllmer.bantam.lexer.tokenbuilders;
 
 import proj10BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj10BittingCerratoCohenEllmer.bantam.util.Error;
@@ -44,7 +44,7 @@ public class StringTokenBuilder extends TokenBuilder {
             }
             // check if EOF to find unterminated string
             if (c == '\u0000') {
-                tokenError.add(new Error(Error.Kind.LEX_ERROR,
+                tokenErrors.add(new Error(Error.Kind.LEX_ERROR,
                         filename,
                         startingLineNumber,
                         "Unterminated String Constant!"));
@@ -52,7 +52,7 @@ public class StringTokenBuilder extends TokenBuilder {
             }
             // make sure the escaped character is valid
             if (charIsEscaped() && !validEscapedCharacter.contains(c)) {
-                tokenError.add(new Error(Error.Kind.LEX_ERROR,
+                tokenErrors.add(new Error(Error.Kind.LEX_ERROR,
                         filename,
                         startingLineNumber,
                         "Invalid Escaped Character \\" + spellingStack.peek() + "!"));
@@ -73,20 +73,20 @@ public class StringTokenBuilder extends TokenBuilder {
     @Override
     public Token getFinalToken(int currentLineNumber) {
         if (startingLineNumber != currentLineNumber) {
-            tokenError.add(new Error(Error.Kind.LEX_ERROR,
+            tokenErrors.add(new Error(Error.Kind.LEX_ERROR,
                     filename,
                     currentLineNumber,
                     "Multiline String found! Starting @ line: " + startingLineNumber));
         }
         if (spellingStack.size() > 5000) {
-            tokenError.add(new Error(Error.Kind.LEX_ERROR,
+            tokenErrors.add(new Error(Error.Kind.LEX_ERROR,
                     filename,
                     startingLineNumber,
                     "String Exceeds 5000 Characters!"));
         }
 
         Token.Kind tokenKind;
-        if (tokenError.size() != 0) {
+        if (tokenErrors.size() != 0) {
             tokenKind = Token.Kind.ERROR;
         } else {
             tokenKind = Token.Kind.STRCONST;

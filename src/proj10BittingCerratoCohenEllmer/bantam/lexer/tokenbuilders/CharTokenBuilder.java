@@ -3,7 +3,7 @@
  * Author: cbitting
  * Date: 4/8/2021
  */
-package proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
+package proj10BittingCerratoCohenEllmer.bantam.lexer.tokenbuilders;
 
 import proj10BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj10BittingCerratoCohenEllmer.bantam.util.Error;
@@ -32,7 +32,7 @@ public class CharTokenBuilder extends TokenBuilder {
     public Token getFinalToken(int currentLineNumber) {
         Token.Kind tokenKind;
         if (spellingStack.size() != 3) {
-            tokenError.add(new Error(Error.Kind.LEX_ERROR, filename,
+            tokenErrors.add(new Error(Error.Kind.LEX_ERROR, filename,
                     currentLineNumber,
                     "Char constant too large! A char is a single character"));
             tokenKind = Token.Kind.ERROR;

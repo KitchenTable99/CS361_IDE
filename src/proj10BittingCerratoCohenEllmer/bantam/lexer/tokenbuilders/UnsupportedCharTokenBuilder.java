@@ -4,7 +4,7 @@
  * modified: ecohen
  * Date: 4/14/2021
  */
-package proj10BittingCerratoCohenEllmer.bantam.lexer.precusortokens;
+package proj10BittingCerratoCohenEllmer.bantam.lexer.tokenbuilders;
 
 import proj10BittingCerratoCohenEllmer.bantam.lexer.Token;
 import proj10BittingCerratoCohenEllmer.bantam.util.Error;
@@ -28,7 +28,7 @@ public class UnsupportedCharTokenBuilder extends TokenBuilder {
 
     @Override
     public Token getFinalToken(int currentLineNumber) {
-        tokenError.add(new Error(Error.Kind.LEX_ERROR, filename,
+        tokenErrors.add(new Error(Error.Kind.LEX_ERROR, filename,
                 currentLineNumber,
                 "Unsupported Character : " + Character.getNumericValue(spellingStack.peek())));
         return new Token(Token.Kind.ERROR, makeStackString(false), currentLineNumber);
