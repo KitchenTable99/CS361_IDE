@@ -223,7 +223,6 @@ public class Parser {
                 advance();
                 init = parseExpression();
             }
-
             advanceIfTokenMatches(SEMICOLON);
 
             return new Field(position, type, id, init);
@@ -327,6 +326,7 @@ public class Parser {
     private ExprStmt parseExpressionStmt() {
         int position = currentToken.position;
         Expr expr = parseExpression();
+        System.out.println("xprstmt");
         advanceIfTokenMatches(SEMICOLON);
         return new ExprStmt(position, expr);
     }
