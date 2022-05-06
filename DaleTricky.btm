@@ -3,6 +3,5 @@ class Main{
     void main() {
         var s = 5;
         x = (int) s;
-        
     }
 }

@@ -326,7 +326,6 @@ public class Parser {
     private ExprStmt parseExpressionStmt() {
         int position = currentToken.position;
         Expr expr = parseExpression();
-        System.out.println("xprstmt");
         advanceIfTokenMatches(SEMICOLON);
         return new ExprStmt(position, expr);
     }
@@ -439,7 +438,6 @@ public class Parser {
     private Expr parseExpression() {
         Expr result;
         int position = currentToken.position;
-
         result = parseOrExpr();
         if (currentToken.kind == ASSIGN && result instanceof VarExpr) {
             advance();
@@ -454,7 +452,6 @@ public class Parser {
                     ((VarExpr) lhs.getRef()).getName());
             result = new AssignExpr(position, lhsRefName, lhsName, right);
         }
-
         return result;
     }
 
@@ -610,7 +607,7 @@ public class Parser {
             case NEW:
                 result = parseNew();
                 break;
-            case CAST:
+            case LPAREN:
                 result = parseCast();
                 break;
             default:
@@ -631,7 +628,7 @@ public class Parser {
         return new NewExpr(position, type);
     }
 
-    //<CastExpression>::= ( <Type> , <Expression> )
+    //<CastExpression>::= (<Type>) <Expression> 
     private Expr parseCast() {
 
         Expr castExpression;
