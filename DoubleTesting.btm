@@ -1,0 +1,18 @@
+class Bantam {
+    double g;
+
+    void main() {
+        // these work
+        double a = 3.14;
+        double b = 3f;
+        double d = 1e8;
+        double e = 1E8;
+        double f = 8d;
+        double g = 2147483648; // one more than Integer.MAX_VALUE
+
+        // these don't
+        double h = 1.2.4;
+        double i = 3f9;
+	double j = 3F;
+    }
+}

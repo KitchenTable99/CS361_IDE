@@ -253,7 +253,7 @@ public class MasterController {
 
     /**
      * Handles menu bar item Save as....  a dialog appears in which the user is asked for
-     * to save a file with four permitted extensions: .java, .txt, .fxml, and .css.
+     * to save a file with four permitted extensions: .btm, .java
      *
      * @throws SaveFailureException if the file cannot be saved
      */
@@ -262,10 +262,8 @@ public class MasterController {
         // create a new fileChooser
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Java Files", "*.java"),
-                new FileChooser.ExtensionFilter("Text Files", "*.txt"),
-                new FileChooser.ExtensionFilter("FXML Files", "*.fxml"),
-                new FileChooser.ExtensionFilter("CSS Files", "*.css"));
+                new FileChooser.ExtensionFilter("Bantam Java Files", "*.btm"),
+                new FileChooser.ExtensionFilter("Java Files", "*.java"));
         File fileToSave = fileChooser.showSaveDialog(tabPane.getScene().getWindow());
         // if user did not choose CANCEL
         if (fileToSave != null) {
@@ -454,17 +452,15 @@ public class MasterController {
     }
 
     /**
-     * Asks user to choose a file. Acceptable extensions are .java, .txt, .fxml, and .css
+     * Asks user to choose a file. Acceptable extensions are .btm and .java
      * Creates a new tab and dumps the contents of the selected file into the editor.
      */
     public void openFile() {
         // create a new file chooser
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Java Files", "*.java"),
-                new FileChooser.ExtensionFilter("Text Files", "*.txt"),
-                new FileChooser.ExtensionFilter("FXML Files", "*.fxml"),
-                new FileChooser.ExtensionFilter("CSS Files", "*.css"));
+                new FileChooser.ExtensionFilter("Bantam Java Files", "*.btm"),
+                new FileChooser.ExtensionFilter("Java Files", "*.java"));
         File selectedFile = fileChooser.showOpenDialog(tabPane.getScene().getWindow());
 
         // if user selects a file (instead of pressing cancel button

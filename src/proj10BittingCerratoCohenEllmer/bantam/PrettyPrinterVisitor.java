@@ -420,6 +420,8 @@ public class PrettyPrinterVisitor extends Visitor {
         Desktop desk = Desktop.getDesktop();
         try {
             desk.browse(new URI("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+            System.out.println("Note: This pretty printer was written by Andy and crew then" +
+                    " inserted into our project just to obfuscate the Rick Roll");
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }
