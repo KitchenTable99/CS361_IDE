@@ -610,18 +610,15 @@ public class Parser {
         return new NewExpr(position, type);
     }
 
-    //<CastExpression>::= CAST ( <Type> , <Expression> )
+    //<CastExpression>::= ( <Type> , <Expression> )
     private Expr parseCast() {
 
         Expr castExpression;
         int position = currentToken.position;
-        advance();
-
-        advanceIfTokenMatches(LPAREN);
-        String type = parseType();
-        advanceIfTokenMatches(COMMA);
-        Expr expression = parseExpression();
+        advance(); // move from '(' to type
+        String type = parseType(); // should end with ')'
         advanceIfTokenMatches(RPAREN);
+        Expr expression = parseExpression(); // Expression to re-type
 
         castExpression = new CastExpr(position, type, expression);
         return castExpression;
