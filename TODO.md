@@ -2,11 +2,7 @@
 
 ## General Project 10 Shit
 
-* Update keyword highlighting in the IDE
-* ~~Replace "Compile" and "Compile & Run" with "Check"~~
-    * ~~**NB:** This will require the Project 6 refactor to have already happened~~
-
-## Increase Bantam Java Syntax
+## Increase Bantam Java Syntax ✅
 
 * ~~Variable type declaration~~
     * ~~Scanner~~
