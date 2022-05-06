@@ -5,6 +5,8 @@ import proj10BittingCerratoCohenEllmer.bantam.parser.Parser;
 import proj10BittingCerratoCohenEllmer.bantam.treedrawer.Drawer;
 import proj10BittingCerratoCohenEllmer.bantam.util.CompilationException;
 import proj10BittingCerratoCohenEllmer.bantam.util.ErrorHandler;
+import proj10BittingCerratoCohenEllmer.bantam.util.Error;
+import proj10BittingCerratoCohenEllmer.bantam.semant.SemanticAnalyzer;
 
 public class Main {
     /**
@@ -19,6 +21,7 @@ public class Main {
             Parser bantamParser;
             ErrorHandler bantamErrorHandler;
             Program currentProgram;
+            SemanticAnalyzer semanticAnalyzer;
             // scan each file
             for(String filename : args){
                 //System.out.println(filename);
@@ -29,6 +32,8 @@ public class Main {
                     bantamErrorHandler = new ErrorHandler();
                     bantamParser = new Parser(bantamErrorHandler);
                     currentProgram = bantamParser.parse(filename);
+                    semanticAnalyzer = new SemanticAnalyzer(bantamErrorHandler);
+                    semanticAnalyzer.analyze(currentProgram);
                     
                     // Check Scanner's Error Handler
                     if (bantamErrorHandler.errorsFound()){
@@ -37,9 +42,9 @@ public class Main {
                             "*** " + filename + " had " 
                                 + errorCount + " errors! ***");
                         // (cmd + /) uncomment to view individual errors
-                        // for (Error error : bantamErrorHandler.getErrorList()) {
-                        //     System.out.println(error);
-                        // }
+                        for (Error error : bantamErrorHandler.getErrorList()) {
+                            System.out.println(error);
+                        }
                     }else{
                         System.out.println(
                             "*** Scanning file " + filename 

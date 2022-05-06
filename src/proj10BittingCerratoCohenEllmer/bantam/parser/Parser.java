@@ -68,7 +68,11 @@ public class Parser {
         }
         if (currentToken.kind == tokenKindExpected) {
             advance(); // move on to the next token
-        } else {
+        } else if (currentToken.kind == VAR && tokenKindExpected == IDENTIFIER){
+            advance(); // if we are expecting an Identifier and Get a Var, this is just a type declaration
+                       // and we can continue parsing without issue, we pass any issues on to the semantic
+                       // analyzer
+        }else {
             reportSyntacticError(currentToken.position, tokenKindExpected.name(),
                     currentToken.spelling);
         }
@@ -92,7 +96,7 @@ public class Parser {
         errorHandler.register(Error.Kind.PARSE_ERROR, scanner.getFilename(), position,
                 message);
         // exit immediately because the parser can't continue
-        throw new CompilationException("Parser error found.", new Throwable());
+        throw new CompilationException(message, new Throwable());
     }
 
     /**
@@ -318,7 +322,8 @@ public class Parser {
     private Stmt parseDeclStmt() {
 
         int position = currentToken.position;
-        Stmt stmt;
+        DeclStmt stmt;
+        String type = currentToken.spelling;
         advance(); // the keyword var
 
         String id = parseIdentifier();
@@ -326,6 +331,7 @@ public class Parser {
         Expr value = parseExpression();
 
         stmt = new DeclStmt(position, id, value);
+        stmt.setType(type);
         advanceIfTokenMatches(SEMICOLON);
 
         return stmt;
