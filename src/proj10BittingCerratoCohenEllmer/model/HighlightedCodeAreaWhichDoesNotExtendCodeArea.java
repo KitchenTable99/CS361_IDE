@@ -34,17 +34,9 @@ public class HighlightedCodeAreaWhichDoesNotExtendCodeArea {
 
     // added new keyword "var"
     private static final String[] KEYWORDS = new String[] {
-            "abstract", "assert", "boolean", "break", "byte",
-            "case", "catch", "char", "class", "const",
-            "continue", "default", "do", "double", "else",
-            "enum", "extends", "final", "finally", "float",
-            "for", "goto", "if", "implements", "import",
-            "instanceof", "int", "interface", "long", "native",
-            "new", "package", "private", "protected", "public",
-            "return", "short", "static", "strictfp", "super",
-            "switch", "synchronized", "this", "throw", "throws",
-            "transient", "try", "void", "volatile", "while", "var"
-    };
+            "boolean", "break", "char", "class", "continue", "double", "else",
+            "extends", "for", "if", "import", "instanceof", "int", "new",
+            "return", "super", "this", "throw", "throws", "void", "while", "var" };
 
     private static final String KEYWORD_PATTERN = "\\b("
             + String.join("|", KEYWORDS) + ")\\b";
